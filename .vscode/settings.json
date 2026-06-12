@@ -1,0 +1,6 @@
+{
+  "window.title": "📒 DSA Case Law Tracker - ${activeEditorShort}",
+  "githubPullRequests.ignoredPullRequestBranches": [
+    "master"
+  ]
+}
