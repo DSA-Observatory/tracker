@@ -2,6 +2,7 @@
 	import FeedbackButton from '$lib/components/ui/feedback/FeedbackButton.svelte';
 	import Login from '$lib/components/ui/Login/LoginButton.svelte';
 	import Search from '$lib/components/Search.svelte';
+	import { base } from '$app/paths';
 	import { toggleMenu } from '$lib/stores/menu.store';
 	import IconamoonMenuBurgerHorizontalBold from '~icons/iconamoon/menu-burger-horizontal-bold';
 	import menuItems from '$lib/models/menu-itmes';
@@ -29,7 +30,7 @@
 			>
 				<IconamoonMenuBurgerHorizontalBold class="size-6" />
 			</button>
-			<a class="no-drag mr-3 flex flex-initial shrink-0 items-center gap-2 select-none" href="/">
+			<a class="no-drag mr-3 flex flex-initial shrink-0 items-center gap-2 select-none" href="{base}/">
 				<span
 					class="grid size-9 place-items-center rounded-xl bg-primary text-sm font-black tracking-tight text-primary-content"
 					aria-hidden="true"
@@ -55,7 +56,7 @@
 						class="menu-link"
 						onclick={() => (activeCategory = link.title)}
 						class:active={activeCategory === link.title}
-						href={link.path}
+						href="{base}{link.path}"
 					>
 						{link.displayTitle}
 					</a>
