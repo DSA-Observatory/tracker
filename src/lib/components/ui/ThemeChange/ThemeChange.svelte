@@ -7,6 +7,7 @@
 	export { className as class };
 
 	const themes_data: Theme[] = themes;
+	const defaultTheme = 'bumblebee';
 
 	function setTheme(themeId: string) {
 		document.documentElement.setAttribute('data-theme', themeId);
@@ -14,10 +15,7 @@
 	}
 
 	onMount(() => {
-		const savedTheme = localStorage.getItem('theme');
-		if (savedTheme) {
-			setTheme(savedTheme);
-		}
+		setTheme(localStorage.getItem('theme') || defaultTheme);
 	});
 </script>
 
