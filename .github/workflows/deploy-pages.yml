@@ -31,11 +31,13 @@ jobs:
       - name: Build static site
         env:
           BASE_PATH: ${{ vars.BASE_PATH || format('/{0}', github.event.repository.name) }}
-          PUBLIC_POCKETBASE_URL: ${{ vars.PUBLIC_POCKETBASE_URL }}
+          PUBLIC_POCKETBASE_URL: ${{ vars.PUBLIC_POCKETBASE_URL || 'https://casetracker.ctwhome.com' }}
         run: bun run build
 
-      - name: Disable Jekyll
-        run: touch build/.nojekyll
+      - name: Prepare GitHub Pages artifact
+        run: |
+          cp build/index.html build/404.html
+          touch build/.nojekyll
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
