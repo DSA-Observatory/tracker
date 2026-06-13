@@ -167,6 +167,21 @@ Important values:
 
 Change default credentials immediately after first login.
 
+## GitHub Pages Deployment
+
+The frontend can be deployed as a static site to GitHub Pages. The workflow in `.github/workflows/deploy-pages.yml` builds the SvelteKit static output and publishes the `build/` directory.
+
+For a normal project page, the workflow defaults `BASE_PATH` to `/<repository-name>`. For this repository, that means `/tracker`.
+
+Set these repository variables in GitHub if needed:
+
+| Variable                | Purpose                                                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `BASE_PATH`             | Override the GitHub Pages base path. Use an empty/custom-domain setup only if the site is served from the domain root. |
+| `PUBLIC_POCKETBASE_URL` | Public URL of the deployed PocketBase backend. GitHub Pages only hosts the frontend.                                   |
+
+The current public landing pages can deploy without a live PocketBase backend, but auth, admin-backed case data, submissions, and future tracker data need PocketBase hosted separately.
+
 ## Extracted Source Material
 
 This README consolidates information from the project notes and supporting documents in:
