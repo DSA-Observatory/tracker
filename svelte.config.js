@@ -16,6 +16,9 @@ const config = {
 		})
 	],
 	kit: {
+		paths: {
+			base: process.env.BASE_PATH || ''
+		},
 		// Static adapter for client-side only app
 		adapter: adapter({
 			pages: 'build',
