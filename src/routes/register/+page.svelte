@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { authStore } from '$lib/database';
+	import { base } from '$app/paths';
 	import { goto } from '$app/navigation';
 
 	let email = $state('');
@@ -30,7 +31,7 @@
 		try {
 			await authStore.register(email, password, passwordConfirm);
 			// Force full page reload to ensure server picks up the cookie
-			window.location.href = '/';
+			window.location.href = `${base}/`;
 		} catch (err: any) {
 			error = err.message || 'Failed to register';
 			console.error('Registration error:', err);
@@ -106,7 +107,7 @@
 
 			<p class="mt-4 text-center text-sm text-base-content/70">
 				Already have an account?
-				<a href="/" class="font-medium text-primary hover:text-primary-focus">
+				<a href="{base}/" class="font-medium text-primary hover:text-primary-focus">
 					Login
 				</a>
 			</p>

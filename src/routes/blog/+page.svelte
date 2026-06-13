@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { pb, type Post } from '$lib/database';
+	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
 	import Search from '$lib/components/Search.svelte';
 
@@ -30,7 +31,7 @@
 				<p class="mt-2 text-base-content/70">Read our latest posts</p>
 			</div>
 			<a
-				href="/"
+				href="{base}/"
 				class="rounded-lg bg-neutral px-4 py-2 text-sm font-medium text-neutral-content hover:bg-neutral-focus"
 			>
 				← Todos
@@ -58,7 +59,7 @@
 		<div class="space-y-6">
 			{#each posts as post (post.id)}
 				<article class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm transition hover:shadow-md">
-					<a href="/blog/{post.id}" class="block">
+					<a href="{base}/blog/{post.id}" class="block">
 						<h2 class="text-2xl font-semibold text-base-content hover:text-primary transition">
 							{post.title}
 						</h2>
