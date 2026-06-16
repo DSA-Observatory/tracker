@@ -38,8 +38,8 @@
 				A public case law tracker for DSA litigation across EU Member States.
 			</h1>
 			<p class="mt-6 max-w-3xl text-lg leading-8 text-base-content/75">
-				The DSA Case Law Tracker is a public resource for IViR, the University of Amsterdam, and
-				the DSA Observatory. It helps researchers collect, structure, review, and publish private
+				The DSA Case Law Tracker is a public resource for IViR, the University of Amsterdam, and the
+				DSA Observatory. It helps researchers collect, structure, review, and publish private
 				enforcement cases while keeping the public site searchable, filterable, and easy to cite.
 			</p>
 		</div>
@@ -81,5 +81,4 @@
 	</section>
 
 	<CasesTable />
-
 </main>

@@ -23,7 +23,14 @@ export interface Post {
 	updated: string;
 }
 
-export type CaseStatus = 'draft' | 'review' | 'pending' | 'decided' | 'appealed' | 'closed' | 'published';
+export type CaseStatus =
+	| 'draft'
+	| 'review'
+	| 'pending'
+	| 'decided'
+	| 'appealed'
+	| 'closed'
+	| 'published';
 
 export interface CaseRecord {
 	id: string;
