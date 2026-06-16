@@ -186,15 +186,15 @@
 			<p class="text-sm font-semibold tracking-[0.25em] text-primary uppercase">Case database</p>
 			<h2 class="mt-3 text-3xl font-black">Search and maintain the tracker list.</h2>
 			<p class="mt-3 max-w-2xl text-base-content/70">
-				Published cases are public. Signed-in editors can create, update, and delete records directly in
-				this table.
+				Published cases are public. Signed-in editors can create, update, and delete records
+				directly in this table.
 			</p>
 		</div>
 		<a class="btn btn-outline" href="/login">Editor login</a>
 	</div>
 
 	<div class="mb-6 grid gap-3 md:grid-cols-[1fr_220px]">
-		<label class="input input-bordered flex items-center gap-2">
+		<label class="input-bordered input flex items-center gap-2">
 			<span class="text-base-content/50">Search</span>
 			<input
 				class="grow"
@@ -204,7 +204,7 @@
 				placeholder="Title, ECLI, court, jurisdiction, summary"
 			/>
 		</label>
-		<select class="select select-bordered w-full" bind:value={status} onchange={loadCases}>
+		<select class="select-bordered select w-full" bind:value={status} onchange={loadCases}>
 			<option value="">All statuses</option>
 			{#each statusOptions as option}
 				<option value={option}>{option}</option>
@@ -223,58 +223,74 @@
 			<div class="mb-4 flex items-center justify-between gap-3">
 				<h3 class="text-xl font-black">{editingId ? 'Edit case' : 'Create case'}</h3>
 				{#if editingId}
-					<button class="btn btn-ghost btn-sm" type="button" onclick={resetForm}>Cancel edit</button>
+					<button class="btn btn-ghost btn-sm" type="button" onclick={resetForm}>Cancel edit</button
+					>
 				{/if}
 			</div>
 
 			<div class="grid gap-3 md:grid-cols-3">
-				<input class="input input-bordered" bind:value={form.case_id} required placeholder="Case ID" />
 				<input
-					class="input input-bordered md:col-span-2"
+					class="input-bordered input"
+					bind:value={form.case_id}
+					required
+					placeholder="Case ID"
+				/>
+				<input
+					class="input-bordered input md:col-span-2"
 					bind:value={form.title}
 					required
 					placeholder="Case title"
 				/>
-				<input class="input input-bordered" bind:value={form.ecli} placeholder="ECLI or identifier" />
-				<input class="input input-bordered" bind:value={form.court} placeholder="Court" />
-				<input class="input input-bordered" bind:value={form.jurisdiction} placeholder="Jurisdiction" />
 				<input
-					class="input input-bordered"
+					class="input-bordered input"
+					bind:value={form.ecli}
+					placeholder="ECLI or identifier"
+				/>
+				<input class="input-bordered input" bind:value={form.court} placeholder="Court" />
+				<input
+					class="input-bordered input"
+					bind:value={form.jurisdiction}
+					placeholder="Jurisdiction"
+				/>
+				<input
+					class="input-bordered input"
 					bind:value={form.decision_date}
 					type="date"
 					aria-label="Decision date"
 				/>
-				<select class="select select-bordered" bind:value={form.status}>
+				<select class="select-bordered select" bind:value={form.status}>
 					{#each statusOptions as option}
 						<option value={option}>{option}</option>
 					{/each}
 				</select>
-				<label class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 px-4">
+				<label
+					class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 px-4"
+				>
 					<input class="checkbox checkbox-primary" type="checkbox" bind:checked={form.published} />
 					<span class="label-text">Published</span>
 				</label>
 				<input
-					class="input input-bordered"
+					class="input-bordered input"
 					bind:value={form.plaintiffs}
 					placeholder="Plaintiffs, comma separated"
 				/>
 				<input
-					class="input input-bordered"
+					class="input-bordered input"
 					bind:value={form.defendants}
 					placeholder="Defendants, comma separated"
 				/>
 				<input
-					class="input input-bordered"
+					class="input-bordered input"
 					bind:value={form.dsa_articles}
 					placeholder="DSA articles, comma separated"
 				/>
 				<input
-					class="input input-bordered md:col-span-3"
+					class="input-bordered input md:col-span-3"
 					bind:value={form.keywords}
 					placeholder="Keywords, comma separated"
 				/>
 				<textarea
-					class="textarea textarea-bordered md:col-span-3"
+					class="textarea-bordered textarea md:col-span-3"
 					bind:value={form.summary}
 					rows="3"
 					placeholder="Editorial summary"
@@ -294,7 +310,7 @@
 	{/if}
 
 	{#if error}
-		<div class="alert alert-error mb-5">{error}</div>
+		<div class="mb-5 alert alert-error">{error}</div>
 	{/if}
 
 	<div class="overflow-x-auto rounded-[2rem] border border-base-300 bg-base-100 shadow-sm">
@@ -336,7 +352,11 @@
 							<td><span class="badge badge-outline">{record.status}</span></td>
 							<td>{record.jurisdiction || '-'}</td>
 							<td>{record.court || '-'}</td>
-							<td>{record.decision_date ? new Date(record.decision_date).toLocaleDateString() : '-'}</td>
+							<td
+								>{record.decision_date
+									? new Date(record.decision_date).toLocaleDateString()
+									: '-'}</td
+							>
 							<td class="min-w-56">
 								<div class="flex flex-wrap gap-1">
 									{#each [...(record.dsa_articles ?? []), ...(record.keywords ?? [])].slice(0, 5) as tag}
@@ -347,11 +367,15 @@
 							{#if canWrite}
 								<td class="text-right">
 									<div class="join">
-										<button class="btn btn-sm join-item" type="button" onclick={() => editCase(record)}>
+										<button
+											class="btn join-item btn-sm"
+											type="button"
+											onclick={() => editCase(record)}
+										>
 											Edit
 										</button>
 										<button
-											class="btn btn-sm btn-error join-item"
+											class="btn join-item btn-sm btn-error"
 											type="button"
 											onclick={() => deleteCase(record)}
 										>
