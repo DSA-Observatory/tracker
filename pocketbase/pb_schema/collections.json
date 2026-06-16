@@ -37,11 +37,11 @@
         }
       }
     ],
-    "listRule": "id = @request.auth.id",
-    "viewRule": "id = @request.auth.id",
+    "listRule": "@request.auth.email = \"ctw@ctwhome.com\"",
+    "viewRule": "id = @request.auth.id || @request.auth.email = \"ctw@ctwhome.com\"",
     "createRule": "",
-    "updateRule": "id = @request.auth.id",
-    "deleteRule": "id = @request.auth.id",
+    "updateRule": "id = @request.auth.id || @request.auth.email = \"ctw@ctwhome.com\"",
+    "deleteRule": "id = @request.auth.id || @request.auth.email = \"ctw@ctwhome.com\"",
     "options": {
       "allowEmailAuth": true,
       "allowOAuth2Auth": false,

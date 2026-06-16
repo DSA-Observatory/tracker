@@ -14,7 +14,10 @@
 		"lint": "prettier --check . && eslint .",
 		"seed": "bun scripts/seed-data.ts",
 		"db:cases": "bun --env-file=.env scripts/apply-cases-collection.ts",
-		"db:cases:local": "POCKETBASE_TARGET_URL=http://localhost:8095 bun --env-file=.env scripts/apply-cases-collection.ts"
+		"db:cases:local": "POCKETBASE_TARGET_URL=http://localhost:8095 bun --env-file=.env scripts/apply-cases-collection.ts",
+		"normalize:cases": "python3 scripts/import-cases-xlsx.py",
+		"import:cases": "python3 scripts/import-cases-xlsx.py --apply",
+		"replace:cases": "python3 scripts/import-cases-xlsx.py --apply --replace-managed"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.1",
@@ -48,6 +51,7 @@
 		"vite-plugin-devtools-json": "^1.0.0"
 	},
 	"dependencies": {
+		"@floating-ui/dom": "^1.7.6",
 		"@tailwindcss/container-queries": "^0.1.1",
 		"daisyui": "^5.4.3",
 		"pocketbase": "^0.26.3",

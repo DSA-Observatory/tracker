@@ -1,13 +1,10 @@
 <script lang="ts">
-	import FeedbackButton from '$lib/components/ui/feedback/FeedbackButton.svelte';
 	import Login from '$lib/components/ui/Login/LoginButton.svelte';
 	import Search from '$lib/components/Search.svelte';
 	import { base } from '$app/paths';
 	import { toggleMenu } from '$lib/stores/menu.store';
 	import IconamoonMenuBurgerHorizontalBold from '~icons/iconamoon/menu-burger-horizontal-bold';
 	import menuItems from '$lib/models/menu-itmes';
-
-	import ThemeChange from '$lib/components/ui/ThemeChange/ThemeChange.svelte';
 
 	interface Props {
 		showSearch?: boolean;
@@ -62,9 +59,6 @@
 					</a>
 				{/each}
 			</div>
-
-			<FeedbackButton class="hidden sm:block" />
-			<ThemeChange class="z-50 ml-auto sm:ml-14 " />
 
 			<Login />
 		</header>

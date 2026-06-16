@@ -1,5 +1,6 @@
 import { pb } from '../client';
 import { browser } from '$app/environment';
+import { isAdminEmail } from '$lib/admin';
 
 interface User {
 	id: string;
@@ -13,20 +14,21 @@ interface User {
 class AuthStore {
 	user = $state<User | null>(null);
 	isAuthenticated = $derived(!!this.user);
+	isAdmin = $derived(isAdminEmail(this.user?.email));
 
 	constructor() {
 		if (browser) {
-			this.user = pb.authStore.model as User | null;
+			this.user = pb.authStore.model as unknown as User | null;
 
 			pb.authStore.onChange(() => {
-				this.user = pb.authStore.model as User | null;
+				this.user = pb.authStore.model as unknown as User | null;
 			});
 		}
 	}
 
 	async login(email: string, password: string) {
 		const authData = await pb.collection('users').authWithPassword(email, password);
-		this.user = authData.record as User;
+		this.user = authData.record as unknown as User;
 		return authData;
 	}
 
