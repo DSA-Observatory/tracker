@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
+	import FilterMenu, { type FilterOption } from '$lib/components/FilterMenu.svelte';
 	import { authStore, pb, type CaseRecord, type CaseStatus } from '$lib/database';
 
 	const statusOptions: CaseStatus[] = [
@@ -23,7 +23,35 @@
 		Poland: '🇵🇱',
 		Spain: '🇪🇸'
 	};
-	type FilterGroup = 'countries' | 'categories' | 'themes';
+	type FilterGroup =
+		| 'statuses'
+		| 'countries'
+		| 'categories'
+		| 'themes'
+		| 'articles'
+		| 'courts'
+		| 'parties'
+		| 'years';
+	type SearchScope =
+		| 'all'
+		| 'case'
+		| 'parties'
+		| 'legal'
+		| 'sources'
+		| 'timeline'
+		| 'primary'
+		| 'secondary';
+
+	const searchScopes: { value: SearchScope; label: string }[] = [
+		{ value: 'all', label: 'All fields' },
+		{ value: 'case', label: 'Case details' },
+		{ value: 'parties', label: 'Parties' },
+		{ value: 'legal', label: 'Legal tags' },
+		{ value: 'sources', label: 'Sources' },
+		{ value: 'timeline', label: 'Timeline' },
+		{ value: 'primary', label: 'Primary sources' },
+		{ value: 'secondary', label: 'Secondary sources' }
+	];
 
 	type CaseForm = {
 		case_id: string;
@@ -59,24 +87,15 @@
 
 	let cases = $state<CaseRecord[]>([]);
 	let search = $state(page.url.searchParams.get('q') ?? '');
-	let status = $state('');
+	let searchScope = $state<SearchScope>('all');
+	let statuses = $state<string[]>([]);
 	let countries = $state<string[]>([]);
 	let categories = $state<string[]>([]);
 	let themes = $state<string[]>([]);
-	let openFilter = $state<FilterGroup | null>(null);
-	let countryOptionSearch = $state('');
-	let categoryOptionSearch = $state('');
-	let themeOptionSearch = $state('');
-	let countryButton = $state<HTMLElement>();
-	let countryMenu = $state<HTMLElement>();
-	let categoryButton = $state<HTMLElement>();
-	let categoryMenu = $state<HTMLElement>();
-	let themeButton = $state<HTMLElement>();
-	let themeMenu = $state<HTMLElement>();
-	let countryMenuStyle = $state('');
-	let categoryMenuStyle = $state('');
-	let themeMenuStyle = $state('');
-	let cleanupFloating: (() => void) | undefined;
+	let articles = $state<string[]>([]);
+	let courts = $state<string[]>([]);
+	let parties = $state<string[]>([]);
+	let years = $state<string[]>([]);
 	let loading = $state(true);
 	let saving = $state(false);
 	let error = $state('');
@@ -85,12 +104,22 @@
 
 	const canWrite = $derived(authStore.isAuthenticated);
 	const selectedFilterCount = $derived(
-		countries.length + categories.length + themes.length + (status ? 1 : 0)
+		statuses.length +
+			countries.length +
+			categories.length +
+			themes.length +
+			articles.length +
+			courts.length +
+			parties.length +
+			years.length
 	);
+	const statusFilterOptions = $derived(buildOptions('statuses', statusOptions));
 	const availableCountries = $derived(uniqueSorted(cases.map((record) => record.jurisdiction)));
+	const countryFilterOptions = $derived(buildOptions('countries', availableCountries));
 	const availableCategories = $derived(
 		categoryOptions.filter((category) => cases.some((record) => hasKeyword(record, category)))
 	);
+	const categoryFilterOptions = $derived(buildOptions('categories', availableCategories));
 	const availableThemes = $derived(
 		uniqueSorted(
 			cases.flatMap((record) =>
@@ -98,10 +127,26 @@
 			)
 		)
 	);
-	const visibleCountries = $derived(filterOptions(availableCountries, countryOptionSearch));
-	const visibleCategories = $derived(filterOptions(availableCategories, categoryOptionSearch));
-	const visibleThemes = $derived(filterOptions(availableThemes, themeOptionSearch));
+	const themeFilterOptions = $derived(buildOptions('themes', availableThemes));
+	const articleFilterOptions = $derived(
+		buildOptions('articles', uniqueSorted(cases.flatMap((record) => record.dsa_articles ?? [])))
+	);
+	const courtFilterOptions = $derived(
+		buildOptions('courts', uniqueSorted(cases.map((record) => record.court)))
+	);
+	const partyFilterOptions = $derived(
+		buildOptions(
+			'parties',
+			uniqueSorted(
+				cases.flatMap((record) => [...(record.plaintiffs ?? []), ...(record.defendants ?? [])])
+			)
+		)
+	);
+	const yearFilterOptions = $derived(
+		buildOptions('years', uniqueSorted(cases.map((record) => getDecisionYear(record))))
+	);
 	const filteredCases = $derived(cases.filter((record) => matchesFilters(record)));
+	const activeChips = $derived(buildActiveChips());
 
 	const splitList = (value: string) =>
 		value
@@ -115,12 +160,6 @@
 		return [...new Set(values.map((value) => value?.trim()).filter(Boolean) as string[])].sort(
 			(a, b) => a.localeCompare(b)
 		);
-	}
-
-	function filterOptions(options: string[], query: string) {
-		const normalizedQuery = query.trim().toLowerCase();
-		if (!normalizedQuery) return options;
-		return options.filter((option) => option.toLowerCase().includes(normalizedQuery));
 	}
 
 	function hasKeyword(record: CaseRecord, value: string) {
@@ -139,20 +178,69 @@
 		return selected.length === 0 || values.some((value) => value && selected.includes(value));
 	}
 
-	function matchesSearch(record: CaseRecord) {
-		const query = search.trim().toLowerCase();
-		if (!query) return true;
+	function stripHtml(value?: string) {
+		return (value ?? '').replace(/<[^>]+>/g, ' ');
+	}
 
-		return [
+	function getSummarySection(record: CaseRecord, heading: string) {
+		const pattern = new RegExp(`<h3>\\s*${heading}\\s*<\\/h3>\\s*<p>(.*?)<\\/p>`, 'is');
+		const match = record.summary?.match(pattern);
+		return stripHtml(match?.[1]);
+	}
+
+	function getTimeline(record: CaseRecord) {
+		return getSummarySection(record, 'Case timeline');
+	}
+
+	function getPrimarySources(record: CaseRecord) {
+		return getSummarySection(record, 'Primary sources');
+	}
+
+	function getSecondarySources(record: CaseRecord) {
+		return getSummarySection(record, 'Secondary sources');
+	}
+
+	function getDecisionYear(record: CaseRecord) {
+		return record.decision_date
+			? new Date(record.decision_date).getFullYear().toString()
+			: undefined;
+	}
+
+	function getPartyValues(record: CaseRecord) {
+		return [...(record.plaintiffs ?? []), ...(record.defendants ?? [])];
+	}
+
+	function recordValuesForSearch(record: CaseRecord) {
+		const caseValues = [
 			record.case_id,
 			record.title,
 			record.ecli,
 			record.court,
-			record.jurisdiction,
-			record.summary,
-			...(record.keywords ?? []),
-			...(record.dsa_articles ?? [])
-		]
+			record.jurisdiction
+		];
+		const partyValues = getPartyValues(record);
+		const legalValues = [...(record.keywords ?? []), ...(record.dsa_articles ?? [])];
+		const sourceValues = [
+			stripHtml(record.summary),
+			record.commentary,
+			...(record.document_links ?? [])
+		];
+
+		if (searchScope === 'case') return caseValues;
+		if (searchScope === 'parties') return partyValues;
+		if (searchScope === 'legal') return legalValues;
+		if (searchScope === 'timeline') return [getTimeline(record)];
+		if (searchScope === 'primary') return [getPrimarySources(record)];
+		if (searchScope === 'secondary') return [getSecondarySources(record), record.commentary];
+		if (searchScope === 'sources') return sourceValues;
+		return [...caseValues, ...partyValues, ...legalValues, ...sourceValues];
+	}
+
+	function matchesSearch(record: CaseRecord) {
+		const query = search.trim().toLowerCase();
+		if (!query) return true;
+
+		return recordValuesForSearch(record)
 			.filter(Boolean)
 			.some((value) => String(value).toLowerCase().includes(query));
 	}
@@ -160,113 +248,101 @@
 	function matchesFilters(record: CaseRecord, ignoredGroup?: FilterGroup) {
 		return (
 			matchesSearch(record) &&
-			(!status || record.status === status) &&
+			(ignoredGroup === 'statuses' || matchesAny(statuses, [record.status])) &&
 			(ignoredGroup === 'countries' || matchesAny(countries, [record.jurisdiction])) &&
 			(ignoredGroup === 'categories' || matchesAny(categories, record.keywords ?? [])) &&
-			(ignoredGroup === 'themes' || matchesAny(themes, record.keywords ?? []))
+			(ignoredGroup === 'themes' || matchesAny(themes, record.keywords ?? [])) &&
+			(ignoredGroup === 'articles' || matchesAny(articles, record.dsa_articles ?? [])) &&
+			(ignoredGroup === 'courts' || matchesAny(courts, [record.court])) &&
+			(ignoredGroup === 'parties' || matchesAny(parties, getPartyValues(record))) &&
+			(ignoredGroup === 'years' || matchesAny(years, [getDecisionYear(record)]))
 		);
 	}
 
 	function optionCount(group: FilterGroup, option: string) {
 		return cases.filter((record) => {
 			if (!matchesFilters(record, group)) return false;
+			if (group === 'statuses') return record.status === option;
 			if (group === 'countries') return record.jurisdiction === option;
-			return hasKeyword(record, option);
+			if (group === 'categories' || group === 'themes') return hasKeyword(record, option);
+			if (group === 'articles') return (record.dsa_articles ?? []).includes(option);
+			if (group === 'courts') return record.court === option;
+			if (group === 'parties') return getPartyValues(record).includes(option);
+			return getDecisionYear(record) === option;
 		}).length;
 	}
 
-	function optionSelected(group: FilterGroup, option: string) {
-		if (group === 'countries') return countries.includes(option);
-		if (group === 'categories') return categories.includes(option);
-		return themes.includes(option);
+	function optionLabel(group: FilterGroup, option: string) {
+		return group === 'countries' ? countryLabel(option) : option;
+	}
+
+	function buildOptions(group: FilterGroup, options: string[]): FilterOption[] {
+		return options.map((option) => ({
+			value: option,
+			label: optionLabel(group, option),
+			count: optionCount(group, option)
+		}));
+	}
+
+	function selectedFor(group: FilterGroup) {
+		if (group === 'statuses') return statuses;
+		if (group === 'countries') return countries;
+		if (group === 'categories') return categories;
+		if (group === 'themes') return themes;
+		if (group === 'articles') return articles;
+		if (group === 'courts') return courts;
+		if (group === 'parties') return parties;
+		return years;
 	}
 
 	function toggleFilter(group: FilterGroup, value: string) {
-		const selected =
-			group === 'countries' ? countries : group === 'categories' ? categories : themes;
+		const selected = selectedFor(group);
 		const next = selected.includes(value)
 			? selected.filter((item) => item !== value)
 			: [...selected, value];
 
+		if (group === 'statuses') statuses = next;
 		if (group === 'countries') countries = next;
 		if (group === 'categories') categories = next;
 		if (group === 'themes') themes = next;
+		if (group === 'articles') articles = next;
+		if (group === 'courts') courts = next;
+		if (group === 'parties') parties = next;
+		if (group === 'years') years = next;
+	}
+
+	function buildActiveChips() {
+		const chips: { group: FilterGroup; value: string; label: string }[] = [];
+		const groups: FilterGroup[] = [
+			'statuses',
+			'countries',
+			'categories',
+			'themes',
+			'articles',
+			'courts',
+			'parties',
+			'years'
+		];
+
+		for (const group of groups) {
+			for (const value of selectedFor(group)) {
+				chips.push({ group, value, label: optionLabel(group, value) });
+			}
+		}
+
+		return chips;
 	}
 
 	function clearFilters() {
 		search = '';
-		status = '';
+		statuses = [];
 		countries = [];
 		categories = [];
 		themes = [];
-		countryOptionSearch = '';
-		categoryOptionSearch = '';
-		themeOptionSearch = '';
-	}
-
-	function getDropdownElements(group: FilterGroup) {
-		if (group === 'countries') return { button: countryButton, menu: countryMenu };
-		if (group === 'categories') return { button: categoryButton, menu: categoryMenu };
-		return { button: themeButton, menu: themeMenu };
-	}
-
-	function setMenuStyle(group: FilterGroup, style: string) {
-		if (group === 'countries') countryMenuStyle = style;
-		if (group === 'categories') categoryMenuStyle = style;
-		if (group === 'themes') themeMenuStyle = style;
-	}
-
-	async function updateFloatingPosition(group: FilterGroup) {
-		await tick();
-		const { button, menu } = getDropdownElements(group);
-		if (!button || !menu) return;
-
-		const { x, y } = await computePosition(button, menu, {
-			placement: 'bottom-start',
-			middleware: [offset(8), flip(), shift({ padding: 16 })],
-			strategy: 'fixed'
-		});
-
-		setMenuStyle(
-			group,
-			`position: fixed; left: ${x}px; top: ${y}px; width: ${Math.min(Math.max(button.offsetWidth, 320), window.innerWidth - 32)}px;`
-		);
-	}
-
-	async function toggleDropdown(group: FilterGroup) {
-		cleanupFloating?.();
-		cleanupFloating = undefined;
-
-		if (openFilter === group) {
-			openFilter = null;
-			return;
-		}
-
-		openFilter = group;
-		await updateFloatingPosition(group);
-
-		const { button, menu } = getDropdownElements(group);
-		if (button && menu) {
-			cleanupFloating = autoUpdate(button, menu, () => updateFloatingPosition(group));
-		}
-	}
-
-	function closeDropdown() {
-		cleanupFloating?.();
-		cleanupFloating = undefined;
-		openFilter = null;
-	}
-
-	function handleDocumentClick(event: MouseEvent) {
-		if (!openFilter) return;
-		const { button, menu } = getDropdownElements(openFilter);
-		const target = event.target as Node;
-		if (button?.contains(target) || menu?.contains(target)) return;
-		closeDropdown();
-	}
-
-	function handleDocumentKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') closeDropdown();
+		articles = [];
+		courts = [];
+		parties = [];
+		years = [];
 	}
 
 	async function loadCases() {
@@ -360,17 +436,7 @@
 		}
 	}
 
-	onMount(() => {
-		loadCases();
-		document.addEventListener('click', handleDocumentClick);
-		document.addEventListener('keydown', handleDocumentKeydown);
-
-		return () => {
-			document.removeEventListener('click', handleDocumentClick);
-			document.removeEventListener('keydown', handleDocumentKeydown);
-			cleanupFloating?.();
-		};
-	});
+	onMount(loadCases);
 </script>
 
 <section id="cases" class="container mx-auto max-w-7xl px-4 py-16">
@@ -392,13 +458,16 @@
 				class="grow"
 				type="search"
 				bind:value={search}
-				placeholder="Title, ECLI, court, jurisdiction, summary"
+				placeholder="Search cases, parties, articles, sources"
 			/>
 		</label>
-		<select class="select-bordered select w-full" bind:value={status}>
-			<option value="">All statuses</option>
-			{#each statusOptions as option}
-				<option value={option}>{option}</option>
+		<select
+			class="select-bordered select w-full"
+			bind:value={searchScope}
+			aria-label="Search scope"
+		>
+			{#each searchScopes as option}
+				<option value={option.value}>{option.label}</option>
 			{/each}
 		</select>
 	</div>
@@ -420,152 +489,79 @@
 			{/if}
 		</div>
 
-		<div class="grid gap-3 md:grid-cols-3">
-			<div class="w-full">
-				<button
-					bind:this={countryButton}
-					class="btn w-full justify-between btn-outline"
-					type="button"
-					aria-expanded={openFilter === 'countries'}
-					onclick={() => toggleDropdown('countries')}
-				>
-					Country
-					<span class="badge badge-primary">{countries.length || availableCountries.length}</span>
-				</button>
-				{#if openFilter === 'countries'}
-					<div
-						bind:this={countryMenu}
-						class="z-50 rounded-box border border-base-300 bg-base-100 p-2 shadow-xl"
-						style={countryMenuStyle}
-						role="menu"
-					>
-						<input
-							class="input-bordered input input-sm mb-2 w-full"
-							type="search"
-							bind:value={countryOptionSearch}
-							placeholder="Search countries"
-							aria-label="Search countries"
-						/>
-						<div class="max-h-64 overflow-y-auto">
-							{#each visibleCountries as option}
-								<label
-									class="label flex cursor-pointer justify-between gap-3 rounded-lg px-2 hover:bg-base-200"
-								>
-									<span class="flex min-w-0 items-center gap-3">
-										<input
-											class="checkbox checkbox-sm checkbox-primary"
-											type="checkbox"
-											checked={optionSelected('countries', option)}
-											onchange={() => toggleFilter('countries', option)}
-										/>
-										<span class="label-text flex min-w-0 items-center gap-2 whitespace-nowrap">
-											{#if countryFlag(option)}<span>{countryFlag(option)}</span>{/if}
-											<span class="truncate">{option}</span>
-										</span>
-									</span>
-									<span class="badge badge-ghost badge-sm">{optionCount('countries', option)}</span>
-								</label>
-							{/each}
-						</div>
-					</div>
-				{/if}
-			</div>
-
-			<div class="w-full">
-				<button
-					bind:this={categoryButton}
-					class="btn w-full justify-between btn-outline"
-					type="button"
-					aria-expanded={openFilter === 'categories'}
-					onclick={() => toggleDropdown('categories')}
-				>
-					Category
-					<span class="badge badge-primary">{categories.length || availableCategories.length}</span>
-				</button>
-				{#if openFilter === 'categories'}
-					<div
-						bind:this={categoryMenu}
-						class="z-50 rounded-box border border-base-300 bg-base-100 p-2 shadow-xl"
-						style={categoryMenuStyle}
-						role="menu"
-					>
-						<input
-							class="input-bordered input input-sm mb-2 w-full"
-							type="search"
-							bind:value={categoryOptionSearch}
-							placeholder="Search categories"
-							aria-label="Search categories"
-						/>
-						<div class="max-h-64 overflow-y-auto">
-							{#each visibleCategories as option}
-								<label
-									class="label flex cursor-pointer justify-between gap-3 rounded-lg px-2 hover:bg-base-200"
-								>
-									<span class="flex min-w-0 items-center gap-3">
-										<input
-											class="checkbox checkbox-sm checkbox-primary"
-											type="checkbox"
-											checked={optionSelected('categories', option)}
-											onchange={() => toggleFilter('categories', option)}
-										/>
-										<span class="label-text truncate">{option}</span>
-									</span>
-									<span class="badge badge-ghost badge-sm">{optionCount('categories', option)}</span
-									>
-								</label>
-							{/each}
-						</div>
-					</div>
-				{/if}
-			</div>
-
-			<div class="w-full">
-				<button
-					bind:this={themeButton}
-					class="btn w-full justify-between btn-outline"
-					type="button"
-					aria-expanded={openFilter === 'themes'}
-					onclick={() => toggleDropdown('themes')}
-				>
-					Theme
-					<span class="badge badge-primary">{themes.length || availableThemes.length}</span>
-				</button>
-				{#if openFilter === 'themes'}
-					<div
-						bind:this={themeMenu}
-						class="z-50 rounded-box border border-base-300 bg-base-100 p-2 shadow-xl"
-						style={themeMenuStyle}
-						role="menu"
-					>
-						<input
-							class="input-bordered input input-sm mb-2 w-full"
-							type="search"
-							bind:value={themeOptionSearch}
-							placeholder="Search themes"
-							aria-label="Search themes"
-						/>
-						<div class="max-h-64 overflow-y-auto">
-							{#each visibleThemes as option}
-								<label
-									class="label flex cursor-pointer justify-between gap-3 rounded-lg px-2 hover:bg-base-200"
-								>
-									<span class="flex min-w-0 items-center gap-3">
-										<input
-											class="checkbox checkbox-sm checkbox-primary"
-											type="checkbox"
-											checked={optionSelected('themes', option)}
-											onchange={() => toggleFilter('themes', option)}
-										/>
-										<span class="label-text truncate">{option}</span>
-									</span>
-									<span class="badge badge-ghost badge-sm">{optionCount('themes', option)}</span>
-								</label>
-							{/each}
-						</div>
-					</div>
-				{/if}
-			</div>
+		<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+			<FilterMenu
+				label="Status"
+				options={statusFilterOptions}
+				selected={statuses}
+				placeholder="Search statuses"
+				onToggle={(value) => toggleFilter('statuses', value)}
+			/>
+			<FilterMenu
+				label="Country"
+				options={countryFilterOptions}
+				selected={countries}
+				placeholder="Search countries"
+				onToggle={(value) => toggleFilter('countries', value)}
+			/>
+			<FilterMenu
+				label="Category"
+				options={categoryFilterOptions}
+				selected={categories}
+				placeholder="Search categories"
+				onToggle={(value) => toggleFilter('categories', value)}
+			/>
+			<FilterMenu
+				label="Theme"
+				options={themeFilterOptions}
+				selected={themes}
+				placeholder="Search themes"
+				onToggle={(value) => toggleFilter('themes', value)}
+			/>
+			<FilterMenu
+				label="DSA provisions"
+				options={articleFilterOptions}
+				selected={articles}
+				placeholder="Search DSA provisions"
+				onToggle={(value) => toggleFilter('articles', value)}
+			/>
+			<FilterMenu
+				label="Court"
+				options={courtFilterOptions}
+				selected={courts}
+				placeholder="Search courts"
+				onToggle={(value) => toggleFilter('courts', value)}
+			/>
+			<FilterMenu
+				label="Parties"
+				options={partyFilterOptions}
+				selected={parties}
+				placeholder="Search plaintiffs or defendants"
+				onToggle={(value) => toggleFilter('parties', value)}
+			/>
+			<FilterMenu
+				label="Decision year"
+				options={yearFilterOptions}
+				selected={years}
+				placeholder="Search years"
+				onToggle={(value) => toggleFilter('years', value)}
+			/>
 		</div>
+
+		{#if activeChips.length > 0}
+			<div class="mt-4 flex flex-wrap gap-2">
+				{#each activeChips as chip}
+					<button
+						class="badge gap-2 badge-outline py-3"
+						type="button"
+						onclick={() => toggleFilter(chip.group, chip.value)}
+					>
+						{chip.label}
+						<span aria-hidden="true">×</span>
+					</button>
+				{/each}
+			</div>
+		{/if}
 	</div>
 
 	{#if canWrite}
