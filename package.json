@@ -13,7 +13,8 @@
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
 		"seed": "bun scripts/seed-data.ts",
-		"db:cases": "bun --env-file=.env scripts/apply-cases-collection.ts"
+		"db:cases": "bun --env-file=.env scripts/apply-cases-collection.ts",
+		"db:cases:local": "POCKETBASE_TARGET_URL=http://localhost:8095 bun --env-file=.env scripts/apply-cases-collection.ts"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.1",

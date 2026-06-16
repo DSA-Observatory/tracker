@@ -1,4 +1,4 @@
 export default [
-	{ title: 'Template', path: '/#case-template', displayTitle: 'Template' },
+	{ title: 'Cases', path: '/cases', displayTitle: 'Cases' },
 	{ title: 'About', path: '/about', displayTitle: 'About' }
 ];

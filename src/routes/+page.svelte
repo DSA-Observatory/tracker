@@ -1,6 +1,4 @@
 <script lang="ts">
-	import CasesTable from '$lib/components/CasesTable.svelte';
-
 	const highlights = [
 		{
 			title: 'Structured case pages',
@@ -42,6 +40,10 @@
 				DSA Observatory. It helps researchers collect, structure, review, and publish private
 				enforcement cases while keeping the public site searchable, filterable, and easy to cite.
 			</p>
+			<div class="mt-8 flex flex-wrap gap-3">
+				<a class="btn btn-primary" href="/cases">Open case database</a>
+				<a class="btn btn-outline" href="/about">Learn more</a>
+			</div>
 		</div>
 
 		<div class="mt-10 grid gap-4 md:grid-cols-3">
@@ -79,6 +81,4 @@
 			</div>
 		</div>
 	</section>
-
-	<CasesTable />
 </main>

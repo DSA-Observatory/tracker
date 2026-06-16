@@ -3,6 +3,7 @@
 import PocketBase from 'pocketbase';
 
 const pocketbaseUrl =
+	process.env.POCKETBASE_TARGET_URL ||
 	process.env.POCKETBASE_PROD_URL ||
 	process.env.POCKETBASE_URL ||
 	process.env.PUBLIC_POCKETBASE_URL ||
@@ -106,6 +107,14 @@ async function authenticate(pb: PocketBase) {
 async function main() {
 	const pb = new PocketBase(pocketbaseUrl);
 	pb.autoCancellation(false);
+
+	try {
+		await pb.collection('cases').getList(1, 1);
+		console.log('Cases collection already exists. No changes applied.');
+		return;
+	} catch (err) {
+		// The collection is missing or not publicly readable; authenticate before managing schema.
+	}
 
 	await authenticate(pb);
 
