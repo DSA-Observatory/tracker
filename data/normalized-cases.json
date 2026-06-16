@@ -1,0 +1,1433 @@
+{
+  "source": "/Users/ctw/Second Brain/Projects/CTW Consulting/2026 - Case Law Tracker/Table for DSA private enforcement cases.xlsx",
+  "sheet": "DSA",
+  "record_count": 57,
+  "warnings": [
+    "DSA-DANNY-MEKIC-V-X-8E75A6EA: missing recommended fields: dsa_articles",
+    "DSA-TRAVIS-BROWN-HATEAID-V-X-EAFBB31E: missing recommended fields: dsa_articles, summary",
+    "DSA-SOMI-V-X-909D5266: missing recommended fields: dsa_articles",
+    "DSA-WETTBEWERBSZENTRALE-V-TEMU-01AEC738: missing recommended fields: dsa_articles, summary",
+    "DSA-CIVIL-DRUG-POLICY-INITIATIVE-SPO-ECZNA-INICJ-755A9854: missing recommended fields: dsa_articles",
+    "DSA-SOMI-V-META-CA11FED8: missing recommended fields: dsa_articles",
+    "DSA-RAFA-BRZOSKA-V-META-163F2D2E: missing recommended fields: dsa_articles",
+    "DSA-JORT-KELDER-V-GOOGLE-5C60AD11: missing recommended fields: dsa_articles",
+    "DSA-VIGNETTE-VISA-V-GOOGLE-56F5BEA5: missing recommended fields: dsa_articles",
+    "DSA-APPLICANT-V-BOOKING-CA02ED5C: missing recommended fields: dsa_articles",
+    "DSA-DIGITAL-REVOLUTION-V-GOOGLE-457E0D9C: missing recommended fields: dsa_articles",
+    "DSA-TER-HELL-V-YOUR-HOSTING-B-V-FF5085F9: missing recommended fields: dsa_articles, jurisdiction, summary",
+    "DSA-TRADE-NAME-V-BOL-COM-3E58BCF6: missing recommended fields: dsa_articles",
+    "DSA-DYNAMIET-V-GOOGLE-1DE5DA1D: missing recommended fields: dsa_articles, jurisdiction, summary",
+    "DSA-ONLINE-CONTACTVERBOD-EF017EA8: missing recommended fields: dsa_articles, jurisdiction, summary"
+  ],
+  "records": [
+    {
+      "case_id": "DSA-DANNY-MEKIC-V-X-8E75A6EA",
+      "title": "Danny Mekic v X",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Netherlands",
+      "plaintiffs": [
+        "Danny Mekic"
+      ],
+      "defendants": [
+        "X"
+      ],
+      "summary": "<h3>Secondary sources</h3><p>Volkskrant 26-02-2025</p>",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [],
+      "commentary": "Volkskrant 26-02-2025",
+      "published": true
+    },
+    {
+      "case_id": "DSA-BITS-OF-FREEDOM-V-META-181876B8",
+      "title": "Bits of Freedom v Meta",
+      "ecli": "ECLI:NL:RBAMS:2025:7253",
+      "status": "decided",
+      "jurisdiction": "Netherlands",
+      "plaintiffs": [
+        "Bits of Freedom"
+      ],
+      "defendants": [
+        "Meta"
+      ],
+      "summary": "<h3>Primary sources</h3><p>8-09-2025 Shortened writ of summons</p><h3>Secondary sources</h3><p>28-8-2025 Volkskrant</p>",
+      "keywords": [
+        "Due Diligence",
+        "Profiling Recommender Systems",
+        "Dark patterns"
+      ],
+      "dsa_articles": [
+        "Article 25",
+        "27",
+        "38 DSA"
+      ],
+      "document_links": [],
+      "commentary": "28-8-2025 Volkskrant",
+      "published": true
+    },
+    {
+      "case_id": "DSA-TRAVIS-BROWN-HATEAID-V-X-EAFBB31E",
+      "title": "Travis Brown / HateAid v X",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "Travis Brown",
+        "HateAid"
+      ],
+      "defendants": [
+        "X"
+      ],
+      "summary": "",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-DRI-GFF-V-X-DB984988",
+      "title": "DRI / GFF v X",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "DRI",
+        "GFF"
+      ],
+      "defendants": [
+        "X"
+      ],
+      "summary": "<h3>Primary sources</h3><p>LG Berlin II, Urteil vom 13.05.2025 - 41 O 140/25 eV</p>",
+      "keywords": [
+        "Due Diligence",
+        "Data Access"
+      ],
+      "dsa_articles": [
+        "Article 40 (12)",
+        "54"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-SOMI-V-X-909D5266",
+      "title": "SOMI v X",
+      "ecli": "",
+      "status": "appealed",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "SOMI"
+      ],
+      "defendants": [
+        "X"
+      ],
+      "summary": "<h3>Case timeline</h3><p>05-02-2025 claim initiated 06-04-2025 A cease and desist claim has been filed 02-03-2026 Oral hearing at the Kammergericht in Berlin. 30-04-2026 The collective action claim is dismissed on appeal</p><h3>Primary sources</h3><p>Initial claim: https://www.berlin.de/gerichte/presse/pressemitteilungen-der-ordentlichen-gerichtsbarkeit/2025/pressemitteilung.1562665.php Press release after appeal: https://www.berlin.de/gerichte/presse/pressemitteilungen-der-ordentlichen-gerichtsbarkeit/2026/pressemitteilung.1666701.php</p>",
+      "keywords": [
+        "Due Diligence",
+        "Dark patterns"
+      ],
+      "dsa_articles": [],
+      "document_links": [
+        "https://www.berlin.de/gerichte/presse/pressemitteilungen-der-ordentlichen-gerichtsbarkeit/2025/pressemitteilung.1562665.php",
+        "https://www.berlin.de/gerichte/presse/pressemitteilungen-der-ordentlichen-gerichtsbarkeit/2026/pressemitteilung.1666701.php"
+      ],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-WETTBEWERBSZENTRALE-V-TEMU-01AEC738",
+      "title": "Wettbewerbszentrale v TEMU",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "Wettbewerbszentrale"
+      ],
+      "defendants": [
+        "TEMU"
+      ],
+      "summary": "",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-CIVIL-DRUG-POLICY-INITIATIVE-SPO-ECZNA-INICJ-755A9854",
+      "title": "Civil Drug Policy Initiative (Społeczna Inicjatywa Narkopolityki - SIN) v Meta",
+      "ecli": "",
+      "status": "decided",
+      "jurisdiction": "Poland",
+      "plaintiffs": [
+        "Civil Drug Policy Initiative (Społeczna Inicjatywa Narkopolityki - SIN)"
+      ],
+      "defendants": [
+        "Meta"
+      ],
+      "summary": "<h3>Case timeline</h3><p>7-05-2019 Lawsuit filed by SIN</p><h3>Primary sources</h3><p>Interim measures ruling by District Court in Warsaw (Polish original) Full judgement: https://en.panoptykon.org/sites/default/files/2025-05/sinvsfb_court-judgment_anonymised_en.pdf</p><h3>Secondary sources</h3><p>Case Timeline by Panoptykon Foundation</p>",
+      "keywords": [
+        "Due Diligence",
+        "Content moderation",
+        "Shadowbanning",
+        "Account blocking"
+      ],
+      "dsa_articles": [],
+      "document_links": [
+        "https://en.panoptykon.org/sites/default/files/2025-05/sinvsfb_court-judgment_anonymised_en.pdf"
+      ],
+      "commentary": "Case Timeline by Panoptykon Foundation",
+      "published": true
+    },
+    {
+      "case_id": "DSA-OFFLIMITS-V-X-AI-LLC-GROK-C0CAF42D",
+      "title": "OffLimits v X.AI LLC (Grok)",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Netherlands",
+      "plaintiffs": [
+        "OffLimits"
+      ],
+      "defendants": [
+        "X.AI LLC (Grok)"
+      ],
+      "summary": "<h3>Case timeline</h3><p>26-03-2026 Judgment in summary proceedings</p><h3>Primary sources</h3><p>Dagvaarding in kort geding 24-02-2026</p><h3>Secondary sources</h3><p>NRC 26-02-2026</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Illegal content",
+        "Due Diligence",
+        "Trusted Flaggers"
+      ],
+      "dsa_articles": [
+        "Article 28",
+        "34",
+        "35 DSA",
+        "Articles 28"
+      ],
+      "document_links": [],
+      "commentary": "NRC 26-02-2026",
+      "published": true
+    },
+    {
+      "case_id": "DSA-SOMI-V-X-DC9E8BE1",
+      "title": "SOMI v X",
+      "ecli": "",
+      "status": "pending",
+      "jurisdiction": "Netherlands",
+      "plaintiffs": [
+        "SOMI"
+      ],
+      "defendants": [
+        "X"
+      ],
+      "summary": "<h3>Case timeline</h3><p>Hearing at the Rechtbank Amsterdam on 2-4-2026, outcome pending</p><h3>Primary sources</h3><p>Subpoena 15-08-2024</p><h3>Secondary sources</h3><p>BNR 16-08-2024</p>",
+      "keywords": [
+        "Due Diligence",
+        "Micro targeting",
+        "Transparency",
+        "Intermediary Liability",
+        "Hate Speech"
+      ],
+      "dsa_articles": [
+        "Articles 34",
+        "35",
+        "40",
+        "26(3)",
+        "39 DSA"
+      ],
+      "document_links": [],
+      "commentary": "BNR 16-08-2024",
+      "published": true
+    },
+    {
+      "case_id": "DSA-SOMI-V-META-CA11FED8",
+      "title": "SOMI v Meta",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Denmark",
+      "plaintiffs": [
+        "SOMI"
+      ],
+      "defendants": [
+        "Meta"
+      ],
+      "summary": "<h3>Case timeline</h3><p>29-09-2025 SOMI sends Warning Letter to Meta in Denmark</p><h3>Secondary sources</h3><p>SOMI press release 01-04-2026</p>",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [],
+      "commentary": "SOMI press release 01-04-2026",
+      "published": true
+    },
+    {
+      "case_id": "DSA-VERBRAUCHERZENTRALE-BAYERN-V-TIKTOK-63EE5A0B",
+      "title": "Verbraucherzentrale Bayern v Tiktok",
+      "ecli": "OLG Bamberg, judgment of 18.03.2026 – 3 UKl 5/25 e",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "Verbraucherzentrale Bayern"
+      ],
+      "defendants": [
+        "Tiktok"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Higher Regional Court of Bamberg 18-03-2026</p><h3>Secondary sources</h3><p>Mlex 19-03-2026</p>",
+      "keywords": [
+        "Due Diligence",
+        "Profiling Recommender Systems",
+        "Complaint Mechanism"
+      ],
+      "dsa_articles": [
+        "Articles 16",
+        "27(3)",
+        "38",
+        "51",
+        "56",
+        "82(3)",
+        "90"
+      ],
+      "document_links": [],
+      "commentary": "Mlex 19-03-2026",
+      "published": true
+    },
+    {
+      "case_id": "DSA-RAFA-BRZOSKA-V-META-163F2D2E",
+      "title": "Rafał Brzoska v Meta",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Poland",
+      "plaintiffs": [
+        "Rafał Brzoska"
+      ],
+      "defendants": [
+        "Meta"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Warsaw Court of Appeal</p><h3>Secondary sources</h3><p>https://businessinsider.com.pl/prawo/rafal-brzoska-kontra-mark-zuckerberg-jest-decyzja-sadu/eh3hxkh https://www.linkedin.com/posts/natalia-hartung-ba-cantab-llm-3a4a0177_meta-can-be-held-liable-for-the-scams-published-share-7455550216318984192-TidP?utm_source=share&amp;utm_medium=member_desktop&amp;rcm=ACoAAC5R8fUBoJzLoMfmwBv3ygqb09v4CChSGW0</p>",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [
+        "https://businessinsider.com.pl/prawo/rafal-brzoska-kontra-mark-zuckerberg-jest-decyzja-sadu/eh3hxkh",
+        "https://www.linkedin.com/posts/natalia-hartung-ba-cantab-llm-3a4a0177_meta-can-be-held-liable-for-the-scams-published-share-7455550216318984192-TidP?utm_source=share&utm_medium=member_desktop&rcm=ACoAAC5R8fUBoJzLoMfmwBv3ygqb09v4CChSGW0"
+      ],
+      "commentary": "https://businessinsider.com.pl/prawo/rafal-brzoska-kontra-mark-zuckerberg-jest-decyzja-sadu/eh3hxkh\nhttps://www.linkedin.com/posts/natalia-hartung-ba-cantab-llm-3a4a0177_meta-can-be-held-liable-for-the-scams-published-share-7455550216318984192-TidP?utm_source=share&amp;utm_medium=member_desktop&amp;rcm=ACoAAC5R8fUBoJzLoMfmwBv3ygqb09v4CChSGW0",
+      "published": true
+    },
+    {
+      "case_id": "DSA-BARRI-RE-V-META-709BE149",
+      "title": "Barrière v. Meta",
+      "ecli": "",
+      "status": "appealed",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "Barrière"
+      ],
+      "defendants": [
+        "Meta"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Décision Tribunal judiciaire de Paris : RG n°24/02349 | Cour de cassation</p><h3>Secondary sources</h3><p>Michaël Piquet-Fraysse: Lawyer of Barrière who has made multiple statements</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Intellectual Property"
+      ],
+      "dsa_articles": [
+        "Article 6.4",
+        "8",
+        "9 DSA",
+        "as well as 34",
+        "35 DSA for VLOPs",
+        "recitals 79 to 84"
+      ],
+      "document_links": [],
+      "commentary": "Michaël Piquet-Fraysse: Lawyer of Barrière who has made multiple statements",
+      "published": true
+    },
+    {
+      "case_id": "DSA-SNEP-V-OVH-2BE5278D",
+      "title": "SNEP v OVH",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "SNEP"
+      ],
+      "defendants": [
+        "OVH"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Tribunal Judiciaire de Paris, 2 octobre 2025, n° 24/10705</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Illegal Content"
+      ],
+      "dsa_articles": [
+        "Article 8 of the DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-LIGUE-DE-FOOTBALL-PROFESSIONNEL-V-CYBERGHOST-D5C1586E",
+      "title": "Ligue de Football Professionnel v Cyberghost, Nordvpn et Proton",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "Ligue de Football Professionnel"
+      ],
+      "defendants": [
+        "Cyberghost, Nordvpn et Proton"
+      ],
+      "summary": "<h3>Primary sources</h3><p>TJ Paris, 3e ch. 1re sect., 15 mai 2025, n° 24/15054</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Intellectual Property"
+      ],
+      "dsa_articles": [
+        "Articles 6",
+        "8",
+        "9 DSA",
+        "recitals 25-31"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-NINTENDO-V-DSTORAGE-5AC436F3",
+      "title": "Nintendo v Dstorage",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "Nintendo"
+      ],
+      "defendants": [
+        "Dstorage"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Cour d&#x27;appel, Paris, Pôle 5, chambre 1, 12 Avril 2023 – n° 21/10585</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Intellectual Property"
+      ],
+      "dsa_articles": [
+        "Article 16 DSA by the defendant (interesting discussion about articulation of article 16 DSA with intermediary liability)"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-OF-V-TWITTER-1BA14B07",
+      "title": "OF v Twitter",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "OF"
+      ],
+      "defendants": [
+        "Twitter"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Tribunal Judiciaire de Paris, Service des referes, 11 avril 2025, n° 24/56234</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Personality Rights"
+      ],
+      "dsa_articles": [
+        "Article 3",
+        "6 DSA",
+        "defendant uses articles 10",
+        "2",
+        "16 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-WP-ET-YP-V-TWITTER-94CCD53C",
+      "title": "WP et YP v Twitter",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "WP et YP"
+      ],
+      "defendants": [
+        "Twitter"
+      ],
+      "summary": "<h3>Primary sources</h3><p>TJ Paris, service des réf., 17 sept. 2025, n° 25/53558</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Personality Rights"
+      ],
+      "dsa_articles": [
+        "Article 10 DSA used by the defendant"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-CANAL-V-GOOGLE-64AE75F3",
+      "title": "Canal + v Google",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "Canal +"
+      ],
+      "defendants": [
+        "Google"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Cour d&#x27;appel, Paris, Pôle 5, chambre 1, 13 Mai 2026 – n° 24/19155</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Intellectual Property"
+      ],
+      "dsa_articles": [
+        "Article 3",
+        "8",
+        "9 DSA",
+        "recitals 29",
+        "31"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-CANAL-V-GOOGLE-CISCO-AND-CLOUDFARE-77090C15",
+      "title": "Canal + v Google, Cisco and Cloudfare",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "Canal +"
+      ],
+      "defendants": [
+        "Google, Cisco",
+        "Cloudfare"
+      ],
+      "summary": "<h3>Primary sources</h3><p>CA Paris, pôle 5 ch. 2, 27 mars 2026, n° 24/16310.</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Intellectual Property"
+      ],
+      "dsa_articles": [
+        "Aricles 4",
+        "9 DSA (the latter by the defendant)",
+        "Recitals 29",
+        "31"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-S-A-R-L-RISSLER-V-S-A-NEAR-LIFE-EXPERIENCE-N-7F0DD45B",
+      "title": "S.A.R.L. Rissler v S.A. Near Life Experience (NLE)",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "S.A.R.L. Rissler"
+      ],
+      "defendants": [
+        "S.A. Near Life Experience (NLE)"
+      ],
+      "summary": "<h3>Primary sources</h3><p>TJ Paris, 3e ch. 2e sect., 21 nov. 2025, n° 23/05116.</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Unfair competition",
+        "Intellectual Property"
+      ],
+      "dsa_articles": [
+        "Articles 6",
+        "16",
+        "20 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-SEPM-V-TWITTER-8915D70F",
+      "title": "SEPM v Twitter",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "SEPM"
+      ],
+      "defendants": [
+        "Twitter"
+      ],
+      "summary": "<h3>Primary sources</h3><p>25 septembre 2025 Cour d&#x27;appel de Paris RG n° 24/17261</p>",
+      "keywords": [
+        "Due Diligence",
+        "Data Access"
+      ],
+      "dsa_articles": [
+        "Article 8 DSA invoked by the defendant"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-SOCI-T-V-BACKMARKET-82EFB044",
+      "title": "Société v BackMarket",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "Société"
+      ],
+      "defendants": [
+        "BackMarket"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Tribunal Judiciaire de Paris, Service des referes, 6 mai 2026, n° 25/58771</p>",
+      "keywords": [
+        "Due Diligence",
+        "Seller Traceability"
+      ],
+      "dsa_articles": [
+        "Article 8",
+        "30 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-GZ-V-WIKIPEDIA-50AD64C9",
+      "title": "GZ v Wikipedia",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "GZ"
+      ],
+      "defendants": [
+        "Wikipedia"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Tribunal Judiciaire de Paris, Service des referes, 19 septembre 2025, n° 25/51051</p>",
+      "keywords": [
+        "Due Diligence",
+        "Notice Mechanism",
+        "Terms and Conditions",
+        "Complaint Mechanism",
+        "Intermediary Liability",
+        "Personality Rights"
+      ],
+      "dsa_articles": [
+        "Articles 6",
+        "13",
+        "14",
+        "16",
+        "17",
+        "20",
+        "21 DSA as well as articles 13.3",
+        "54 DSA",
+        "articles 49",
+        "56",
+        "66"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-USER-V-GOOGLE-9FD0C7A7",
+      "title": "User v Google",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "User"
+      ],
+      "defendants": [
+        "Google"
+      ],
+      "summary": "<h3>Primary sources</h3><p>OLG Hamm, judgment of 03.06.2025 - 21 U 62/23 LG Köln, Anerkenntnisurteil vom 22.07.2024 - 14 O 197/24</p>",
+      "keywords": [
+        "Due Diligence",
+        "Terms and Conditions",
+        "Account Blocking",
+        "Intermediary Liability",
+        "Intellectual Property"
+      ],
+      "dsa_articles": [
+        "Articles 2",
+        "3",
+        "14(1)(4)(5)",
+        "15",
+        "16",
+        "17",
+        "20",
+        "21.",
+        "Article 16 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-SHAREHOLDER-V-YOUTUBE-6CD059C3",
+      "title": "Shareholder v Youtube",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "Shareholder"
+      ],
+      "defendants": [
+        "Youtube"
+      ],
+      "summary": "<h3>Primary sources</h3><p>OLG Nurnberg, 23 July 2024 - 3 U 2469/23</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Personality Rights"
+      ],
+      "dsa_articles": [
+        "Articles 2(1)",
+        "3",
+        "6",
+        "16(3)",
+        "17(1) of the DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-DRI-GFF-V-X-2-016CB7E5",
+      "title": "DRI/GFF v X (2)",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "DRI",
+        "GFF"
+      ],
+      "defendants": [
+        "X (2)"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Kammergericht (KG) Berlin, 17 February 2026</p>",
+      "keywords": [
+        "Due diligence",
+        "Data Access"
+      ],
+      "dsa_articles": [
+        "Article 40(8)(12)",
+        "article 54 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-DR-VON-HIRSCHHAUSEN-V-META-B073B57F",
+      "title": "Dr. von Hirschhausen v. Meta",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "Dr. von Hirschhausen"
+      ],
+      "defendants": [
+        "Meta"
+      ],
+      "summary": "<h3>Primary sources</h3><p>OLG Frankfurt, 4 March 2025 - 16 W 10/25</p>",
+      "keywords": [],
+      "dsa_articles": [
+        "Article 6(4)",
+        "8 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-NJRE001618227-87577640",
+      "title": "NJRE001618227",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [],
+      "defendants": [],
+      "summary": "<h3>Primary sources</h3><p>KG Berlin, 10 W 70/25: https://www.juris.de/static/infodienst/autoren/D_NJRE001618227.htm</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Personality Rights",
+        "Notice Mechanism"
+      ],
+      "dsa_articles": [
+        "Article 6",
+        "16 of the DSA."
+      ],
+      "document_links": [
+        "https://www.juris.de/static/infodienst/autoren/D_NJRE001618227.htm"
+      ],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-SKINPORT-GMBH-V-GOOGLE-6E292055",
+      "title": "Skinport GmbH v Google",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "Skinport GmbH"
+      ],
+      "defendants": [
+        "Google"
+      ],
+      "summary": "<h3>Primary sources</h3><p>LG Düsseldorf, Urteil vom 04.12.2024 , Az. 2a O 112/23 Cologne Regional Court , Judgment of 29 September 2022 - 14 O 29/21</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Intellectual Property"
+      ],
+      "dsa_articles": [
+        "Article 6(1)",
+        "8 DSA",
+        "Recital 27"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-CONSUMER-ORGANISATION-V-GOOGLE-669E9166",
+      "title": "Consumer organisation v Google",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "Consumer organisation"
+      ],
+      "defendants": [
+        "Google"
+      ],
+      "summary": "<h3>Primary sources</h3><p>LG Bamberg , final judgment from March 11, 2026 - 1 HK O 19/25</p>",
+      "keywords": [
+        "Due Diligence",
+        "Advertisement"
+      ],
+      "dsa_articles": [
+        "articles 2",
+        "3",
+        "6",
+        "8",
+        "26 of the DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-USER-X-V-META-E406E818",
+      "title": "User X v Meta",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "User X"
+      ],
+      "defendants": [
+        "Meta"
+      ],
+      "summary": "<h3>Primary sources</h3><p>OLG München, Endurteil vom 09.04.2024 - 18 U 4603/22 Pre</p>",
+      "keywords": [
+        "Due Diligence",
+        "Disinformation",
+        "Terms and Conditions"
+      ],
+      "dsa_articles": [
+        "article 14",
+        "34",
+        "35 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-USER-X-V-GOOGLE-56D25845",
+      "title": "User X v Google",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "User X"
+      ],
+      "defendants": [
+        "Google"
+      ],
+      "summary": "<h3>Primary sources</h3><p>OLG Bamberg, Urteil vom 28.07.2025 - 4 U 62/25 e</p>",
+      "keywords": [
+        "Due Diligence",
+        "Terms and Conditions",
+        "Moderation Decision"
+      ],
+      "dsa_articles": [
+        "article 17",
+        "54 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-TELEGRAM-MESSENGER-CASE-7C80DEE5",
+      "title": "Telegram Messenger case",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [],
+      "defendants": [],
+      "summary": "<h3>Primary sources</h3><p>AG Bonn Beschluss vom 27.01.2026 - 652 OWi 27/23</p>",
+      "keywords": [
+        "Due Diligence",
+        "Appointment of legal representative"
+      ],
+      "dsa_articles": [
+        "article 13 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-USER-V-META-88B30B20",
+      "title": "User v Meta",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [
+        "User"
+      ],
+      "defendants": [
+        "Meta"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Higher Regional Court of Munich, final judgment of 17.03.2026 - 18 U 3495/24 Pre e</p>",
+      "keywords": [
+        "Due Diligence",
+        "Complaint Mechanism"
+      ],
+      "dsa_articles": [
+        "article 20 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-YOUTUBE-DL-UBERSPACE-CASE-0EFFCBB0",
+      "title": "YouTube-dl / Uberspace case",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Germany",
+      "plaintiffs": [],
+      "defendants": [],
+      "summary": "<h3>Primary sources</h3><p>OLG Hamburg, Urteil vom 21.11.2024 - 5 U 54/23 LG München I, Beschluss vom 27.01.2025 - 33 O 28/25 LG Hamburg, Beschluss vom 28.05.2025 - 416 HKO 62/25</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Intellectual Property",
+        "Due Diligence",
+        "Point of Contact"
+      ],
+      "dsa_articles": [
+        "Article 6 DSA",
+        "Article 6",
+        "8",
+        "16 DSA",
+        "Article 12 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-LALIGA-V-NORDVPN-DFD639ED",
+      "title": "LaLiga v NordVPN",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Spain",
+      "plaintiffs": [
+        "LaLiga"
+      ],
+      "defendants": [
+        "NordVPN"
+      ],
+      "summary": "<h3>Primary sources</h3><p>ATIM Córdoba, a 02 de febrero de 2026 - ROJ: ATIM CO 6/2026</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Intellectual Property"
+      ],
+      "dsa_articles": [
+        "Article 4 DSA",
+        "recital 29"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-LALIGA-V-PROTONVPN-A047BE51",
+      "title": "LaLiga v ProtonVPN",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Spain",
+      "plaintiffs": [
+        "LaLiga"
+      ],
+      "defendants": [
+        "ProtonVPN"
+      ],
+      "summary": "<h3>Primary sources</h3><p>ATIM Córdoba, a 07 de enero de 2026 - ROJ: ATIM CO 7/2026</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Intellectual Property"
+      ],
+      "dsa_articles": [
+        "Article 4 DSA",
+        "recital 29"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-LALIGA-V-INTERNET-PROVIDERS-A58D484A",
+      "title": "LaLiga v Internet providers",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Spain",
+      "plaintiffs": [
+        "LaLiga"
+      ],
+      "defendants": [
+        "Internet providers"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Juzgado de lo Mercantil n° 1 de Córdoba el 17 de noviembre de 2025</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Intellectual Property"
+      ],
+      "dsa_articles": [
+        "Unpublished",
+        "but probably article 10 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-D-E-V-BANKINTER-CONSUMER-FINANCE-69B8D00A",
+      "title": "D.E v Bankinter Consumer Finance",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Spain",
+      "plaintiffs": [
+        "D.E"
+      ],
+      "defendants": [
+        "Bankinter Consumer Finance"
+      ],
+      "summary": "<h3>Primary sources</h3><p>AJPI Madrid, a 31 de enero de 2024 - ROJ: AJPI 2/2024</p>",
+      "keywords": [
+        "Due Diligence",
+        "Transparency"
+      ],
+      "dsa_articles": [
+        "Article 3(m)"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-MEN-AME-COMUNICACIONES-S-L-V-PRIVATE-INDIVID-BB62C7A1",
+      "title": "Menéame Comunicaciones, S.L. v. private individual",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Spain",
+      "plaintiffs": [
+        "Menéame Comunicaciones, S.L."
+      ],
+      "defendants": [
+        "private individual"
+      ],
+      "summary": "<h3>Primary sources</h3><p>STC 83/2023, de 4 de julio - Tribunal Constitucional</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Personality Rights"
+      ],
+      "dsa_articles": [
+        "DSA cited generally (but focus on Article 6 with the exemption of responsibility)"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-FY-AND-GB-V-AIRBNB-9150C585",
+      "title": "FY and GB v AirBnb",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "FY",
+        "GB"
+      ],
+      "defendants": [
+        "AirBnb"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Tribunal judiciaire, Paris, 5 Novembre 2025 – n° 24/02425</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Order to Provide Information"
+      ],
+      "dsa_articles": [
+        "Article 8 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-SEINE-ET-YVELINES-NUMERIQUE-V-INDEED-6AD686F7",
+      "title": "SEINE ET YVELINES NUMERIQUE v Indeed",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "SEINE ET YVELINES NUMERIQUE"
+      ],
+      "defendants": [
+        "Indeed"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Tribunal judiciaire, Paris, 4 Octobre 2024 – n° 24/56015</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Personality Rights"
+      ],
+      "dsa_articles": [
+        "Article 3 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-FZ-V-SFR-858A79A3",
+      "title": "FZ v SFR",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [
+        "FZ"
+      ],
+      "defendants": [
+        "SFR"
+      ],
+      "summary": "<h3>Primary sources</h3><p>Tribunal judiciaire, Paris, 4 Juin 2025 – n° 25/51254</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Personality Rights"
+      ],
+      "dsa_articles": [
+        "Article 3 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-S-A-S-LA-CADETTE-VS-GLASSDOOR-3A46AD78",
+      "title": "S.A.S. LA CADETTE vs Glassdoor",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "France",
+      "plaintiffs": [],
+      "defendants": [],
+      "summary": "<h3>Primary sources</h3><p>Tribunal judiciaire, Paris, 24 Octobre 2025 – n° 25/54263</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Personality Rights"
+      ],
+      "dsa_articles": [
+        "Article 3 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-AUDI-VOLKSWAGEN-V-FRUUGO-COM-A543F420",
+      "title": "Audi & Volkswagen v Fruugo.com",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Netherlands",
+      "plaintiffs": [
+        "Audi",
+        "Volkswagen"
+      ],
+      "defendants": [
+        "Fruugo.com"
+      ],
+      "summary": "<h3>Case timeline</h3><p>Hof Den Haag, 25-11-2025, nr. 200.336.336/01, https://www.inview.nl/document/idb36d3b13dc6e48659b8133a559cdc977/hof-den-haag-25-11-2025-nr-200-336-336-01 Hof &#x27;s-Hertogenbosch, 12-03-2024, nr. 200.327.797, 01, https://www.inview.nl/document/id08224a1be5524f669dfd93ea013cf41e/hof-s-hertogenbosch-12-03-2024-nr-200-327-797-01?ctx=WKNL_CSL_10000001&amp;tab=tekst&amp;searchid=4060956896</p><h3>Primary sources</h3><p>Rb. Den Haag, 30-08-2023, nr. C/09/622304 / HA ZA 21-1105, https://www.inview.nl/document/idc3765c6c376e48efbafb5efdb82bef2a/rb-den-haag-30-08-2023-nr-c-09-622304-ha-za-21-1105</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Intellectual Property",
+        "Intermediary liability, Unlawful publication"
+      ],
+      "dsa_articles": [
+        "Art 6(3) DSA",
+        "14 ECD 2000",
+        "Art 8 DSA",
+        "Art 6:196c BW"
+      ],
+      "document_links": [
+        "https://www.inview.nl/document/idb36d3b13dc6e48659b8133a559cdc977/hof-den-haag-25-11-2025-nr-200-336-336-01",
+        "https://www.inview.nl/document/id08224a1be5524f669dfd93ea013cf41e/hof-s-hertogenbosch-12-03-2024-nr-200-327-797-01?ctx=WKNL_CSL_10000001&tab=tekst&searchid=4060956896",
+        "https://www.inview.nl/document/idc3765c6c376e48efbafb5efdb82bef2a/rb-den-haag-30-08-2023-nr-c-09-622304-ha-za-21-1105"
+      ],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-POMM-V-META-C2C1C23E",
+      "title": "Pomm v Meta",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Netherlands",
+      "plaintiffs": [
+        "Pomm"
+      ],
+      "defendants": [
+        "Meta"
+      ],
+      "summary": "<h3>Case timeline</h3><p>Hof Amsterdam, 26-03-2024, nr. 200.316.164/0, https://www.inview.nl/document/idefc1893dfca641dd8f7f616ec4e8e5b0/hof-amsterdam-26-03-2024-nr-200-316-164-01?ctx=WKNL_CSL_10000001&amp;tab=tekst&amp;pagina=1&amp;searchid=4060956896</p><h3>Primary sources</h3><p>Hof &#x27;s-Hertogenbosch, 12-03-2024, nr. 200.327.797, 01, https://www.inview.nl/document/id08224a1be5524f669dfd93ea013cf41e/hof-s-hertogenbosch-12-03-2024-nr-200-327-797-01?ctx=WKNL_CSL_10000001&amp;tab=tekst&amp;searchid=4060956896</p>",
+      "keywords": [
+        "Intermediary Liability",
+        "Unlawful Publication"
+      ],
+      "dsa_articles": [
+        "Art 6(3) DSA",
+        "Art 8 DSA",
+        "14 ECD 2000",
+        "Art 6:196c BW"
+      ],
+      "document_links": [
+        "https://www.inview.nl/document/idefc1893dfca641dd8f7f616ec4e8e5b0/hof-amsterdam-26-03-2024-nr-200-316-164-01?ctx=WKNL_CSL_10000001&tab=tekst&pagina=1&searchid=4060956896",
+        "https://www.inview.nl/document/id08224a1be5524f669dfd93ea013cf41e/hof-s-hertogenbosch-12-03-2024-nr-200-327-797-01?ctx=WKNL_CSL_10000001&tab=tekst&searchid=4060956896"
+      ],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-OTHER-DECISIONS-LESS-IMPORTANT-BECAUSE-ONLY-8618FF07",
+      "title": "Other decisions (less important because only generally mentioned/for definitions/using the same recitals)",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "FR",
+      "plaintiffs": [],
+      "defendants": [],
+      "summary": "<h3>Primary sources</h3><p>Cour d&#x27;appel, Paris, Pôle 1, chambre 3, 17 Octobre 2024 – n° 23/17972 Cour d&#x27;appel, Paris, Pôle 5, chambre 11, 26 Septembre 2025 – n° 25/04280 Tribunal judiciaire, Paris, 21 Janvier 2026 – n° 25/57733 Tribunal judiciaire, Paris, 3e chambre, 3e section, 14 Janvier 2026 – n° 25/12576 Tribunal judiciaire, Paris, 11 Juillet 2025 – n° 25/51722 Tribunal judiciaire, Paris, 3e chambre, 1re section, 29 Janvier 2026 – n° 25/10983 Tribunal judiciaire, Paris, 3e chambre, 3e section, 28 Janvier 2026 – n° 25/12499 Tribunal judiciaire, Paris, 24 Octobre 2025 – n° 25/54263 Tribunal judiciaire, Paris, 27 Novembre 2024 – n° 24/53939 Tribunal judiciaire, Paris, 9 Janvier 2026 – n° 25/56349 Tribunal judiciaire, Paris, 3e chambre, 3e section, 18 Février 2026 – n° 25/10980 Tribunal judiciaire, Paris, 8 Octobre 2024 – n° 24/55637 Tribunal judiciaire, Paris, 17 Septembre 2025 – n° 25/53558 Tribunal judiciaire, Paris, 3e chambre, 1re section, 9 Janvier 2025 – n° 24/10696 Tribunal judiciaire, Paris, 17 Avril 2026 – n° 26/00681 Tribunal judiciaire, Paris, 24 Avril 2024 – n° 24/02349 Tribunal judiciaire, Paris, 30 Octobre 2024 – n° 24/55336 Tribunal judiciaire, Paris, 19 Mars 2025 – n° 24/58239 Tribunal judiciaire, Paris, 3e chambre, 2e section, 21 Novembre 2025 – n° 23/05116 Tribunal judiciaire, Paris, 25 Juin 2024 – n° 24/53422 Tribunal judiciaire, Paris, 12 Mars 2025 – n° 24/06229 Tribunal judiciaire, Limoges, Référé, 12 Décembre 2025 – n° 25/00589 Tribunal judiciaire, Paris, 19 Décembre 2025 – n° 25/58071 Tribunal judiciaire, Paris, 3e chambre, 2e section, 17 Avril 2026 – n° 26/00507 Tribunal judiciaire, Paris, 5 Septembre 2025 – n° 25/52399 Tribunal judiciaire, Paris, 19 Décembre 2025 – n° 25/57861 Tribunal judiciaire, Paris, 19 Décembre 2025 – n° 25/57054 Tribunal judiciaire, Paris, 3e chambre, 2e section, 17 Avril 2026 – n° 26/00517 Tribunal judiciaire, Paris, 3e chambre, 2e section, 17 Avril 2026 – n° 26/00520 Tribunal judiciaire, Paris, 17 Avril 2026 – n° 26/00510 Tribunal judiciaire, Paris, 19 Septembre 2025 – n° 25/51051 Tribunal judiciaire, Paris, 17 Avril 2026 – n° 26/00508 Tribunal judiciaire, Paris, 3e chambre, 1re section, 13 Mai 2026 – n° 26/02207 Tribunal judiciaire, Paris, 3e chambre, 1re section, 7 Mai 2026 – n° 26/02203 Tribunal judiciaire, Paris, 3e chambre, 3e section, 6 Mai 2026 – n° 26/02780 Tribunal judiciaire, Paris, 3e chambre, 2e section, 19 Décembre 2025 – n° 25/11819</p>",
+      "keywords": [],
+      "dsa_articles": [
+        "No specific article cited",
+        "just the DSA generally",
+        "Recitals 25 to 31",
+        "Article 3 DSA"
+      ],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-JORT-KELDER-V-GOOGLE-5C60AD11",
+      "title": "Jort Kelder v Google",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Netherlands",
+      "plaintiffs": [
+        "Jort Kelder"
+      ],
+      "defendants": [
+        "Google"
+      ],
+      "summary": "<h3>Case timeline</h3><p>Rb. Amsterdam, 30-04-2024, nr. C/13/747754 / KG ZA 24-201, https://www.inview.nl/document/id537f855bbbdf4d1eabde5a6b3993e7d3/rb-amsterdam-30-04-2024-nr-c-13-747754-kg-za-24-201?ctx=WKNL_CSL_10000001&amp;tab=tekst&amp;searchid=4060956896</p>",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [
+        "https://www.inview.nl/document/id537f855bbbdf4d1eabde5a6b3993e7d3/rb-amsterdam-30-04-2024-nr-c-13-747754-kg-za-24-201?ctx=WKNL_CSL_10000001&tab=tekst&searchid=4060956896"
+      ],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-VIGNETTE-VISA-V-GOOGLE-56F5BEA5",
+      "title": "Vignette & Visa v Google",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Netherlands",
+      "plaintiffs": [
+        "Vignette",
+        "Visa"
+      ],
+      "defendants": [
+        "Google"
+      ],
+      "summary": "<h3>Case timeline</h3><p>Rb. Den Haag, 12-11-2024, nr. C/09/672032 / KG ZA 24-819, https://www.inview.nl/document/idfaf8b1c6fcec43e4945fde31cb5f66b4/rb-den-haag-12-11-2024-nr-c-09-672032-kg-za-24-819</p>",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [
+        "https://www.inview.nl/document/idfaf8b1c6fcec43e4945fde31cb5f66b4/rb-den-haag-12-11-2024-nr-c-09-672032-kg-za-24-819"
+      ],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-APPLICANT-V-BOOKING-CA02ED5C",
+      "title": "Applicant v Booking",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Netherlands",
+      "plaintiffs": [
+        "Applicant"
+      ],
+      "defendants": [
+        "Booking"
+      ],
+      "summary": "<h3>Case timeline</h3><p>HR, 07-11-2025, nr. 24/03814, https://www.inview.nl/document/id71aa2dd18a0d4d99b89133aeb9a6f066/hr-07-11-2025-nr-24-03814</p>",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [
+        "https://www.inview.nl/document/id71aa2dd18a0d4d99b89133aeb9a6f066/hr-07-11-2025-nr-24-03814"
+      ],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-DIGITAL-REVOLUTION-V-GOOGLE-457E0D9C",
+      "title": "Digital Revolution v Google",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Netherlands",
+      "plaintiffs": [
+        "Digital Revolution"
+      ],
+      "defendants": [
+        "Google"
+      ],
+      "summary": "<h3>Case timeline</h3><p>Rb. Den Haag, 23-01-2026, nr. 696323, https://www.inview.nl/document/id857b2159471345b88bae0427d88db676/rb-den-haag-23-01-2026-nr-696323?ctx=WKNL_CSL_10000001&amp;tab=tekst&amp;searchid=4060956896</p>",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [
+        "https://www.inview.nl/document/id857b2159471345b88bae0427d88db676/rb-den-haag-23-01-2026-nr-696323?ctx=WKNL_CSL_10000001&tab=tekst&searchid=4060956896"
+      ],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-TER-HELL-V-YOUR-HOSTING-B-V-FF5085F9",
+      "title": "Ter Hell v Your Hosting B.V.",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "",
+      "plaintiffs": [
+        "Ter Hell"
+      ],
+      "defendants": [
+        "Your Hosting B.V."
+      ],
+      "summary": "",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-TRADE-NAME-V-BOL-COM-3E58BCF6",
+      "title": "[Trade name] v Bol.com",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Netherlands",
+      "plaintiffs": [
+        "[Trade name]"
+      ],
+      "defendants": [
+        "Bol.com"
+      ],
+      "summary": "<h3>Case timeline</h3><p>Rb. Amsterdam, 28-05-2025, nr. C/13/767436 / KG ZA 25-254, https://www.inview.nl/document/idde96146751174edfa5b6790d7e073ca6/rb-amsterdam-28-05-2025-nr-c-13-767436-kg-za-25-254?ctx=WKNL_CSL_10000001&amp;tab=tekst&amp;searchid=4060956896</p>",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [
+        "https://www.inview.nl/document/idde96146751174edfa5b6790d7e073ca6/rb-amsterdam-28-05-2025-nr-c-13-767436-kg-za-25-254?ctx=WKNL_CSL_10000001&tab=tekst&searchid=4060956896"
+      ],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-DYNAMIET-V-GOOGLE-1DE5DA1D",
+      "title": "Dynamiet v Google",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "",
+      "plaintiffs": [
+        "Dynamiet"
+      ],
+      "defendants": [
+        "Google"
+      ],
+      "summary": "",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-RECLAME-CODE-COMMISSIE-F9C5931D",
+      "title": "Reclame Code Commissie",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "Netherlands",
+      "plaintiffs": [],
+      "defendants": [],
+      "summary": "<h3>Case timeline</h3><p>Rb. Noord-Nederland, 18-12-2025, nr. C/19/154084 / KG ZA 25-152, https://www.inview.nl/document/id3cfd318d665b4089afee8d84e55b25fc/rb-noord-nederland-18-12-2025-nr-c-19-154084-kg-za-25-152?ctx=WKNL_CSL_10000001&amp;tab=uitspraken&amp;pagina=1&amp;searchid=4060956896</p>",
+      "keywords": [],
+      "dsa_articles": [
+        "Art 28 DSA"
+      ],
+      "document_links": [
+        "https://www.inview.nl/document/id3cfd318d665b4089afee8d84e55b25fc/rb-noord-nederland-18-12-2025-nr-c-19-154084-kg-za-25-152?ctx=WKNL_CSL_10000001&tab=uitspraken&pagina=1&searchid=4060956896"
+      ],
+      "commentary": "",
+      "published": true
+    },
+    {
+      "case_id": "DSA-ONLINE-CONTACTVERBOD-EF017EA8",
+      "title": "Online contactverbod",
+      "ecli": "",
+      "status": "review",
+      "jurisdiction": "",
+      "plaintiffs": [],
+      "defendants": [],
+      "summary": "",
+      "keywords": [],
+      "dsa_articles": [],
+      "document_links": [],
+      "commentary": "",
+      "published": true
+    }
+  ]
+}

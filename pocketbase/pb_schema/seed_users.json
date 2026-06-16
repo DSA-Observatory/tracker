@@ -1,5 +1,13 @@
 [
   {
+    "email": "ctw@ctwhome.com",
+    "password": "password123",
+    "passwordConfirm": "password123",
+    "name": "CTW",
+    "emailVisibility": true,
+    "verified": true
+  },
+  {
     "email": "alice.smith@example.com",
     "password": "password123",
     "passwordConfirm": "password123",

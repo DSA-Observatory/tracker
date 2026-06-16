@@ -1,4 +1,24 @@
-<div class="relative">
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
+
+	let query = $state('');
+
+	function submitSearch() {
+		const value = query.trim();
+		if (!value) return;
+
+		goto(`${base}/cases?q=${encodeURIComponent(value)}`);
+	}
+</script>
+
+<form
+	class="relative"
+	onsubmit={(event) => {
+		event.preventDefault();
+		submitSearch();
+	}}
+>
 	<label class="input-bordered input flex items-center gap-2 opacity-80">
 		<svg class="h-5 w-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
@@ -13,8 +33,8 @@
 			placeholder="Search cases"
 			class="grow"
 			aria-label="Search cases"
-			disabled
+			bind:value={query}
 		/>
-		<span class="badge hidden badge-ghost sm:inline-flex">Soon</span>
+		<button class="badge hidden badge-primary sm:inline-flex" type="submit">Go</button>
 	</label>
-</div>
+</form>
