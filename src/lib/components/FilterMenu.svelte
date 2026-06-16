@@ -26,6 +26,8 @@
 	$: visibleOptions = options.filter((option) =>
 		option.label.toLowerCase().includes(query.trim().toLowerCase())
 	);
+	$: availableOptionCount = options.filter((option) => option.count > 0).length;
+	$: buttonCount = selected.length || availableOptionCount;
 
 	async function updatePosition() {
 		await tick();
@@ -87,7 +89,7 @@
 		onclick={toggleMenu}
 	>
 		<span>{label}</span>
-		<span class="badge badge-primary">{selected.length || options.length}</span>
+		<span class="badge badge-primary">{buttonCount}</span>
 	</button>
 
 	{#if open}

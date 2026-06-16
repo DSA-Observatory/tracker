@@ -40,6 +40,26 @@ Every filter uses a Floating UI-positioned autocomplete dropdown with multi-sele
 - Countries show flags where known.
 - Country cells and menu options keep the flag and country name on a single line.
 
+### Large Result Performance
+
+- The search and filter panel stays sticky while browsing results.
+- The table header stays sticky inside the result scroller.
+- Result rows are virtualized so only the visible slice of the table is rendered.
+- The default result display is a detailed full-width row-card view.
+- Users can switch between detailed rows, compact rows, and dense table views.
+
+### Result Table Fields
+
+- Case title, internal case ID, and ECLI.
+- Plaintiffs and defendants.
+- Status.
+- Country/jurisdiction.
+- Court and decision date.
+- DSA provisions and legal tags.
+- Case timeline excerpt.
+- Source links when URLs are available.
+- Source text excerpt when no URL is available.
+
 ## Data Currently Used By Search
 
 - `case_id`
