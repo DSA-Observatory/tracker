@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import type { FilterOption } from '$lib/components/FilterMenu.svelte';
 	import CaseCardsList from '$lib/components/cases/CaseCardsList.svelte';
 	import CaseFilterPanel from '$lib/components/cases/CaseFilterPanel.svelte';
 	import CaseResultsTable from '$lib/components/cases/CaseResultsTable.svelte';
 	import CaseVisualizationControls from '$lib/components/cases/CaseVisualizationControls.svelte';
+	import { statusOptions } from '$lib/components/cases/types';
 	import type {
 		ActiveFilterChip,
 		FilterGroup,
@@ -14,17 +16,8 @@
 		SearchScope,
 		ViewMode
 	} from '$lib/components/cases/types';
-	import { authStore, pb, type CaseRecord, type CaseStatus } from '$lib/database';
+	import { authStore, pb, type CaseRecord } from '$lib/database';
 
-	const statusOptions: CaseStatus[] = [
-		'draft',
-		'review',
-		'pending',
-		'decided',
-		'appealed',
-		'closed',
-		'published'
-	];
 	const categoryOptions = ['Due Diligence', 'Intermediary Liability', 'P2B', 'Other'];
 	const countryFlags: Record<string, string> = {
 		Denmark: '🇩🇰',
@@ -49,38 +42,6 @@
 		{ value: 'secondary', label: 'Secondary sources' }
 	];
 
-	type CaseForm = {
-		case_id: string;
-		title: string;
-		ecli: string;
-		decision_date: string;
-		status: CaseStatus;
-		court: string;
-		jurisdiction: string;
-		plaintiffs: string;
-		defendants: string;
-		summary: string;
-		keywords: string;
-		dsa_articles: string;
-		published: boolean;
-	};
-
-	const emptyForm = (): CaseForm => ({
-		case_id: '',
-		title: '',
-		ecli: '',
-		decision_date: '',
-		status: 'draft',
-		court: '',
-		jurisdiction: '',
-		plaintiffs: '',
-		defendants: '',
-		summary: '',
-		keywords: '',
-		dsa_articles: '',
-		published: false
-	});
-
 	let cases = $state<CaseRecord[]>([]);
 	let search = $state(page.url.searchParams.get('q') ?? '');
 	let searchScope = $state<SearchScope>('all');
@@ -93,10 +54,7 @@
 	let parties = $state<string[]>([]);
 	let years = $state<string[]>([]);
 	let loading = $state(true);
-	let saving = $state(false);
 	let error = $state('');
-	let editingId = $state<string | null>(null);
-	let form = $state<CaseForm>(emptyForm());
 	let viewMode = $state<ViewMode>('cards');
 	let filterLayout = $state<FilterLayout>('top');
 	let tableScrollTop = $state(0);
@@ -214,14 +172,6 @@
 		filterLayout;
 		resetTableScroll();
 	});
-
-	const splitList = (value: string) =>
-		value
-			.split(',')
-			.map((item) => item.trim())
-			.filter(Boolean);
-
-	const joinList = (value?: string[]) => (Array.isArray(value) ? value.join(', ') : '');
 
 	function loadPreferences() {
 		if (!browser) return;
@@ -487,66 +437,7 @@
 	}
 
 	function editCase(record: CaseRecord) {
-		editingId = record.id;
-		form = {
-			case_id: record.case_id,
-			title: record.title,
-			ecli: record.ecli ?? '',
-			decision_date: record.decision_date ? record.decision_date.slice(0, 10) : '',
-			status: record.status,
-			court: record.court ?? '',
-			jurisdiction: record.jurisdiction ?? '',
-			plaintiffs: joinList(record.plaintiffs),
-			defendants: joinList(record.defendants),
-			summary: record.summary ?? '',
-			keywords: joinList(record.keywords),
-			dsa_articles: joinList(record.dsa_articles),
-			published: record.published
-		};
-	}
-
-	function resetForm() {
-		editingId = null;
-		form = emptyForm();
-	}
-
-	async function saveCase() {
-		if (!form.case_id.trim() || !form.title.trim()) return;
-
-		saving = true;
-		error = '';
-
-		const payload = {
-			case_id: form.case_id.trim(),
-			title: form.title.trim(),
-			ecli: form.ecli.trim(),
-			decision_date: form.decision_date || null,
-			status: form.status,
-			court: form.court.trim(),
-			jurisdiction: form.jurisdiction.trim(),
-			plaintiffs: splitList(form.plaintiffs),
-			defendants: splitList(form.defendants),
-			summary: form.summary.trim(),
-			keywords: splitList(form.keywords),
-			dsa_articles: splitList(form.dsa_articles),
-			published: form.published || form.status === 'published'
-		};
-
-		try {
-			if (editingId) {
-				await pb.collection('cases').update<CaseRecord>(editingId, payload);
-			} else {
-				await pb.collection('cases').create<CaseRecord>(payload);
-			}
-
-			resetForm();
-			await loadCases();
-		} catch (err) {
-			console.error('Error saving case:', err);
-			error = 'Could not save the case. Check required fields and permissions.';
-		} finally {
-			saving = false;
-		}
+		goto(`/cases/${record.id}/edit`);
 	}
 
 	async function deleteCase(record: CaseRecord) {
@@ -572,7 +463,7 @@
 	class="mx-auto flex h-full min-h-0 w-full flex-col overflow-hidden px-4 pt-4 pb-4 sm:px-6 lg:px-8"
 >
 	<div class="z-30 mb-4 flex-none bg-base-100">
-		<div class="mb-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_220px] lg:items-center">
+		<div class="mb-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center">
 			<label class="input-bordered input flex items-center gap-2">
 				<span class="text-base-content/50">Search</span>
 				<input
@@ -588,15 +479,26 @@
 				onViewModeChange={(mode) => (viewMode = mode)}
 				onFilterLayoutChange={(layout) => (filterLayout = layout)}
 			/>
-			<select
-				class="select-bordered select w-full"
-				bind:value={searchScope}
-				aria-label="Search scope"
-			>
-				{#each searchScopes as option}
-					<option value={option.value}>{option.label}</option>
-				{/each}
-			</select>
+			<div class="flex gap-2">
+				<select
+					class="select-bordered select w-full"
+					bind:value={searchScope}
+					aria-label="Search scope"
+				>
+					{#each searchScopes as option}
+						<option value={option.value}>{option.label}</option>
+					{/each}
+				</select>
+				{#if canWrite}
+					<button
+						class="btn whitespace-nowrap btn-primary"
+						type="button"
+						onclick={() => goto('/cases/new')}
+					>
+						Create case
+					</button>
+				{/if}
+			</div>
 		</div>
 
 		{#if filterLayout === 'top'}
@@ -607,103 +509,6 @@
 			</div>
 		{/if}
 	</div>
-
-	{#if canWrite}
-		<form
-			class="mb-8 flex-none rounded-[2rem] border border-base-300 bg-base-100 p-5 shadow-sm"
-			onsubmit={(event) => {
-				event.preventDefault();
-				saveCase();
-			}}
-		>
-			<div class="mb-4 flex items-center justify-between gap-3">
-				<h3 class="text-xl font-black">{editingId ? 'Edit case' : 'Create case'}</h3>
-				{#if editingId}
-					<button class="btn btn-ghost btn-sm" type="button" onclick={resetForm}>Cancel edit</button
-					>
-				{/if}
-			</div>
-
-			<div class="grid gap-3 md:grid-cols-3">
-				<input
-					class="input-bordered input"
-					bind:value={form.case_id}
-					required
-					placeholder="Case ID"
-				/>
-				<input
-					class="input-bordered input md:col-span-2"
-					bind:value={form.title}
-					required
-					placeholder="Case title"
-				/>
-				<input
-					class="input-bordered input"
-					bind:value={form.ecli}
-					placeholder="ECLI or identifier"
-				/>
-				<input class="input-bordered input" bind:value={form.court} placeholder="Court" />
-				<input
-					class="input-bordered input"
-					bind:value={form.jurisdiction}
-					placeholder="Jurisdiction"
-				/>
-				<input
-					class="input-bordered input"
-					bind:value={form.decision_date}
-					type="date"
-					aria-label="Decision date"
-				/>
-				<select class="select-bordered select" bind:value={form.status}>
-					{#each statusOptions as option}
-						<option value={option}>{option}</option>
-					{/each}
-				</select>
-				<label
-					class="label cursor-pointer justify-start gap-3 rounded-lg border border-base-300 px-4"
-				>
-					<input class="checkbox checkbox-primary" type="checkbox" bind:checked={form.published} />
-					<span class="label-text">Published</span>
-				</label>
-				<input
-					class="input-bordered input"
-					bind:value={form.plaintiffs}
-					placeholder="Plaintiffs, comma separated"
-				/>
-				<input
-					class="input-bordered input"
-					bind:value={form.defendants}
-					placeholder="Defendants, comma separated"
-				/>
-				<input
-					class="input-bordered input"
-					bind:value={form.dsa_articles}
-					placeholder="DSA articles, comma separated"
-				/>
-				<input
-					class="input-bordered input md:col-span-3"
-					bind:value={form.keywords}
-					placeholder="Keywords, comma separated"
-				/>
-				<textarea
-					class="textarea-bordered textarea md:col-span-3"
-					bind:value={form.summary}
-					rows="3"
-					placeholder="Editorial summary"
-				></textarea>
-			</div>
-
-			<div class="mt-4 flex justify-end">
-				<button
-					class="btn btn-primary"
-					type="submit"
-					disabled={saving || !form.case_id.trim() || !form.title.trim()}
-				>
-					{saving ? 'Saving...' : editingId ? 'Update case' : 'Create case'}
-				</button>
-			</div>
-		</form>
-	{/if}
 
 	{#if error}
 		<div class="mb-5 alert flex-none alert-error">{error}</div>
@@ -719,7 +524,7 @@
 				<CaseFilterPanel sidebar={true} {...filterPanelProps} />
 			</aside>
 		{/if}
-		<div class="min-h-0 min-w-0">
+		<div class="h-full min-h-0 min-w-0 overflow-hidden">
 			{#if viewMode !== 'table'}
 				<div
 					bind:this={tableScroller}
