@@ -587,11 +587,6 @@
 							Table
 						</button>
 					</div>
-					{#if selectedFilterCount || search}
-						<button class="btn btn-ghost btn-sm" type="button" onclick={clearFilters}
-							>Clear filters</button
-						>
-					{/if}
 				</div>
 			</div>
 
@@ -654,8 +649,11 @@
 				/>
 			</div>
 
-			{#if activeChips.length > 0}
+			{#if activeChips.length > 0 || search}
 				<div class="mt-4 flex flex-wrap gap-2">
+					<button class="btn h-7 btn-ghost btn-xs" type="button" onclick={clearFilters}>
+						Clear filters
+					</button>
 					{#each activeChips as chip}
 						<button
 							class="badge gap-2 badge-outline py-3"
