@@ -41,6 +41,7 @@
 		| 'timeline'
 		| 'primary'
 		| 'secondary';
+	type ViewMode = 'cards' | 'table';
 
 	const searchScopes: { value: SearchScope; label: string }[] = [
 		{ value: 'all', label: 'All fields' },
@@ -101,6 +102,12 @@
 	let error = $state('');
 	let editingId = $state<string | null>(null);
 	let form = $state<CaseForm>(emptyForm());
+	let viewMode = $state<ViewMode>('cards');
+	let tableScrollTop = $state(0);
+	let tableViewportHeight = $state(640);
+	let tableScroller = $state<HTMLElement>();
+
+	const rowOverscan = 8;
 
 	const canWrite = $derived(authStore.isAuthenticated);
 	const selectedFilterCount = $derived(
@@ -147,6 +154,31 @@
 	);
 	const filteredCases = $derived(cases.filter((record) => matchesFilters(record)));
 	const activeChips = $derived(buildActiveChips());
+	const rowHeight = $derived(viewMode === 'cards' ? 132 : 176);
+	const virtualStart = $derived(Math.max(0, Math.floor(tableScrollTop / rowHeight) - rowOverscan));
+	const virtualEnd = $derived(
+		Math.min(
+			filteredCases.length,
+			Math.ceil((tableScrollTop + tableViewportHeight) / rowHeight) + rowOverscan
+		)
+	);
+	const virtualRows = $derived(filteredCases.slice(virtualStart, virtualEnd));
+	const topSpacerHeight = $derived(virtualStart * rowHeight);
+	const bottomSpacerHeight = $derived((filteredCases.length - virtualEnd) * rowHeight);
+
+	$effect(() => {
+		search;
+		searchScope;
+		statuses;
+		countries;
+		categories;
+		themes;
+		articles;
+		courts;
+		parties;
+		years;
+		resetTableScroll();
+	});
 
 	const splitList = (value: string) =>
 		value
@@ -200,10 +232,45 @@
 		return getSummarySection(record, 'Secondary sources');
 	}
 
+	function getSourceText(record: CaseRecord) {
+		return [getPrimarySources(record), getSecondarySources(record), record.commentary]
+			.filter(Boolean)
+			.join(' ');
+	}
+
+	function sourceLinks(record: CaseRecord) {
+		return uniqueSorted([
+			...(record.document_links ?? []),
+			...Array.from(stripHtml(record.summary).matchAll(/https?:\/\/[^\s)]+/g), (match) => match[0])
+		]);
+	}
+
+	function sourceLabel(url: string) {
+		try {
+			return new URL(url).hostname.replace(/^www\./, '');
+		} catch {
+			return url;
+		}
+	}
+
+	function sourceText(record: CaseRecord) {
+		const links = sourceLinks(record);
+		if (links.length === 0) return getSourceText(record) || '-';
+		return links.length === 1 ? '1 source' : `${links.length} sources`;
+	}
+
 	function getDecisionYear(record: CaseRecord) {
 		return record.decision_date
 			? new Date(record.decision_date).getFullYear().toString()
 			: undefined;
+	}
+
+	function formatDate(value?: string) {
+		return value ? new Date(value).toLocaleDateString() : '-';
+	}
+
+	function caseTags(record: CaseRecord) {
+		return [...(record.dsa_articles ?? []), ...(record.keywords ?? [])];
 	}
 
 	function getPartyValues(record: CaseRecord) {
@@ -343,6 +410,18 @@
 		courts = [];
 		parties = [];
 		years = [];
+		resetTableScroll();
+	}
+
+	function resetTableScroll() {
+		tableScrollTop = 0;
+		if (tableScroller) tableScroller.scrollTop = 0;
+	}
+
+	function updateTableViewport() {
+		if (!tableScroller) return;
+		tableScrollTop = tableScroller.scrollTop;
+		tableViewportHeight = tableScroller.clientHeight;
 	}
 
 	async function loadCases() {
@@ -451,117 +530,145 @@
 		</div>
 	</div>
 
-	<div class="mb-6 grid gap-3 lg:grid-cols-[1fr_220px]">
-		<label class="input-bordered input flex items-center gap-2">
-			<span class="text-base-content/50">Search</span>
-			<input
-				class="grow"
-				type="search"
-				bind:value={search}
-				placeholder="Search cases, parties, articles, sources"
-			/>
-		</label>
-		<select
-			class="select-bordered select w-full"
-			bind:value={searchScope}
-			aria-label="Search scope"
-		>
-			{#each searchScopes as option}
-				<option value={option.value}>{option.label}</option>
-			{/each}
-		</select>
-	</div>
+	<div
+		class="sticky top-0 z-30 mb-6 bg-base-100/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-base-100/80"
+	>
+		<div class="mb-3 grid gap-3 lg:grid-cols-[1fr_220px]">
+			<label class="input-bordered input flex items-center gap-2">
+				<span class="text-base-content/50">Search</span>
+				<input
+					class="grow"
+					type="search"
+					bind:value={search}
+					placeholder="Search cases, parties, articles, sources"
+				/>
+			</label>
+			<select
+				class="select-bordered select w-full"
+				bind:value={searchScope}
+				aria-label="Search scope"
+			>
+				{#each searchScopes as option}
+					<option value={option.value}>{option.label}</option>
+				{/each}
+			</select>
+		</div>
 
-	<div class="mb-6 rounded-[2rem] border border-base-300 bg-base-100 p-4 shadow-sm">
-		<div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-			<div>
-				<p class="text-xs font-semibold tracking-[0.2em] text-base-content/50 uppercase">
-					Filter cases
-				</p>
-				<p class="text-sm text-base-content/70">
-					Showing {filteredCases.length} of {cases.length} cases
-				</p>
+		<div
+			class="rounded-[2rem] border border-base-300/70 bg-base-100/80 p-4 shadow-sm backdrop-blur-xl"
+		>
+			<div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+				<div>
+					<p class="text-xs font-semibold tracking-[0.2em] text-base-content/50 uppercase">
+						Filter cases
+					</p>
+					<p class="text-sm text-base-content/70">
+						Showing {filteredCases.length} of {cases.length} cases in {viewMode} view
+					</p>
+				</div>
+				<div class="flex flex-wrap items-center gap-2">
+					<div class="join" aria-label="Case result view">
+						<button
+							class="btn join-item btn-sm"
+							class:btn-primary={viewMode === 'cards'}
+							class:btn-ghost={viewMode !== 'cards'}
+							type="button"
+							onclick={() => (viewMode = 'cards')}
+						>
+							Cards
+						</button>
+						<button
+							class="btn join-item btn-sm"
+							class:btn-primary={viewMode === 'table'}
+							class:btn-ghost={viewMode !== 'table'}
+							type="button"
+							onclick={() => (viewMode = 'table')}
+						>
+							Table
+						</button>
+					</div>
+					{#if selectedFilterCount || search}
+						<button class="btn btn-ghost btn-sm" type="button" onclick={clearFilters}
+							>Clear filters</button
+						>
+					{/if}
+				</div>
 			</div>
-			{#if selectedFilterCount || search}
-				<button class="btn btn-ghost btn-sm" type="button" onclick={clearFilters}
-					>Clear filters</button
-				>
+
+			<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+				<FilterMenu
+					label="Status"
+					options={statusFilterOptions}
+					selected={statuses}
+					placeholder="Search statuses"
+					onToggle={(value) => toggleFilter('statuses', value)}
+				/>
+				<FilterMenu
+					label="Country"
+					options={countryFilterOptions}
+					selected={countries}
+					placeholder="Search countries"
+					onToggle={(value) => toggleFilter('countries', value)}
+				/>
+				<FilterMenu
+					label="Category"
+					options={categoryFilterOptions}
+					selected={categories}
+					placeholder="Search categories"
+					onToggle={(value) => toggleFilter('categories', value)}
+				/>
+				<FilterMenu
+					label="Theme"
+					options={themeFilterOptions}
+					selected={themes}
+					placeholder="Search themes"
+					onToggle={(value) => toggleFilter('themes', value)}
+				/>
+				<FilterMenu
+					label="DSA provisions"
+					options={articleFilterOptions}
+					selected={articles}
+					placeholder="Search DSA provisions"
+					onToggle={(value) => toggleFilter('articles', value)}
+				/>
+				<FilterMenu
+					label="Court"
+					options={courtFilterOptions}
+					selected={courts}
+					placeholder="Search courts"
+					onToggle={(value) => toggleFilter('courts', value)}
+				/>
+				<FilterMenu
+					label="Parties"
+					options={partyFilterOptions}
+					selected={parties}
+					placeholder="Search plaintiffs or defendants"
+					onToggle={(value) => toggleFilter('parties', value)}
+				/>
+				<FilterMenu
+					label="Decision year"
+					options={yearFilterOptions}
+					selected={years}
+					placeholder="Search years"
+					onToggle={(value) => toggleFilter('years', value)}
+				/>
+			</div>
+
+			{#if activeChips.length > 0}
+				<div class="mt-4 flex flex-wrap gap-2">
+					{#each activeChips as chip}
+						<button
+							class="badge gap-2 badge-outline py-3"
+							type="button"
+							onclick={() => toggleFilter(chip.group, chip.value)}
+						>
+							{chip.label}
+							<span aria-hidden="true">×</span>
+						</button>
+					{/each}
+				</div>
 			{/if}
 		</div>
-
-		<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-			<FilterMenu
-				label="Status"
-				options={statusFilterOptions}
-				selected={statuses}
-				placeholder="Search statuses"
-				onToggle={(value) => toggleFilter('statuses', value)}
-			/>
-			<FilterMenu
-				label="Country"
-				options={countryFilterOptions}
-				selected={countries}
-				placeholder="Search countries"
-				onToggle={(value) => toggleFilter('countries', value)}
-			/>
-			<FilterMenu
-				label="Category"
-				options={categoryFilterOptions}
-				selected={categories}
-				placeholder="Search categories"
-				onToggle={(value) => toggleFilter('categories', value)}
-			/>
-			<FilterMenu
-				label="Theme"
-				options={themeFilterOptions}
-				selected={themes}
-				placeholder="Search themes"
-				onToggle={(value) => toggleFilter('themes', value)}
-			/>
-			<FilterMenu
-				label="DSA provisions"
-				options={articleFilterOptions}
-				selected={articles}
-				placeholder="Search DSA provisions"
-				onToggle={(value) => toggleFilter('articles', value)}
-			/>
-			<FilterMenu
-				label="Court"
-				options={courtFilterOptions}
-				selected={courts}
-				placeholder="Search courts"
-				onToggle={(value) => toggleFilter('courts', value)}
-			/>
-			<FilterMenu
-				label="Parties"
-				options={partyFilterOptions}
-				selected={parties}
-				placeholder="Search plaintiffs or defendants"
-				onToggle={(value) => toggleFilter('parties', value)}
-			/>
-			<FilterMenu
-				label="Decision year"
-				options={yearFilterOptions}
-				selected={years}
-				placeholder="Search years"
-				onToggle={(value) => toggleFilter('years', value)}
-			/>
-		</div>
-
-		{#if activeChips.length > 0}
-			<div class="mt-4 flex flex-wrap gap-2">
-				{#each activeChips as chip}
-					<button
-						class="badge gap-2 badge-outline py-3"
-						type="button"
-						onclick={() => toggleFilter(chip.group, chip.value)}
-					>
-						{chip.label}
-						<span aria-hidden="true">×</span>
-					</button>
-				{/each}
-			</div>
-		{/if}
 	</div>
 
 	{#if canWrite}
@@ -665,92 +772,264 @@
 		<div class="mb-5 alert alert-error">{error}</div>
 	{/if}
 
-	<div class="overflow-x-auto rounded-[2rem] border border-base-300 bg-base-100 shadow-sm">
-		<table class="table table-zebra">
-			<thead>
-				<tr>
-					<th>Case</th>
-					<th>Status</th>
-					<th>Jurisdiction</th>
-					<th>Court</th>
-					<th>Decision</th>
-					<th>Tags</th>
-					{#if canWrite}<th class="text-right">Actions</th>{/if}
-				</tr>
-			</thead>
-			<tbody>
-				{#if loading}
-					<tr>
-						<td colspan={canWrite ? 7 : 6}>Loading cases...</td>
-					</tr>
-				{:else if filteredCases.length === 0}
-					<tr>
-						<td colspan={canWrite ? 7 : 6}>No cases found.</td>
-					</tr>
-				{:else}
-					{#each filteredCases as record (record.id)}
-						<tr>
-							<td class="min-w-72">
-								<div class="font-bold">{record.title}</div>
-								<div class="text-sm text-base-content/60">
-									{record.case_id}{record.ecli ? ` · ${record.ecli}` : ''}
-								</div>
-								{#if record.summary}
-									<div class="mt-2 line-clamp-2 max-w-xl text-sm text-base-content/70">
-										{@html record.summary}
+	{#if viewMode !== 'table'}
+		<div
+			bind:this={tableScroller}
+			class="max-h-[72vh] overflow-auto rounded-[2rem] border border-base-300/70 bg-base-200/30 p-3 shadow-sm"
+			onscroll={updateTableViewport}
+		>
+			{#if loading}
+				<div
+					class="rounded-[2rem] border border-base-300/70 bg-base-100/80 p-6 shadow-sm backdrop-blur-xl"
+				>
+					Loading cases...
+				</div>
+			{:else if filteredCases.length === 0}
+				<div
+					class="rounded-[2rem] border border-base-300/70 bg-base-100/80 p-6 shadow-sm backdrop-blur-xl"
+				>
+					No cases found.
+				</div>
+			{:else}
+				{#if topSpacerHeight > 0}
+					<div aria-hidden="true" style={`height: ${topSpacerHeight}px;`}></div>
+				{/if}
+				<div class="space-y-3">
+					{#each virtualRows as record (record.id)}
+						<article
+							class="rounded-[1.5rem] border border-base-300/70 bg-base-100/90 p-4 shadow-sm backdrop-blur-xl transition duration-200 hover:border-primary/30 hover:shadow-md"
+							style={`min-height: ${rowHeight - 12}px;`}
+						>
+							<div>
+								<div class="flex flex-wrap items-start justify-between gap-3">
+									<div class="min-w-0 flex-1">
+										<div class="mb-2 flex flex-wrap items-center gap-1.5">
+											<span class="badge badge-outline badge-primary">{record.case_id}</span>
+											<span class="badge badge-outline badge-sm capitalize">{record.status}</span>
+											{#if record.published}<span class="badge badge-outline badge-success"
+													>Published</span
+												>{/if}
+										</div>
+										<h3 class="line-clamp-2 text-lg leading-tight font-black text-base-content">
+											{record.title}
+										</h3>
+										{#if record.ecli}
+											<p class="mt-1 text-sm text-base-content/60">{record.ecli}</p>
+										{/if}
 									</div>
-								{/if}
-							</td>
-							<td><span class="badge badge-outline">{record.status}</span></td>
-							<td>
-								{#if record.jurisdiction}
-									<span class="inline-flex items-center gap-2 whitespace-nowrap">
-										{#if countryFlag(record.jurisdiction)}<span
-												>{countryFlag(record.jurisdiction)}</span
-											>{/if}
-										<span>{record.jurisdiction}</span>
-									</span>
-								{:else}
-									-
-								{/if}
-							</td>
-							<td>{record.court || '-'}</td>
-							<td
-								>{record.decision_date
-									? new Date(record.decision_date).toLocaleDateString()
-									: '-'}</td
-							>
-							<td class="min-w-56">
-								<div class="flex flex-wrap gap-1">
-									{#each [...(record.dsa_articles ?? []), ...(record.keywords ?? [])].slice(0, 5) as tag}
-										<span class="badge badge-ghost">{tag}</span>
-									{/each}
+									{#if canWrite}
+										<div class="join">
+											<button
+												class="btn join-item btn-sm"
+												type="button"
+												onclick={() => editCase(record)}
+											>
+												Edit
+											</button>
+											<button
+												class="btn join-item btn-sm btn-error"
+												type="button"
+												onclick={() => deleteCase(record)}
+											>
+												Delete
+											</button>
+										</div>
+									{/if}
 								</div>
-							</td>
-							{#if canWrite}
-								<td class="text-right">
-									<div class="join">
-										<button
-											class="btn join-item btn-sm"
-											type="button"
-											onclick={() => editCase(record)}
-										>
-											Edit
-										</button>
-										<button
-											class="btn join-item btn-sm btn-error"
-											type="button"
-											onclick={() => deleteCase(record)}
-										>
-											Delete
-										</button>
+
+								<div class="mt-3 grid gap-3 text-sm lg:grid-cols-[1.35fr_1fr_auto]">
+									<div class="min-w-0 space-y-1 text-base-content/75">
+										{#if record.plaintiffs?.length || record.defendants?.length}
+											<div class="line-clamp-1">
+												<span class="font-semibold text-base-content">Parties:</span>
+												{getPartyValues(record).join(', ')}
+											</div>
+										{/if}
+										<div class="line-clamp-1">
+											<span class="font-semibold text-base-content">Jurisdiction:</span>
+											{record.jurisdiction ? countryLabel(record.jurisdiction) : '-'}
+											<span class="mx-1.5 text-base-content/30">/</span>
+											<span class="font-semibold text-base-content">Court:</span>
+											{record.court || '-'}
+										</div>
+									</div>
+									<div class="flex min-w-0 flex-wrap content-start gap-1.5">
+										{#each caseTags(record).slice(0, 4) as tag}
+											<span class="badge badge-ghost">{tag}</span>
+										{/each}
+									</div>
+									<div
+										class="flex flex-wrap items-center gap-x-3 gap-y-1 text-base-content/70 lg:justify-end"
+									>
+										<span>{formatDate(record.decision_date)}</span>
+										{#if sourceLinks(record).length}
+											<a
+												class="text-base-content/70 no-underline hover:text-primary"
+												href={sourceLinks(record)[0]}
+												target="_blank"
+												rel="noreferrer"
+											>
+												{sourceText(record)}
+											</a>
+										{/if}
+									</div>
+								</div>
+							</div>
+						</article>
+					{/each}
+				</div>
+				{#if bottomSpacerHeight > 0}
+					<div aria-hidden="true" style={`height: ${bottomSpacerHeight}px;`}></div>
+				{/if}
+			{/if}
+		</div>
+	{:else}
+		<div
+			bind:this={tableScroller}
+			class="max-h-[72vh] overflow-auto rounded-[2rem] border border-base-300 bg-base-100 shadow-sm"
+			onscroll={updateTableViewport}
+		>
+			<table class="table table-zebra">
+				<thead class="sticky top-0 z-20 bg-base-200 shadow-sm">
+					<tr>
+						<th>Case</th>
+						<th>Parties</th>
+						<th>Status</th>
+						<th>Jurisdiction</th>
+						<th>Court / Decision</th>
+						<th>Legal tags</th>
+						<th>Timeline</th>
+						<th>Sources</th>
+						{#if canWrite}<th class="text-right">Actions</th>{/if}
+					</tr>
+				</thead>
+				<tbody>
+					{#if loading}
+						<tr>
+							<td colspan={canWrite ? 9 : 8}>Loading cases...</td>
+						</tr>
+					{:else if filteredCases.length === 0}
+						<tr>
+							<td colspan={canWrite ? 9 : 8}>No cases found.</td>
+						</tr>
+					{:else}
+						{#if topSpacerHeight > 0}
+							<tr aria-hidden="true">
+								<td colspan={canWrite ? 9 : 8} style={`height: ${topSpacerHeight}px; padding: 0;`}>
+								</td>
+							</tr>
+						{/if}
+						{#each virtualRows as record (record.id)}
+							<tr style={`height: ${rowHeight}px;`}>
+								<td class="min-w-72">
+									<div class="font-bold">{record.title}</div>
+									<div class="text-sm text-base-content/60">
+										{record.case_id}{record.ecli ? ` · ${record.ecli}` : ''}
+									</div>
+									{#if record.summary}
+										<div class="mt-2 line-clamp-2 max-w-xl text-sm text-base-content/70">
+											{@html record.summary}
+										</div>
+									{/if}
+								</td>
+								<td class="min-w-52 text-sm">
+									{#if record.plaintiffs?.length}
+										<div><span class="font-semibold">P:</span> {record.plaintiffs.join(', ')}</div>
+									{/if}
+									{#if record.defendants?.length}
+										<div><span class="font-semibold">D:</span> {record.defendants.join(', ')}</div>
+									{/if}
+									{#if !record.plaintiffs?.length && !record.defendants?.length}-{/if}
+								</td>
+								<td><span class="badge badge-outline">{record.status}</span></td>
+								<td>
+									{#if record.jurisdiction}
+										<span class="inline-flex items-center gap-2 whitespace-nowrap">
+											{#if countryFlag(record.jurisdiction)}<span
+													>{countryFlag(record.jurisdiction)}</span
+												>{/if}
+											<span>{record.jurisdiction}</span>
+										</span>
+									{:else}
+										-
+									{/if}
+								</td>
+								<td class="min-w-48">
+									<div>{record.court || '-'}</div>
+									<div class="text-sm text-base-content/60">
+										{record.decision_date
+											? new Date(record.decision_date).toLocaleDateString()
+											: '-'}
 									</div>
 								</td>
-							{/if}
-						</tr>
-					{/each}
-				{/if}
-			</tbody>
-		</table>
-	</div>
+								<td class="min-w-56">
+									<div class="flex flex-wrap gap-1">
+										{#each [...(record.dsa_articles ?? []), ...(record.keywords ?? [])].slice(0, 5) as tag}
+											<span class="badge badge-ghost">{tag}</span>
+										{/each}
+									</div>
+								</td>
+								<td class="max-w-sm min-w-64 text-sm text-base-content/70">
+									{#if getTimeline(record)}
+										<div class="line-clamp-3">{getTimeline(record)}</div>
+									{:else}
+										-
+									{/if}
+								</td>
+								<td class="max-w-sm min-w-64 text-sm">
+									{#if sourceLinks(record).length}
+										<div class="flex flex-col gap-1">
+											{#each sourceLinks(record).slice(0, 3) as link}
+												<a
+													class="link truncate link-primary"
+													href={link}
+													target="_blank"
+													rel="noreferrer"
+												>
+													{sourceLabel(link)}
+												</a>
+											{/each}
+										</div>
+									{:else if getSourceText(record)}
+										<div class="line-clamp-3 text-base-content/70">{getSourceText(record)}</div>
+									{:else}
+										-
+									{/if}
+								</td>
+								{#if canWrite}
+									<td class="text-right">
+										<div class="join">
+											<button
+												class="btn join-item btn-sm"
+												type="button"
+												onclick={() => editCase(record)}
+											>
+												Edit
+											</button>
+											<button
+												class="btn join-item btn-sm btn-error"
+												type="button"
+												onclick={() => deleteCase(record)}
+											>
+												Delete
+											</button>
+										</div>
+									</td>
+								{/if}
+							</tr>
+						{/each}
+						{#if bottomSpacerHeight > 0}
+							<tr aria-hidden="true">
+								<td
+									colspan={canWrite ? 9 : 8}
+									style={`height: ${bottomSpacerHeight}px; padding: 0;`}
+								>
+								</td>
+							</tr>
+						{/if}
+					{/if}
+				</tbody>
+			</table>
+		</div>
+	{/if}
 </section>
