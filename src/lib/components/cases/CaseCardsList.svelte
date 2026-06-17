@@ -37,47 +37,63 @@
 </script>
 
 {#if loading}
-	<div class="border border-base-300/70 bg-base-100/80 p-6 shadow-sm backdrop-blur-xl">
+	<div class="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-sm">
 		Loading cases...
 	</div>
 {:else if filteredCount === 0}
-	<div class="border border-base-300/70 bg-base-100/80 p-6 shadow-sm backdrop-blur-xl">
+	<div class="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-500 shadow-sm">
 		No cases found.
 	</div>
 {:else}
 	{#if topSpacerHeight > 0}
 		<div aria-hidden="true" style={`height: ${topSpacerHeight}px;`}></div>
 	{/if}
-	<div class="space-y-3">
+	<div class="space-y-2.5">
 		{#each virtualRows as record (record.id)}
 			<article
-				class="rounded-md border border-base-300/70 bg-base-100/90 p-4 shadow-sm backdrop-blur-xl transition duration-200 hover:border-primary/30 hover:shadow-md"
+				class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/50 transition duration-200 hover:border-slate-300 hover:shadow-md hover:shadow-slate-200/80"
 				style={`min-height: ${rowHeight - 12}px;`}
 			>
 				<div>
-					<div class="flex flex-wrap items-start justify-between gap-3">
+					<div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
 						<div class="min-w-0 flex-1">
-							<div class="mb-2 flex flex-wrap items-center gap-1.5">
-								<span class="badge badge-outline badge-primary">{record.case_id}</span>
-								<span class="badge badge-outline badge-sm capitalize">{record.status}</span>
-								{#if record.published}<span class="badge badge-outline badge-success"
-										>Published</span
-									>{/if}
+							<div class="mb-2 flex flex-wrap items-center gap-2">
+								<span class="font-mono text-xs text-slate-400">{record.case_id}</span>
+								<span
+									class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600 capitalize"
+								>
+									{record.status}
+								</span>
+								{#if record.published}
+									<span
+										class="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700"
+									>
+										Published
+									</span>
+								{/if}
 							</div>
-							<h3 class="line-clamp-2 text-lg leading-tight font-black text-base-content">
+							<h3
+								class="line-clamp-2 text-lg leading-tight font-semibold tracking-tight text-slate-950"
+							>
 								{record.title}
 							</h3>
 							{#if record.ecli}
-								<p class="mt-1 text-sm text-base-content/60">{record.ecli}</p>
+								<p class="mt-1 text-sm text-slate-500">{record.ecli}</p>
 							{/if}
 						</div>
 						{#if canWrite}
-							<div class="join">
-								<button class="btn join-item btn-sm" type="button" onclick={() => onEdit(record)}>
+							<div
+								class="flex items-center gap-1 opacity-100 transition lg:opacity-0 lg:group-focus-within:opacity-100 lg:group-hover:opacity-100"
+							>
+								<button
+									class="inline-flex h-8 items-center rounded-md border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 shadow-xs transition hover:bg-slate-50"
+									type="button"
+									onclick={() => onEdit(record)}
+								>
 									Edit
 								</button>
 								<button
-									class="btn join-item btn-sm btn-error"
+									class="inline-flex h-8 items-center rounded-md border border-red-200 bg-white px-3 text-xs font-medium text-red-600 shadow-xs transition hover:bg-red-50"
 									type="button"
 									onclick={() => onDelete(record)}
 								>
@@ -87,34 +103,39 @@
 						{/if}
 					</div>
 
-					<div class="mt-3 grid gap-3 text-sm lg:grid-cols-[1.35fr_1fr_auto]">
-						<div class="min-w-0 space-y-1 text-base-content/75">
+					<div class="mt-3 grid gap-3 text-sm lg:grid-cols-[1.25fr_1fr_auto]">
+						<div class="min-w-0 space-y-1 text-slate-600">
 							{#if record.plaintiffs?.length || record.defendants?.length}
 								<div class="line-clamp-1">
-									<span class="font-semibold text-base-content">Parties:</span>
+									<span class="font-medium text-slate-900">Parties</span>
+									<span class="text-slate-300">/</span>
 									{getPartyValues(record).join(', ')}
 								</div>
 							{/if}
 							<div class="line-clamp-1">
-								<span class="font-semibold text-base-content">Jurisdiction:</span>
+								<span class="font-medium text-slate-900">Jurisdiction</span>
+								<span class="text-slate-300">/</span>
 								{record.jurisdiction ? countryLabel(record.jurisdiction) : '-'}
-								<span class="mx-1.5 text-base-content/30">/</span>
-								<span class="font-semibold text-base-content">Court:</span>
+								<span class="mx-1.5 text-slate-300">/</span>
+								<span class="font-medium text-slate-900">Court</span>
+								<span class="text-slate-300">/</span>
 								{record.court || '-'}
 							</div>
 						</div>
 						<div class="flex min-w-0 flex-wrap content-start gap-1.5">
 							{#each caseTags(record).slice(0, 4) as tag}
-								<span class="badge badge-ghost">{tag}</span>
+								<span
+									class="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600"
+								>
+									{tag}
+								</span>
 							{/each}
 						</div>
-						<div
-							class="flex flex-wrap items-center gap-x-3 gap-y-1 text-base-content/70 lg:justify-end"
-						>
+						<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-500 lg:justify-end">
 							<span>{formatDate(record.decision_date)}</span>
 							{#if sourceLinks(record).length}
 								<a
-									class="text-base-content/70 no-underline hover:text-primary"
+									class="font-medium text-slate-600 no-underline hover:text-slate-950"
 									href={sourceLinks(record)[0]}
 									target="_blank"
 									rel="noreferrer"

@@ -56,14 +56,13 @@
 </script>
 
 <div
-	class={`max-w-full min-w-0 border border-base-300/70 bg-base-100/80 p-4 shadow-sm backdrop-blur-xl ${sidebar ? 'h-full overflow-auto' : ''}`}
+	class={`max-w-full min-w-0 ${sidebar ? 'h-full overflow-auto rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm shadow-slate-200/60' : 'pt-3'}`}
 >
-	<div class="mb-3">
-		<p class="text-xs font-semibold tracking-[0.2em] text-base-content/50 uppercase">
-			Filter cases
-		</p>
-		<p class="text-sm text-base-content/70">
-			Showing {filteredCount} of {totalCount} cases in {viewMode} view
+	<div class={sidebar ? 'mb-3' : 'mb-2 flex flex-wrap items-center justify-between gap-2'}>
+		<p class="text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">Filters</p>
+		<p class="text-sm text-slate-500">
+			Showing <span class="font-medium text-slate-900">{filteredCount}</span> of {totalCount} cases in
+			{viewMode} view
 		</p>
 	</div>
 
@@ -131,13 +130,17 @@
 	</div>
 
 	{#if activeChips.length > 0 || search}
-		<div class="mt-4 flex flex-wrap gap-2">
-			<button class="btn h-7 btn-ghost btn-xs" type="button" onclick={onClear}>
+		<div class="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+			<button
+				class="inline-flex h-7 items-center rounded-md px-2 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+				type="button"
+				onclick={onClear}
+			>
 				Clear filters
 			</button>
 			{#each activeChips as chip}
 				<button
-					class="badge gap-2 badge-outline py-3"
+					class="inline-flex h-7 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-xs transition hover:border-slate-300 hover:bg-slate-50"
 					type="button"
 					onclick={() => onToggle(chip.group, chip.value)}
 				>

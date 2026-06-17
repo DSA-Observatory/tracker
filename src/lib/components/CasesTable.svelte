@@ -99,7 +99,7 @@
 	);
 	const filteredCases = $derived(cases.filter((record) => matchesFilters(record)));
 	const activeChips = $derived(buildActiveChips());
-	const rowHeight = $derived(viewMode === 'cards' ? 132 : 176);
+	const rowHeight = $derived(viewMode === 'cards' ? 146 : 176);
 	const virtualStart = $derived(Math.max(0, Math.floor(tableScrollTop / rowHeight) - rowOverscan));
 	const virtualEnd = $derived(
 		Math.min(
@@ -460,38 +460,32 @@
 
 <section
 	id="cases"
-	class="mx-auto flex h-full min-h-0 w-full flex-col overflow-hidden px-4 pt-4 pb-4 sm:px-6 lg:px-8"
+	class="mx-auto flex h-full min-h-0 w-full max-w-[1680px] flex-col overflow-hidden px-4 pt-3 pb-4 sm:px-6 lg:px-8"
 >
-	<div class="z-30 mb-4 flex-none bg-base-100">
-		<div class="mb-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center">
-			<label class="input-bordered input flex items-center gap-2">
-				<span class="text-base-content/50">Search</span>
-				<input
-					class="grow"
-					type="search"
-					bind:value={search}
-					placeholder="Search cases, parties, articles, sources"
+	<div class="z-30 mb-4 flex-none space-y-3">
+		<div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+			<div class="min-w-0">
+				<div class="flex items-center gap-2 text-xs font-medium text-slate-500">
+					<span>Case database</span>
+					<span aria-hidden="true">/</span>
+					<span>{filteredCases.length} of {cases.length}</span>
+				</div>
+				<h1 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Cases</h1>
+				<p class="mt-1 text-sm text-slate-500">
+					Search and filter DSA private enforcement records.
+				</p>
+			</div>
+
+			<div class="flex flex-col gap-2 sm:flex-row sm:items-center lg:justify-end">
+				<CaseVisualizationControls
+					{viewMode}
+					{filterLayout}
+					onViewModeChange={(mode) => (viewMode = mode)}
+					onFilterLayoutChange={(layout) => (filterLayout = layout)}
 				/>
-			</label>
-			<CaseVisualizationControls
-				{viewMode}
-				{filterLayout}
-				onViewModeChange={(mode) => (viewMode = mode)}
-				onFilterLayoutChange={(layout) => (filterLayout = layout)}
-			/>
-			<div class="flex gap-2">
-				<select
-					class="select-bordered select w-full"
-					bind:value={searchScope}
-					aria-label="Search scope"
-				>
-					{#each searchScopes as option}
-						<option value={option.value}>{option.label}</option>
-					{/each}
-				</select>
 				{#if canWrite}
 					<button
-						class="btn whitespace-nowrap btn-primary"
+						class="inline-flex h-9 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium whitespace-nowrap text-white shadow-sm transition hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 focus-visible:outline-none"
 						type="button"
 						onclick={() => goto('/cases/new')}
 					>
@@ -501,17 +495,48 @@
 			</div>
 		</div>
 
-		{#if filterLayout === 'top'}
-			<CaseFilterPanel sidebar={false} {...filterPanelProps} />
-		{:else}
-			<div class="xl:hidden">
-				<CaseFilterPanel sidebar={false} {...filterPanelProps} />
+		<div
+			class="rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm shadow-slate-200/60 backdrop-blur"
+		>
+			<div class="grid gap-2 lg:grid-cols-[minmax(20rem,1fr)_13rem] lg:items-center">
+				<label
+					class="flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm shadow-xs transition focus-within:border-slate-300 focus-within:ring-2 focus-within:ring-slate-950/10"
+				>
+					<span class="text-slate-400" aria-hidden="true">Search</span>
+					<input
+						class="min-w-0 flex-1 border-0 bg-transparent text-sm text-slate-950 placeholder:text-slate-400 focus:outline-none"
+						type="search"
+						bind:value={search}
+						placeholder="Search cases, parties, articles, sources"
+					/>
+				</label>
+				<select
+					class="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-xs transition outline-none hover:bg-slate-50 focus:ring-2 focus:ring-slate-950/10"
+					bind:value={searchScope}
+					aria-label="Search scope"
+				>
+					{#each searchScopes as option}
+						<option value={option.value}>{option.label}</option>
+					{/each}
+				</select>
 			</div>
-		{/if}
+
+			{#if filterLayout === 'top'}
+				<CaseFilterPanel sidebar={false} {...filterPanelProps} />
+			{:else}
+				<div class="xl:hidden">
+					<CaseFilterPanel sidebar={false} {...filterPanelProps} />
+				</div>
+			{/if}
+		</div>
 	</div>
 
 	{#if error}
-		<div class="mb-5 alert flex-none alert-error">{error}</div>
+		<div
+			class="mb-4 flex-none rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+		>
+			{error}
+		</div>
 	{/if}
 
 	<div
@@ -528,7 +553,7 @@
 			{#if viewMode !== 'table'}
 				<div
 					bind:this={tableScroller}
-					class="h-full min-h-0 max-w-full overflow-auto border border-base-300/70 bg-base-200/30 p-3 shadow-sm"
+					class="h-full min-h-0 max-w-full overflow-auto rounded-xl border border-slate-200 bg-white/70 p-3 shadow-sm shadow-slate-200/70"
 					onscroll={updateTableViewport}
 				>
 					<CaseCardsList
@@ -544,7 +569,7 @@
 			{:else}
 				<div
 					bind:this={tableScroller}
-					class="h-full min-h-0 max-w-full overflow-auto border border-base-300 bg-base-100 shadow-sm"
+					class="h-full min-h-0 max-w-full overflow-auto rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70"
 					onscroll={updateTableViewport}
 				>
 					<CaseResultsTable

@@ -16,6 +16,6 @@
 	</style>
 </svelte:head>
 
-<main class="h-[calc(100dvh-7rem)] overflow-hidden">
+<main class="h-[calc(100dvh-7rem)] overflow-hidden bg-slate-50/80">
 	<CasesTable />
 </main>

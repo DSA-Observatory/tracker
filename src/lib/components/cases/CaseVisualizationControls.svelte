@@ -18,49 +18,51 @@
 	class="flex flex-wrap items-center justify-start gap-2 lg:justify-end"
 	aria-label="Visualization preferences"
 >
-	<div class="join" aria-label="Filter placement">
+	<div
+		class="inline-flex rounded-md border border-slate-200 bg-white p-0.5 shadow-xs"
+		aria-label="Filter placement"
+	>
 		<button
-			class="btn join-item btn-sm"
-			class:btn-primary={filterLayout === 'top'}
-			class:btn-ghost={filterLayout !== 'top'}
+			class={filterLayout === 'top'
+				? 'rounded-sm bg-slate-950 px-3 py-1.5 text-sm font-medium text-white transition'
+				: 'rounded-sm px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100'}
 			type="button"
 			title="Show filters above results"
 			onclick={() => onFilterLayoutChange('top')}
 		>
-			<span aria-hidden="true">▤</span>
 			Top
 		</button>
 		<button
-			class="btn join-item btn-sm"
-			class:btn-primary={filterLayout === 'left'}
-			class:btn-ghost={filterLayout !== 'left'}
+			class={filterLayout === 'left'
+				? 'rounded-sm bg-slate-950 px-3 py-1.5 text-sm font-medium text-white transition'
+				: 'rounded-sm px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100'}
 			type="button"
 			title="Show filters in left column"
 			onclick={() => onFilterLayoutChange('left')}
 		>
-			<span aria-hidden="true">◨</span>
 			Left
 		</button>
 	</div>
-	<div class="join" aria-label="Case result view">
+	<div
+		class="inline-flex rounded-md border border-slate-200 bg-white p-0.5 shadow-xs"
+		aria-label="Case result view"
+	>
 		<button
-			class="btn join-item btn-sm"
-			class:btn-primary={viewMode === 'cards'}
-			class:btn-ghost={viewMode !== 'cards'}
+			class={viewMode === 'cards'
+				? 'rounded-sm bg-slate-950 px-3 py-1.5 text-sm font-medium text-white transition'
+				: 'rounded-sm px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100'}
 			type="button"
 			onclick={() => onViewModeChange('cards')}
 		>
-			<span aria-hidden="true">▦</span>
 			Cards
 		</button>
 		<button
-			class="btn join-item btn-sm"
-			class:btn-primary={viewMode === 'table'}
-			class:btn-ghost={viewMode !== 'table'}
+			class={viewMode === 'table'
+				? 'rounded-sm bg-slate-950 px-3 py-1.5 text-sm font-medium text-white transition'
+				: 'rounded-sm px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100'}
 			type="button"
 			onclick={() => onViewModeChange('table')}
 		>
-			<span aria-hidden="true">≡</span>
 			Table
 		</button>
 	</div>
