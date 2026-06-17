@@ -518,21 +518,11 @@
 	onMount(loadCases);
 </script>
 
-<section id="cases" class="container mx-auto max-w-7xl px-4 py-16">
-	<div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-		<div>
-			<p class="text-sm font-semibold tracking-[0.25em] text-primary uppercase">Case database</p>
-			<h2 class="mt-3 text-3xl font-black">Search and maintain the tracker list.</h2>
-			<p class="mt-3 max-w-2xl text-base-content/70">
-				Published cases are public. Signed-in editors can create, update, and delete records
-				directly in this table.
-			</p>
-		</div>
-	</div>
-
-	<div
-		class="sticky top-0 z-30 mb-6 bg-base-100/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-base-100/80"
-	>
+<section
+	id="cases"
+	class="mx-auto grid h-full min-h-0 w-full grid-rows-[auto_auto_auto_minmax(0,1fr)] overflow-hidden px-4 pt-4 pb-4 sm:px-6 lg:px-8"
+>
+	<div class="z-30 mb-4 bg-base-100">
 		<div class="mb-3 grid gap-3 lg:grid-cols-[1fr_220px]">
 			<label class="input-bordered input flex items-center gap-2">
 				<span class="text-base-content/50">Search</span>
@@ -773,7 +763,7 @@
 	{#if viewMode !== 'table'}
 		<div
 			bind:this={tableScroller}
-			class="max-h-[72vh] overflow-auto rounded-[2rem] border border-base-300/70 bg-base-200/30 p-3 shadow-sm"
+			class="h-full min-h-0 overflow-auto rounded-[2rem] border border-base-300/70 bg-base-200/30 p-3 shadow-sm"
 			onscroll={updateTableViewport}
 		>
 			{#if loading}
@@ -884,11 +874,11 @@
 	{:else}
 		<div
 			bind:this={tableScroller}
-			class="max-h-[72vh] overflow-auto rounded-[2rem] border border-base-300 bg-base-100 shadow-sm"
+			class="h-full min-h-0 overflow-auto rounded-[2rem] border border-base-300 bg-base-100 shadow-sm"
 			onscroll={updateTableViewport}
 		>
 			<table class="table table-zebra">
-				<thead class="sticky top-0 z-20 bg-base-200 shadow-sm">
+				<thead class="bg-base-200 shadow-sm">
 					<tr>
 						<th>Case</th>
 						<th>Parties</th>

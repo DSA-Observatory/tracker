@@ -8,8 +8,14 @@
 		name="description"
 		content="Search, filter, and maintain DSA private enforcement case records."
 	/>
+	<style>
+		html,
+		body {
+			overflow: hidden;
+		}
+	</style>
 </svelte:head>
 
-<main class="overflow-hidden">
+<main class="h-[calc(100dvh-7rem)] overflow-hidden">
 	<CasesTable />
 </main>
