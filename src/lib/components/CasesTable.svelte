@@ -57,7 +57,7 @@
 	let loading = $state(true);
 	let error = $state('');
 	let viewMode = $state<ViewMode>('cards');
-	let filterLayout = $state<FilterLayout>('top');
+	let filterLayout = $state<FilterLayout>('left');
 	let tableScrollTop = $state(0);
 	let tableViewportHeight = $state(640);
 	let tableScroller = $state<HTMLElement>();
@@ -177,7 +177,7 @@
 		viewMode = stored === 'table' ? stored : 'cards';
 
 		const storedLayout = localStorage.getItem(filterLayoutStorageKey);
-		filterLayout = storedLayout === 'left' ? storedLayout : 'top';
+		filterLayout = storedLayout === 'top' ? storedLayout : 'left';
 		preferencesLoaded = true;
 	}
 
