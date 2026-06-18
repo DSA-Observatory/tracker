@@ -10,6 +10,8 @@ The tracker gives the research team a hands-on editorial system for entering, ma
 
 At the prototype stage, the product should behave like a curated editorial tracker rather than a large archive. The architecture should still be scalable enough to grow into a broader research platform.
 
+See `ROADMAP.md` for current progress, production launch requirements, and a demo script for showing the engineering work behind the tracker.
+
 ## Core Audience
 
 - DSA Observatory and IViR researchers.
@@ -165,6 +167,7 @@ Important values:
 | --------------------------- | -------------------------- | ------------------------ |
 | `POCKETBASE_PORT`           | PocketBase host port       | `8095`                   |
 | `FRONTEND_PORT`             | Frontend dev server port   | `8085`                   |
+| `PUBLIC_APP_URL`            | Public frontend app URL    | `http://localhost:8085`  |
 | `PUBLIC_POCKETBASE_URL`     | Browser PocketBase URL     | `http://localhost:8095`  |
 | `POCKETBASE_URL`            | Server-side PocketBase URL | `http://pocketbase:8090` |
 | `POCKETBASE_ADMIN_EMAIL`    | First-run admin email      | `admin@admin.local`      |
@@ -178,7 +181,7 @@ Important values:
 
 Change default credentials immediately after first login.
 
-For Resend, set `SMTP_ENABLED=true`, `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587`, `SMTP_USER=resend`, `SMTP_PASS` to your Resend API key, and `SMTP_FROM` to an address on a verified Resend domain. Restart PocketBase after changing these values so the SMTP settings migration can save them into the PocketBase database.
+For Resend, set `SMTP_ENABLED=true`, `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587`, `SMTP_USER=resend`, `SMTP_PASS` to your Resend API key, `SMTP_FROM` to an address on a verified Resend domain, and `PUBLIC_APP_URL` to the deployed frontend URL. Restart PocketBase after changing these values so the SMTP settings migration can save them into the PocketBase database.
 
 ## GitHub Pages Deployment
 
@@ -191,6 +194,7 @@ Set these repository variables in GitHub if needed:
 | Variable                | Purpose                                                                                                                |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `BASE_PATH`             | Override the GitHub Pages base path. Use an empty/custom-domain setup only if the site is served from the domain root. |
+| `PUBLIC_APP_URL`        | Public URL of the deployed frontend. PocketBase password setup emails link to `{PUBLIC_APP_URL}/password`.             |
 | `PUBLIC_POCKETBASE_URL` | Public URL of the deployed PocketBase backend. GitHub Pages only hosts the frontend.                                   |
 
 The current public landing pages can deploy without a live PocketBase backend, but auth, admin-backed case data, submissions, and future tracker data need PocketBase hosted separately.
