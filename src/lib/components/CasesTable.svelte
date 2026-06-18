@@ -533,7 +533,7 @@
 				/>
 				{#if canWrite}
 					<button
-						class="inline-flex h-9 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium whitespace-nowrap text-white shadow-sm transition hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 focus-visible:outline-none"
+						class="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
 						type="button"
 						onclick={() => goto('/cases/new')}
 					>
@@ -573,11 +573,11 @@
 
 	<div
 		class={filterLayout === 'left'
-			? 'grid min-h-0 min-w-0 flex-1 gap-4 xl:grid-cols-[22rem_minmax(0,1fr)]'
+			? 'grid min-h-0 min-w-0 flex-1 gap-4 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]'
 			: 'min-h-0 min-w-0 flex-1'}
 	>
 		{#if filterLayout === 'left'}
-			<aside class="hidden min-h-0 xl:block">
+			<aside class="hidden min-h-0 min-w-0 overflow-hidden xl:block">
 				<CaseFilterPanel sidebar={true} {...filterPanelProps} />
 			</aside>
 		{/if}

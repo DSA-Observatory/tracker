@@ -56,7 +56,7 @@
 </script>
 
 <div
-	class={`max-w-full min-w-0 ${sidebar ? 'h-full overflow-auto rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm shadow-slate-200/60' : 'pt-3'}`}
+	class={`max-w-full min-w-0 ${sidebar ? 'h-full overflow-x-hidden overflow-y-auto rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm shadow-slate-200/60' : 'pt-3'}`}
 >
 	<div class={sidebar ? 'mb-3' : 'mb-2 flex flex-wrap items-center justify-between gap-2'}>
 		<p class="text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">Filters</p>
