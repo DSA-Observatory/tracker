@@ -27,17 +27,21 @@
 			>
 				<IconamoonMenuBurgerHorizontalBold class="size-6" />
 			</button>
-			<a class="no-drag mr-3 flex flex-initial shrink-0 items-center gap-2 select-none" href="{base}/">
+			<a
+				class="no-drag mr-4 flex flex-initial shrink-0 items-center gap-2.5 select-none"
+				href="{base}/"
+				aria-label="Case tracker home"
+			>
 				<span
-					class="grid size-9 place-items-center rounded-xl bg-primary text-sm font-black tracking-tight text-primary-content"
+					class="logo-mark grid size-10 place-items-center rounded-2xl bg-primary text-sm font-black tracking-tight text-primary-content shadow-sm ring-1 ring-black/10"
 					aria-hidden="true"
 				>
 					DSA
 				</span>
 				<span
-					class="max-w-[9rem] text-sm leading-tight font-bold tracking-tight sm:max-w-none sm:text-base"
+					class="max-w-[9.5rem] text-sm leading-none font-black tracking-[-0.035em] sm:max-w-none sm:text-base"
 				>
-					case load tracker
+					Case Tracker
 				</span>
 			</a>
 			<div class="flex-1"></div>
@@ -72,6 +76,12 @@
 
 	.menu-link.active {
 		@apply text-[var(--color-primary)];
+	}
+
+	.logo-mark {
+		box-shadow:
+			inset 0 1px 0 rgb(255 255 255 / 0.38),
+			0 8px 18px rgb(0 0 0 / 0.12);
 	}
 
 	/* Frosted navigation header */

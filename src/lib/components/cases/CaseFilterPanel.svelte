@@ -73,6 +73,7 @@
 	>
 		<FilterMenu
 			label="Status"
+			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={statusFilterOptions}
 			selected={statuses}
 			placeholder="Search statuses"
@@ -80,6 +81,7 @@
 		/>
 		<FilterMenu
 			label="Country"
+			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={countryFilterOptions}
 			selected={countries}
 			placeholder="Search countries"
@@ -87,6 +89,7 @@
 		/>
 		<FilterMenu
 			label="Category"
+			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={categoryFilterOptions}
 			selected={categories}
 			placeholder="Search categories"
@@ -94,6 +97,7 @@
 		/>
 		<FilterMenu
 			label="Theme"
+			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={themeFilterOptions}
 			selected={themes}
 			placeholder="Search themes"
@@ -101,6 +105,7 @@
 		/>
 		<FilterMenu
 			label="DSA provisions"
+			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={articleFilterOptions}
 			selected={articles}
 			placeholder="Search DSA provisions"
@@ -108,6 +113,7 @@
 		/>
 		<FilterMenu
 			label="Court"
+			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={courtFilterOptions}
 			selected={courts}
 			placeholder="Search courts"
@@ -115,6 +121,7 @@
 		/>
 		<FilterMenu
 			label="Parties"
+			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={partyFilterOptions}
 			selected={parties}
 			placeholder="Search plaintiffs or defendants"
@@ -122,6 +129,7 @@
 		/>
 		<FilterMenu
 			label="Decision year"
+			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={yearFilterOptions}
 			selected={years}
 			placeholder="Search years"
@@ -138,7 +146,7 @@
 			>
 				Clear filters
 			</button>
-			{#each activeChips as chip}
+			{#each activeChips as chip (`${chip.group}:${chip.value}`)}
 				<button
 					class="inline-flex h-7 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-xs transition hover:border-slate-300 hover:bg-slate-50"
 					type="button"
