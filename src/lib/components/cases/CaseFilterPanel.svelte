@@ -58,12 +58,27 @@
 <div
 	class={`max-w-full min-w-0 ${sidebar ? 'h-full overflow-x-hidden overflow-y-auto rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm shadow-slate-200/60' : 'pt-3'}`}
 >
-	<div class={sidebar ? 'mb-3' : 'mb-2 flex flex-wrap items-center justify-between gap-2'}>
-		<p class="text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">Filters</p>
-		<p class="text-sm text-slate-500">
-			Showing <span class="font-medium text-slate-900">{filteredCount}</span> of {totalCount} cases in
-			{viewMode} view
-		</p>
+	<div
+		class={sidebar
+			? 'mb-3 flex items-start justify-between gap-3'
+			: 'mb-2 flex flex-wrap items-center justify-between gap-2'}
+	>
+		<div class="min-w-0">
+			<p class="text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">Filters</p>
+			<p class="text-sm text-slate-500">
+				Showing <span class="font-medium text-slate-900">{filteredCount}</span> of {totalCount} cases
+			</p>
+		</div>
+
+		{#if activeChips.length > 0 || search}
+			<button
+				class="inline-flex h-7 shrink-0 items-center rounded-md bg-slate-950 px-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
+				type="button"
+				onclick={onClear}
+			>
+				Clear filters
+			</button>
+		{/if}
 	</div>
 
 	<div
@@ -137,15 +152,8 @@
 		/>
 	</div>
 
-	{#if activeChips.length > 0 || search}
+	{#if activeChips.length > 0}
 		<div class="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-			<button
-				class="inline-flex h-7 items-center rounded-md px-2 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-				type="button"
-				onclick={onClear}
-			>
-				Clear filters
-			</button>
 			{#each activeChips as chip (`${chip.group}:${chip.value}`)}
 				<button
 					class="inline-flex h-7 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-xs transition hover:border-slate-300 hover:bg-slate-50"
