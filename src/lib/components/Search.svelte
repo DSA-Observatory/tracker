@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import type { SearchScope } from '$lib/components/cases/types';
@@ -127,13 +127,13 @@
 		if (!query || !navigateOnSubmit) return;
 
 		suggestionsOpen = false;
-		goto(`${base}/cases?q=${encodeURIComponent(query)}`);
+		goto(`${resolve('/cases')}?q=${encodeURIComponent(query)}`);
 	}
 
 	function openSuggestion(record: CaseRecord) {
 		value = record.title;
 		suggestionsOpen = false;
-		goto(`${base}/cases?q=${encodeURIComponent(record.title)}`);
+		goto(`${resolve('/cases')}?q=${encodeURIComponent(record.title)}`);
 	}
 
 	function clearSearch() {

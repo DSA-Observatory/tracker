@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { FilterOption } from '$lib/components/FilterMenu.svelte';
 	import CaseCardsList from '$lib/components/cases/CaseCardsList.svelte';
@@ -585,7 +586,7 @@
 							<button
 								class="inline-flex h-8 shrink-0 items-center rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
 								type="button"
-								onclick={() => goto('/cases/new')}>New</button
+								onclick={() => goto(resolve('/cases/new'))}>New</button
 							>
 						{/if}
 						<button
@@ -624,7 +625,7 @@
 						{#if canWrite}<button
 								class="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
 								type="button"
-								onclick={() => goto('/cases/new')}>Create case</button
+								onclick={() => goto(resolve('/cases/new'))}>Create case</button
 							>{/if}
 					{/snippet}
 				</Search>

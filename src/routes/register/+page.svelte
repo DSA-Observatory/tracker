@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { authStore } from '$lib/database';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
 
 	let email = $state('');
@@ -31,7 +31,7 @@
 		try {
 			await authStore.register(email, password, passwordConfirm);
 			// Force full page reload to ensure server picks up the cookie
-			window.location.href = `${base}/`;
+			window.location.href = resolve('/');
 		} catch (err: any) {
 			error = err.message || 'Failed to register';
 			console.error('Registration error:', err);
@@ -51,7 +51,13 @@
 				</div>
 			{/if}
 
-			<form onsubmit={(e) => { e.preventDefault(); handleRegister(); }} class="space-y-4">
+			<form
+				onsubmit={(e) => {
+					e.preventDefault();
+					handleRegister();
+				}}
+				class="space-y-4"
+			>
 				<div>
 					<label for="email" class="mb-1 block text-sm font-medium text-base-content">
 						Email
@@ -61,7 +67,7 @@
 						type="email"
 						bind:value={email}
 						required
-						class="w-full rounded-lg border border-base-300 px-4 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+						class="w-full rounded-lg border border-base-300 px-4 py-2 focus:border-primary focus:ring-2 focus:ring-primary focus:outline-none"
 						placeholder="you@example.com"
 					/>
 				</div>
@@ -76,7 +82,7 @@
 						bind:value={password}
 						required
 						minlength="8"
-						class="w-full rounded-lg border border-base-300 px-4 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+						class="w-full rounded-lg border border-base-300 px-4 py-2 focus:border-primary focus:ring-2 focus:ring-primary focus:outline-none"
 						placeholder="••••••••"
 					/>
 					<p class="mt-1 text-xs text-base-content/50">At least 8 characters</p>
@@ -91,7 +97,7 @@
 						type="password"
 						bind:value={passwordConfirm}
 						required
-						class="w-full rounded-lg border border-base-300 px-4 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+						class="w-full rounded-lg border border-base-300 px-4 py-2 focus:border-primary focus:ring-2 focus:ring-primary focus:outline-none"
 						placeholder="••••••••"
 					/>
 				</div>
@@ -99,7 +105,7 @@
 				<button
 					type="submit"
 					disabled={loading}
-					class="w-full rounded-lg bg-primary px-4 py-2 font-medium text-primary-content hover:bg-primary-focus disabled:opacity-50"
+					class="hover:bg-primary-focus w-full rounded-lg bg-primary px-4 py-2 font-medium text-primary-content disabled:opacity-50"
 				>
 					{loading ? 'Creating account...' : 'Register'}
 				</button>
@@ -107,9 +113,7 @@
 
 			<p class="mt-4 text-center text-sm text-base-content/70">
 				Already have an account?
-				<a href="{base}/" class="font-medium text-primary hover:text-primary-focus">
-					Login
-				</a>
+				<a href={resolve('/')} class="hover:text-primary-focus font-medium text-primary"> Login </a>
 			</p>
 		</div>
 	</div>

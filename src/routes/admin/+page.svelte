@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { authStore, pb } from '$lib/database';
 	import { isAdminEmail, isAdminUser } from '$lib/admin';
 
@@ -199,7 +199,7 @@
 				<p class="mt-3 max-w-2xl text-base-content/75">
 					Log in as <span class="font-semibold">ctw@ctwhome.com</span> to manage users.
 				</p>
-				<a class="btn mt-5 btn-primary" href="{base}/">Return home</a>
+				<a class="btn mt-5 btn-primary" href={resolve('/')}>Return home</a>
 			</div>
 		{:else if !authStore.isAdmin}
 			<div class="mt-8 rounded-3xl border border-error/25 bg-error/10 p-6 text-error">
@@ -257,7 +257,7 @@
 					</button>
 				</div>
 				<p class="mt-3 text-sm text-base-content/60">
-					The user will receive a secure link to set their password at {base}/password.
+					The user will receive a secure link to set their password at {resolve('/password')}.
 				</p>
 			</form>
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Login from '$lib/components/ui/Login/LoginButton.svelte';
 	import Search from '$lib/components/Search.svelte';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { toggleMenu } from '$lib/stores/menu.store';
 	import IconamoonMenuBurgerHorizontalBold from '~icons/iconamoon/menu-burger-horizontal-bold';
 	import menuItems from '$lib/models/menu-itmes';
@@ -29,7 +29,7 @@
 			</button>
 			<a
 				class="no-drag mr-1 flex flex-initial shrink-0 items-center gap-2 select-none sm:mr-4 sm:gap-2.5"
-				href="{base}/"
+				href={resolve('/')}
 				aria-label="Case tracker home"
 			>
 				<span
@@ -57,7 +57,7 @@
 						class="menu-link"
 						onclick={() => (activeCategory = link.title)}
 						class:active={activeCategory === link.title}
-						href="{base}{link.path}"
+						href={resolve(link.path)}
 					>
 						{link.displayTitle}
 					</a>

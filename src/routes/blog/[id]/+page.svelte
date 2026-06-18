@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { pb, type Post } from '$lib/database';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 
@@ -66,13 +66,13 @@
 
 	<div class="mt-8 flex items-center justify-between">
 		<a
-			href="{base}/blog"
+			href={resolve('/blog')}
 			class="inline-flex items-center text-sm text-base-content/70 hover:text-base-content"
 		>
 			← Back to blog
 		</a>
 		<a
-			href="{base}/"
+			href={resolve('/')}
 			class="inline-flex items-center text-sm text-base-content/70 hover:text-base-content"
 		>
 			Home
