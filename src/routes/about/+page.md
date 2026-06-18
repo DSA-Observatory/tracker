@@ -30,7 +30,3 @@ The tracker sits alongside case studies, expert calls, reports, and a DSA Observ
 - Which date model best serves researchers: filing date, decision date, appeal date, or multiple procedural dates?
 - Which court documents can be linked, uploaded, or requested from parties and counsel?
 - Should maps and timelines be built into the site or embedded through tools such as Datawrapper?
-
-## Technical Direction
-
-The recommended stack is SvelteKit, Tailwind CSS, PocketBase, SQLite full-text search, PocketBase file storage, and a standalone TypeScript ingestion script for Rechtspraak.nl RSS monitoring. Later phases may add MapLibre or Leaflet maps, D3 or Datawrapper visualizations, a public API, CSV/JSON export, semantic search, and LLM-powered case Q&A.
