@@ -19,6 +19,9 @@
 	let error = $state('');
 	let success = $state('');
 	let savingUserId = $state('');
+	let inviteName = $state('');
+	let inviteEmail = $state('');
+	let isInviting = $state(false);
 	let hasLoadedUsers = $state(false);
 
 	const canAdmin = $derived(authStore.isAuthenticated && authStore.isAdmin);
@@ -56,6 +59,60 @@
 			error = err instanceof Error ? err.message : 'Could not load users.';
 		} finally {
 			isLoading = false;
+		}
+	}
+
+	function createTemporaryPassword() {
+		const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		const bytes = new Uint8Array(24);
+		crypto.getRandomValues(bytes);
+
+		return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join('');
+	}
+
+	async function inviteUser() {
+		const name = inviteName.trim();
+		const email = inviteEmail.trim().toLowerCase();
+
+		if (!name || !email) {
+			error = 'Enter a name and email address.';
+			success = '';
+			return;
+		}
+
+		isInviting = true;
+		error = '';
+		success = '';
+
+		try {
+			const password = createTemporaryPassword();
+			const user = await pb.collection('users').create<ManagedUser>({
+				email,
+				name,
+				password,
+				passwordConfirm: password,
+				emailVisibility: true
+			});
+
+			users = [user, ...users];
+			inviteName = '';
+			inviteEmail = '';
+
+			try {
+				await pb.collection('users').requestPasswordReset(email);
+			} catch (mailErr) {
+				error =
+					mailErr instanceof Error
+						? `Created ${user.email}, but could not send the setup email: ${mailErr.message}`
+						: `Created ${user.email}, but could not send the setup email.`;
+				return;
+			}
+
+			success = `Invited ${user.email}. A setup email was sent with an app password link.`;
+		} catch (err) {
+			error = err instanceof Error ? err.message : `Could not invite ${email}.`;
+		} finally {
+			isInviting = false;
 		}
 	}
 
@@ -100,7 +157,9 @@
 </svelte:head>
 
 <main class="container mx-auto max-w-6xl px-4 pb-16">
-	<section class="rounded-[2rem] border border-base-300/60 bg-base-100 p-6 shadow-lg shadow-black/5 sm:p-8">
+	<section
+		class="rounded-[2rem] border border-base-300/60 bg-base-100 p-6 shadow-lg shadow-black/5 sm:p-8"
+	>
 		<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 			<div>
 				<p class="text-sm font-semibold tracking-[0.25em] text-primary uppercase">Admin</p>
@@ -123,7 +182,7 @@
 				<p class="mt-3 max-w-2xl text-base-content/75">
 					Log in as <span class="font-semibold">ctw@ctwhome.com</span> to manage users.
 				</p>
-				<a class="btn btn-primary mt-5" href="{base}/">Return home</a>
+				<a class="btn mt-5 btn-primary" href="{base}/">Return home</a>
 			</div>
 		{:else if !authStore.isAdmin}
 			<div class="mt-8 rounded-3xl border border-error/25 bg-error/10 p-6 text-error">
@@ -134,12 +193,58 @@
 			</div>
 		{:else}
 			{#if error}
-				<div class="alert alert-error mt-8">{error}</div>
+				<div class="mt-8 alert alert-error">{error}</div>
 			{/if}
 
 			{#if success}
-				<div class="alert alert-success mt-8">{success}</div>
+				<div class="mt-8 alert alert-success">{success}</div>
 			{/if}
+
+			<form
+				class="mt-8 rounded-3xl border border-base-300/70 bg-base-200/50 p-5"
+				onsubmit={(event) => {
+					event.preventDefault();
+					inviteUser();
+				}}
+			>
+				<div class="flex flex-col gap-4 lg:flex-row lg:items-end">
+					<div class="flex-1">
+						<label class="label" for="invite-name">
+							<span class="label-text font-semibold">Name</span>
+						</label>
+						<input
+							id="invite-name"
+							class="input-bordered input w-full"
+							bind:value={inviteName}
+							placeholder="Jane Doe"
+							autocomplete="name"
+							disabled={isInviting}
+							required
+						/>
+					</div>
+					<div class="flex-1">
+						<label class="label" for="invite-email">
+							<span class="label-text font-semibold">Email</span>
+						</label>
+						<input
+							id="invite-email"
+							class="input-bordered input w-full"
+							bind:value={inviteEmail}
+							type="email"
+							placeholder="jane@example.com"
+							autocomplete="email"
+							disabled={isInviting}
+							required
+						/>
+					</div>
+					<button class="btn btn-primary" type="submit" disabled={isInviting}>
+						{isInviting ? 'Sending...' : 'Invite user'}
+					</button>
+				</div>
+				<p class="mt-3 text-sm text-base-content/60">
+					The user will receive a secure link to set their password at {base}/password.
+				</p>
+			</form>
 
 			{#if isLoading}
 				<div class="mt-8 rounded-3xl bg-base-200/70 p-6">Loading users...</div>
@@ -159,20 +264,23 @@
 								<tr>
 									<td class="min-w-72">
 										<div class="flex items-center gap-3">
-											<div class="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary text-sm font-black text-primary-content">
+											<div
+												class="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary text-sm font-black text-primary-content"
+											>
 												{user.email.charAt(0).toUpperCase()}
 											</div>
 											<div class="min-w-0">
 												<input
-													class="input input-sm input-bordered w-full max-w-xs"
+													class="input-bordered input input-sm w-full max-w-xs"
 													value={user.name || ''}
 													placeholder="Name"
 													disabled={savingUserId === user.id}
-													onchange={(event) => updateUser(user, { name: event.currentTarget.value })}
+													onchange={(event) =>
+														updateUser(user, { name: event.currentTarget.value })}
 												/>
-												<p class="mt-1 break-all text-sm text-base-content/70">{user.email}</p>
+												<p class="mt-1 text-sm break-all text-base-content/70">{user.email}</p>
 												{#if isAdminEmail(user.email)}
-													<span class="badge badge-primary mt-2">Admin</span>
+													<span class="mt-2 badge badge-primary">Admin</span>
 												{/if}
 											</div>
 										</div>
@@ -184,7 +292,8 @@
 												class="toggle toggle-primary"
 												checked={user.verified}
 												disabled={savingUserId === user.id}
-												onchange={(event) => updateUser(user, { verified: event.currentTarget.checked })}
+												onchange={(event) =>
+													updateUser(user, { verified: event.currentTarget.checked })}
 											/>
 											<span>{user.verified ? 'Verified' : 'Not verified'}</span>
 										</label>
@@ -192,7 +301,7 @@
 									<td class="whitespace-nowrap text-base-content/70">{formatDate(user.created)}</td>
 									<td class="text-right">
 										<button
-											class="btn btn-error btn-sm"
+											class="btn btn-sm btn-error"
 											type="button"
 											disabled={savingUserId === user.id || isAdminEmail(user.email)}
 											onclick={() => deleteUser(user)}

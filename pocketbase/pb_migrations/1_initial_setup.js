@@ -336,7 +336,7 @@ migrate((app) => {
 
     // Application metadata
     settings.meta.appName = "SvelteKit + PocketBase";
-    settings.meta.appURL = $os.getenv("PUBLIC_POCKETBASE_URL") || "http://localhost:8090";
+    settings.meta.appURL = ($os.getenv("PUBLIC_APP_URL") || $os.getenv("APP_URL") || "http://localhost:5173").replace(/\/$/, "");
 
     // Logging
     settings.logs.maxDays = 7;
