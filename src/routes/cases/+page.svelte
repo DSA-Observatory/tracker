@@ -9,13 +9,17 @@
 		content="Search, filter, and maintain DSA private enforcement case records."
 	/>
 	<style>
-		html,
-		body {
-			overflow: hidden;
+		@media (min-width: 768px) {
+			html,
+			body {
+				overflow: hidden;
+			}
 		}
 	</style>
 </svelte:head>
 
-<main class="h-[calc(100dvh-4rem)] -mt-10 overflow-hidden bg-slate-50/80">
+<main
+	class="-mt-4 min-h-[calc(100dvh-4rem)] overflow-visible bg-slate-50/80 sm:-mt-10 md:h-[calc(100dvh-4rem)] md:overflow-hidden"
+>
 	<CasesTable />
 </main>

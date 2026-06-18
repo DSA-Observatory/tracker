@@ -22,6 +22,7 @@ The project is a working frontend and Database prototype for a DSA private enfor
 - [x] Case create and edit routes exist at `/cases/new` and `/cases/[id]/edit`.
 - [x] Search and filtering feature documentation exists in `FEATURES.md`.
 - [x] Case search supports global text search, scoped search, filters, result counts, chips, country display, and multiple result display modes.
+- [x] Cases mobile layout keeps filters in a modal sheet, preserves room for case results, and has working mobile topbar/menu navigation.
 - [x] Basic admin user management page exists at `/admin`.
 - [x] Login, registration, logout, and profile UI components exist.
 - [x] SMTP configuration hook/migration exists for transactional email setup.
@@ -55,6 +56,7 @@ The project is a working frontend and Database prototype for a DSA private enfor
 - [ ] Add production analytics if required.
 - [ ] Add error monitoring/logging for frontend and Database.
 - [ ] Run final accessibility, mobile, and browser checks.
+- [ ] Re-test the cases filters, menu, and topbar on real mobile viewports before launch.
 - [ ] Run `npm run check`, `npm run lint`, and `npm run build` before launch.
 - [ ] Create short admin documentation for adding, editing, reviewing, and publishing cases.
 - [ ] Prepare a handover/demo session for IViR/DSA Observatory users.
@@ -70,7 +72,6 @@ The project is a working frontend and Database prototype for a DSA private enfor
 - [ ] Citation graph or linked decision network.
 - [ ] Newsletter or notification workflow for new cases.
 - [ ] Semantic search and AI-assisted case exploration after the editorial database is stable.
-
 
 ## Launch Checklist
 

@@ -14,12 +14,12 @@
 	let activeCategory = $state('');
 </script>
 
-<nav class="bien-nav mb-10">
+<nav class="bien-nav mb-4 sm:mb-10">
 	<div class="bien-glass"></div>
 	<div class="bien-glass-edge"></div>
 	<div class="relative container mx-auto py-2">
 		<!--Desktop Header-->
-		<header class="flex items-center gap-3 px-2 sm:px-0">
+		<header class="flex min-w-0 items-center gap-2 px-2 sm:gap-3 sm:px-0">
 			<button
 				class="rounded-md p-2 transition-colors duration-200 hover:bg-base-200 sm:hidden"
 				onclick={toggleMenu}
@@ -28,12 +28,12 @@
 				<IconamoonMenuBurgerHorizontalBold class="size-6" />
 			</button>
 			<a
-				class="no-drag mr-4 flex flex-initial shrink-0 items-center gap-2.5 select-none"
+				class="no-drag mr-1 flex flex-initial shrink-0 items-center gap-2 select-none sm:mr-4 sm:gap-2.5"
 				href="{base}/"
 				aria-label="Case tracker home"
 			>
 				<span
-					class="logo-mark grid size-10 place-items-center rounded-2xl bg-primary text-sm font-black tracking-tight text-primary-content shadow-sm ring-1 ring-black/10"
+					class="logo-mark grid size-9 place-items-center rounded-2xl bg-primary text-xs font-black tracking-tight text-primary-content shadow-sm ring-1 ring-black/10 sm:size-10 sm:text-sm"
 					aria-hidden="true"
 				>
 					DSA
@@ -44,9 +44,9 @@
 					Case Tracker
 				</span>
 			</a>
-			<div class="flex-1"></div>
+			<div class="min-w-0 flex-1"></div>
 			{#if showSearch}
-				<div class="mt-4 max-w-2xl px-2 sm:px-0">
+				<div class="hidden max-w-2xl min-w-0 px-2 sm:block sm:px-0">
 					<Search />
 				</div>
 			{/if}

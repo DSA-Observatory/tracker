@@ -14,9 +14,12 @@
 	} = $props();
 </script>
 
-<div class="flex flex-wrap items-center justify-start gap-1.5 lg:justify-end" aria-label="Visualization preferences">
+<div
+	class="flex flex-wrap items-center justify-start gap-1.5 lg:justify-end"
+	aria-label="Visualization preferences"
+>
 	<div
-		class="inline-flex rounded-md border border-slate-200 bg-white/80 p-0.5 shadow-xs"
+		class="hidden rounded-md border border-slate-200 bg-white/80 p-0.5 shadow-xs md:inline-flex"
 		aria-label="Filter placement"
 	>
 		<button

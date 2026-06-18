@@ -4,6 +4,8 @@
 	import { isMenuOpen, closeMenu, openMenu } from '$lib/stores/menu.store';
 	import FeedbackButton from '$lib/components/ui/feedback/FeedbackButton.svelte';
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
+	import menuItems from '$lib/models/menu-itmes';
 
 	let containerElement: HTMLElement | undefined = $state();
 	let startX: number;
@@ -95,14 +97,36 @@
 <div bind:this={containerElement} class="side-menu-container sm:hidden">
 	<!-- Background overlay (max 60% opacity) -->
 	<div
-		class="pointer-events-none fixed inset-0 z-40 bg-base-300 sm:hidden"
+		class="pointer-events-none fixed inset-0 z-[10000] bg-base-300 sm:hidden"
 		style="opacity: var(--overlay-opacity);"
 	></div>
 
 	<nav
-		class="bg-base-100 fixed top-0 bottom-0 left-0 z-50 grid w-64 grid-rows-[1fr_auto] overflow-hidden p-4 shadow-lg sm:hidden"
+		class="fixed top-0 bottom-0 left-0 z-[10020] grid w-64 grid-rows-[1fr_auto] overflow-hidden bg-base-100 p-4 shadow-lg sm:hidden"
 	>
-		<div class="flex-1 overflow-y-auto pt-16">Content here</div>
+		<div class="flex-1 overflow-y-auto pt-16">
+			<a class="mb-6 flex items-center gap-2.5" href="{base}/" onclick={closeMenu}>
+				<span
+					class="grid size-10 place-items-center rounded-2xl bg-primary text-sm font-black tracking-tight text-primary-content shadow-sm ring-1 ring-black/10"
+					aria-hidden="true"
+				>
+					DSA
+				</span>
+				<span class="text-base font-black tracking-[-0.035em]">Case Tracker</span>
+			</a>
+
+			<div class="grid gap-1">
+				{#each menuItems as link}
+					<a
+						class="rounded-lg px-3 py-2 text-sm font-semibold text-base-content transition hover:bg-base-200"
+						href="{base}{link.path}"
+						onclick={closeMenu}
+					>
+						{link.displayTitle}
+					</a>
+				{/each}
+			</div>
+		</div>
 
 		<FeedbackButton />
 	</nav>
@@ -111,7 +135,7 @@
 	{#if $isMenuOpen}
 		<button
 			type="button"
-			class="fixed inset-0 z-45 cursor-default bg-transparent sm:hidden"
+			class="fixed inset-0 z-[10010] cursor-default bg-transparent sm:hidden"
 			onclick={closeMenu}
 			onkeydown={(e) => e.key === 'Escape' && closeMenu()}
 			aria-label="Close menu"

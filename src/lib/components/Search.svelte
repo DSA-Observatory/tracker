@@ -21,6 +21,7 @@
 		showSuggestions?: boolean;
 		showSubmitButton?: boolean;
 		variant?: 'header' | 'hero';
+		bare?: boolean;
 		trailing?: Snippet;
 	}
 
@@ -33,6 +34,7 @@
 		showSuggestions = navigateOnSubmit,
 		showSubmitButton = false,
 		variant = 'header',
+		bare = false,
 		trailing
 	}: Props = $props();
 	let cases = $state<CaseRecord[]>([]);
@@ -198,9 +200,11 @@
 
 <form
 	bind:this={searchForm}
-	class={variant === 'hero'
-		? 'rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm shadow-slate-200/60 backdrop-blur'
-		: 'relative'}
+	class={variant === 'hero' && bare
+		? 'relative'
+		: variant === 'hero'
+			? 'rounded-lg border border-slate-200 bg-white/90 p-1.5 shadow-sm shadow-slate-200/60 backdrop-blur md:rounded-xl md:p-3'
+			: 'relative'}
 	onsubmit={(event) => {
 		event.preventDefault();
 		submitSearch();
@@ -208,16 +212,16 @@
 >
 	<div
 		class={variant === 'hero'
-			? 'grid gap-2 lg:grid-cols-[minmax(20rem,1fr)_13rem_auto] lg:items-center'
+			? 'grid gap-2 md:grid-cols-[minmax(20rem,1fr)_13rem] lg:grid-cols-[minmax(20rem,1fr)_13rem_auto] lg:items-center'
 			: ''}
 	>
 		<label
 			class={variant === 'hero'
-				? 'flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm shadow-xs transition focus-within:border-slate-300 focus-within:ring-2 focus-within:ring-slate-950/10'
+				? 'flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-2.5 text-sm shadow-xs transition focus-within:border-slate-300 focus-within:ring-2 focus-within:ring-slate-950/10 md:h-10 md:px-3'
 				: 'input-bordered input flex items-center gap-2 opacity-80'}
 		>
 			{#if variant === 'hero'}
-				<span class="text-slate-400" aria-hidden="true">Search</span>
+				<span class="hidden text-slate-400 md:inline" aria-hidden="true">Search</span>
 			{:else}
 				<svg class="h-5 w-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
@@ -265,7 +269,7 @@
 
 		{#if scopes.length}
 			<label
-				class="flex h-10 w-full items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm shadow-xs transition focus-within:ring-2 focus-within:ring-slate-950/10 hover:bg-slate-50"
+				class="hidden h-10 w-full items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm shadow-xs transition focus-within:ring-2 focus-within:ring-slate-950/10 hover:bg-slate-50 md:flex"
 			>
 				<span class="shrink-0 text-slate-400">Search in</span>
 				<select
@@ -281,7 +285,7 @@
 		{/if}
 
 		{#if trailing}
-			<div class="flex flex-wrap items-center gap-2 lg:justify-end">
+			<div class="flex flex-wrap items-center gap-2 md:col-span-2 lg:col-span-1 lg:justify-end">
 				{@render trailing()}
 			</div>
 		{/if}
