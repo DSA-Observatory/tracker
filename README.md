@@ -185,7 +185,15 @@ For Resend, set `SMTP_ENABLED=true`, `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587
 
 ## GitHub Pages Deployment
 
-The frontend can be deployed as a static site to GitHub Pages. The workflow in `.github/workflows/deploy-pages.yml` builds the SvelteKit static output and publishes the `build/` directory.
+The frontend can be deployed as a static site to GitHub Pages even when the repository stays private. The workflow in `.github/workflows/deploy-pages.yml` builds the SvelteKit static output and publishes the `build/` directory.
+
+Private repositories require a GitHub plan that supports Pages from private repos. The published Pages site is public unless your organization has GitHub Enterprise features for private Pages access control.
+
+In GitHub, enable Pages for this repository:
+
+1. Open `Settings` -> `Pages`.
+2. Set `Source` to `GitHub Actions`.
+3. Push to `main` or run `Deploy GitHub Pages` manually from the `Actions` tab.
 
 For a normal project page, the workflow defaults `BASE_PATH` to `/<repository-name>`. For this repository, that means `/tracker`.
 
