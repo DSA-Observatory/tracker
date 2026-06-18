@@ -1,11 +1,12 @@
 import { pb } from '../client';
 import { browser } from '$app/environment';
-import { isAdminEmail } from '$lib/admin';
+import { isAdminUser } from '$lib/admin';
 
 interface User {
 	id: string;
 	email: string;
 	username?: string;
+	is_admin?: boolean;
 	verified: boolean;
 	created: string;
 	updated: string;
@@ -14,7 +15,7 @@ interface User {
 class AuthStore {
 	user = $state<User | null>(null);
 	isAuthenticated = $derived(!!this.user);
-	isAdmin = $derived(isAdminEmail(this.user?.email));
+	isAdmin = $derived(isAdminUser(this.user));
 
 	constructor() {
 		if (browser) {
@@ -36,7 +37,8 @@ class AuthStore {
 		const data = {
 			email,
 			password,
-			passwordConfirm
+			passwordConfirm,
+			emailVisibility: true
 		};
 		const record = await pb.collection('users').create(data);
 		// Auto-login after registration
