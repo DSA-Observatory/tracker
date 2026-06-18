@@ -13,10 +13,13 @@
 		onDelete,
 		getPartyValues,
 		countryLabel,
-		caseTags,
-		formatDate,
+		getCategories,
+		getThemes,
+		getTimeline,
+		getPrimarySourcesList,
+		getSecondarySourcesList,
 		sourceLinks,
-		sourceText
+		sourceLabel
 	}: {
 		loading: boolean;
 		filteredCount: number;
@@ -29,11 +32,23 @@
 		onDelete: (record: CaseRecord) => void;
 		getPartyValues: (record: CaseRecord) => string[];
 		countryLabel: (country: string) => string;
-		caseTags: (record: CaseRecord) => string[];
-		formatDate: (value?: string) => string;
+		getCategories: (record: CaseRecord) => string[];
+		getThemes: (record: CaseRecord) => string[];
+		getTimeline: (record: CaseRecord) => string;
+		getPrimarySourcesList: (record: CaseRecord) => string[];
+		getSecondarySourcesList: (record: CaseRecord) => string[];
 		sourceLinks: (record: CaseRecord) => string[];
-		sourceText: (record: CaseRecord) => string;
+		sourceLabel: (url: string) => string;
 	} = $props();
+
+	function sourcePreview(value: string) {
+		return (
+			value
+				.replace(/https?:\/\/[^\s)]+/g, '')
+				.replace(/[,:;\s]+$/, '')
+				.trim() || value
+		);
+	}
 </script>
 
 {#if loading}
@@ -50,23 +65,29 @@
 	{/if}
 	<div class="space-y-2.5">
 		{#each virtualRows as record (record.id)}
+			{@const categories = getCategories(record)}
+			{@const themes = getThemes(record)}
+			{@const primarySources = getPrimarySourcesList(record)}
+			{@const secondarySources = getSecondarySourcesList(record)}
+			{@const links = sourceLinks(record)}
+			{@const parties = getPartyValues(record)}
+			{@const timeline = getTimeline(record)}
 			<article
-				class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/50 transition duration-200 hover:border-slate-300 hover:shadow-md hover:shadow-slate-200/80"
+				class="group rounded-sm border border-slate-200 bg-white p-4 shadow-xs shadow-slate-200/40 transition duration-200 hover:border-slate-300"
 				style={`min-height: ${rowHeight - 12}px;`}
 			>
-				<div>
+				<div class="flex h-full flex-col gap-4">
 					<div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
 						<div class="min-w-0 flex-1">
 							<div class="mb-2 flex flex-wrap items-center gap-2">
-								<span class="font-mono text-xs text-slate-400">{record.case_id}</span>
 								<span
-									class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600 capitalize"
+									class="rounded-sm border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs font-medium text-slate-600 capitalize"
 								>
 									{record.status}
 								</span>
 								{#if record.published}
 									<span
-										class="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700"
+										class="rounded-sm border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-700"
 									>
 										Published
 									</span>
@@ -77,9 +98,19 @@
 							>
 								{record.title}
 							</h3>
-							{#if record.ecli}
-								<p class="mt-1 text-sm text-slate-500">{record.ecli}</p>
-							{/if}
+							<div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
+								<span
+									>{record.jurisdiction
+										? countryLabel(record.jurisdiction)
+										: 'Jurisdiction not listed'}</span
+								>
+								<span class="text-slate-300" aria-hidden="true">/</span>
+								<span>{record.court || 'Court not listed'}</span>
+								{#if record.ecli}
+									<span class="text-slate-300" aria-hidden="true">/</span>
+									<span class="font-mono text-xs text-slate-500">{record.ecli}</span>
+								{/if}
+							</div>
 						</div>
 						{#if canWrite}
 							<div
@@ -103,47 +134,111 @@
 						{/if}
 					</div>
 
-					<div class="mt-3 grid gap-3 text-sm lg:grid-cols-[1.25fr_1fr_auto]">
-						<div class="min-w-0 space-y-1 text-slate-600">
-							{#if record.plaintiffs?.length || record.defendants?.length}
-								<div class="line-clamp-1">
-									<span class="font-medium text-slate-900">Parties</span>
-									<span class="text-slate-300">/</span>
-									{getPartyValues(record).join(', ')}
+					<div
+						class="grid gap-3 text-sm lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,0.9fr)]"
+					>
+						<section class="min-w-0 rounded-sm border border-slate-100 bg-slate-50/40 p-3">
+							<div class="text-xs font-semibold text-slate-500">Legal focus</div>
+							{#if record.dsa_articles?.length}
+								<div class="mt-2 flex flex-wrap gap-1.5">
+									{#each record.dsa_articles.slice(0, 4) as article}
+										<span
+											class="max-w-full rounded-sm border border-slate-200 bg-white px-1.5 py-0.5 text-xs font-medium text-slate-700"
+										>
+											{article}
+										</span>
+									{/each}
+									{#if record.dsa_articles.length > 4}
+										<span
+											class="rounded-sm border border-slate-200 bg-white px-1.5 py-0.5 text-xs font-medium text-slate-500"
+										>
+											+{record.dsa_articles.length - 4}
+										</span>
+									{/if}
 								</div>
+							{:else}
+								<p class="mt-2 text-sm text-slate-500">No DSA article tagged</p>
 							{/if}
-							<div class="line-clamp-1">
-								<span class="font-medium text-slate-900">Jurisdiction</span>
-								<span class="text-slate-300">/</span>
-								{record.jurisdiction ? countryLabel(record.jurisdiction) : '-'}
-								<span class="mx-1.5 text-slate-300">/</span>
-								<span class="font-medium text-slate-900">Court</span>
-								<span class="text-slate-300">/</span>
-								{record.court || '-'}
+							<div class="mt-3 space-y-1.5">
+								<p class="line-clamp-1 text-slate-700">
+									<span class="font-medium text-slate-950">Category</span>
+									<span class="text-slate-300"> / </span>
+									{categories.length ? categories.join(', ') : 'Not classified'}
+								</p>
+								<p class="line-clamp-1 text-slate-700">
+									<span class="font-medium text-slate-950">Theme</span>
+									<span class="text-slate-300"> / </span>
+									{themes.length ? themes.join(', ') : 'Not classified'}
+								</p>
 							</div>
-						</div>
-						<div class="flex min-w-0 flex-wrap content-start gap-1.5">
-							{#each caseTags(record).slice(0, 4) as tag}
-								<span
-									class="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600"
-								>
-									{tag}
-								</span>
-							{/each}
-						</div>
-						<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-500 lg:justify-end">
-							<span>{formatDate(record.decision_date)}</span>
-							{#if sourceLinks(record).length}
-								<a
-									class="font-medium text-slate-600 no-underline hover:text-slate-950"
-									href={sourceLinks(record)[0]}
-									target="_blank"
-									rel="noreferrer"
-								>
-									{sourceText(record)}
-								</a>
-							{/if}
-						</div>
+						</section>
+
+						<section class="min-w-0 rounded-sm border border-slate-100 bg-white p-3">
+							<div class="flex items-center justify-between gap-2">
+								<div class="text-xs font-semibold text-slate-500">Sources</div>
+								{#if links.length}
+									<a
+										class="text-xs font-medium text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
+										href={links[0]}
+										target="_blank"
+										rel="noreferrer"
+									>
+										Open{links.length > 1 ? ` +${links.length - 1}` : ''}
+									</a>
+								{/if}
+							</div>
+							<div class="mt-2 space-y-1.5 text-slate-700">
+								{#if primarySources.length}
+									<p class="line-clamp-1">
+										<span class="font-medium text-slate-950">Primary</span>
+										<span class="text-slate-300"> / </span>
+										{sourcePreview(primarySources[0])}
+									</p>
+								{/if}
+								{#if secondarySources.length}
+									<p class="line-clamp-1">
+										<span class="font-medium text-slate-950">Secondary</span>
+										<span class="text-slate-300"> / </span>
+										{sourcePreview(secondarySources[0])}
+									</p>
+								{/if}
+								{#if !primarySources.length && !secondarySources.length && links.length}
+									<p class="line-clamp-1">
+										<span class="font-medium text-slate-950">Linked source</span>
+										<span class="text-slate-300"> / </span>
+										{sourceLabel(links[0])}
+									</p>
+								{/if}
+								{#if !primarySources.length && !secondarySources.length && !links.length}
+									<p class="text-slate-500">No source recorded</p>
+								{/if}
+							</div>
+						</section>
+
+						<section class="min-w-0 rounded-sm border border-slate-100 bg-white p-3">
+							<div class="text-xs font-semibold text-slate-500">Context</div>
+							<div class="mt-2 space-y-1.5 text-slate-700">
+								{#if parties.length}
+									<p class="line-clamp-1">
+										<span class="font-medium text-slate-950">Parties</span>
+										<span class="text-slate-300"> / </span>
+										{parties.join(', ')}
+									</p>
+								{/if}
+								{#if timeline}
+									<p class="line-clamp-2">
+										<span class="font-medium text-slate-950">Timeline</span>
+										<span class="text-slate-300"> / </span>
+										{sourcePreview(timeline)}
+									</p>
+								{:else if !parties.length}
+									<p class="text-slate-500">No contextual metadata</p>
+								{/if}
+							</div>
+							<div class="mt-3 truncate font-mono text-[0.68rem] text-slate-400">
+								{record.case_id}
+							</div>
+						</section>
 					</div>
 				</div>
 			</article>

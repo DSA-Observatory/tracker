@@ -59,6 +59,11 @@ const collection = {
 		{ name: 'plaintiffs', type: 'json', required: false, maxSize: 2000000 },
 		{ name: 'defendants', type: 'json', required: false, maxSize: 2000000 },
 		{ name: 'summary', type: 'editor', required: false, maxSize: 0, convertURLs: true },
+		{ name: 'timeline', type: 'editor', required: false, maxSize: 0, convertURLs: true },
+		{ name: 'categories', type: 'json', required: false, maxSize: 2000000 },
+		{ name: 'themes', type: 'json', required: false, maxSize: 2000000 },
+		{ name: 'primary_sources', type: 'json', required: false, maxSize: 2000000 },
+		{ name: 'secondary_sources', type: 'json', required: false, maxSize: 2000000 },
 		{ name: 'keywords', type: 'json', required: false, maxSize: 2000000 },
 		{ name: 'dsa_articles', type: 'json', required: false, maxSize: 2000000 },
 		{

@@ -51,6 +51,11 @@ CASE_FIELDS = {
     "plaintiffs",
     "defendants",
     "summary",
+    "timeline",
+    "categories",
+    "themes",
+    "primary_sources",
+    "secondary_sources",
     "keywords",
     "dsa_articles",
     "document_links",
@@ -242,6 +247,8 @@ def parse_cases(path, sheet_name):
                 "ecli": ecli,
                 "statuses": [status],
                 "articles": split_list(articles),
+                "categories": unique([category]),
+                "themes": unique([theme]),
                 "keywords": unique([category, theme]),
                 "timelines": [timeline],
                 "primary_sources": [primary],
@@ -253,6 +260,8 @@ def parse_cases(path, sheet_name):
         elif current:
             current["statuses"].append(status)
             current["articles"].extend(split_list(articles))
+            current["categories"].extend(unique([category]))
+            current["themes"].extend(unique([theme]))
             current["keywords"].extend(unique([category, theme]))
             current["timelines"].append(timeline)
             current["primary_sources"].append(primary)
@@ -286,6 +295,8 @@ def parse_cases(path, sheet_name):
         target = merged[key]
         target["statuses"].extend(record["statuses"])
         target["articles"].extend(record["articles"])
+        target["categories"].extend(record["categories"])
+        target["themes"].extend(record["themes"])
         target["keywords"].extend(record["keywords"])
         target["timelines"].extend(record["timelines"])
         target["primary_sources"].extend(record["primary_sources"])
@@ -309,6 +320,11 @@ def parse_cases(path, sheet_name):
                 "plaintiffs": unique(record["plaintiffs"]),
                 "defendants": unique(record["defendants"]),
                 "summary": build_summary(timeline, primary, secondary),
+                "timeline": timeline,
+                "categories": unique(record["categories"]),
+                "themes": unique(record["themes"]),
+                "primary_sources": unique(record["primary_sources"]),
+                "secondary_sources": unique(record["secondary_sources"]),
                 "keywords": unique(record["keywords"]),
                 "dsa_articles": unique(record["articles"]),
                 "document_links": extract_urls(timeline, primary, secondary),

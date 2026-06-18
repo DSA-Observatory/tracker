@@ -45,6 +45,11 @@ export interface CaseRecord {
 	plaintiffs?: string[];
 	defendants?: string[];
 	summary?: string;
+	timeline?: string;
+	categories?: string[];
+	themes?: string[];
+	primary_sources?: string[];
+	secondary_sources?: string[];
 	keywords?: string[];
 	dsa_articles?: string[];
 	documents?: string[];

@@ -8,6 +8,7 @@
 	import CaseFilterPanel from '$lib/components/cases/CaseFilterPanel.svelte';
 	import CaseResultsTable from '$lib/components/cases/CaseResultsTable.svelte';
 	import CaseVisualizationControls from '$lib/components/cases/CaseVisualizationControls.svelte';
+	import Search from '$lib/components/Search.svelte';
 	import { statusOptions } from '$lib/components/cases/types';
 	import type {
 		ActiveFilterChip,
@@ -69,16 +70,12 @@
 	const availableCountries = $derived(uniqueSorted(cases.map((record) => record.jurisdiction)));
 	const countryFilterOptions = $derived(buildOptions('countries', availableCountries));
 	const availableCategories = $derived(
-		categoryOptions.filter((category) => cases.some((record) => hasKeyword(record, category)))
-	);
-	const categoryFilterOptions = $derived(buildOptions('categories', availableCategories));
-	const availableThemes = $derived(
-		uniqueSorted(
-			cases.flatMap((record) =>
-				(record.keywords ?? []).filter((keyword) => !categoryOptions.includes(keyword))
-			)
+		categoryOptions.filter((category) =>
+			cases.some((record) => getCategories(record).includes(category))
 		)
 	);
+	const categoryFilterOptions = $derived(buildOptions('categories', availableCategories));
+	const availableThemes = $derived(uniqueSorted(cases.flatMap((record) => getThemes(record))));
 	const themeFilterOptions = $derived(buildOptions('themes', availableThemes));
 	const articleFilterOptions = $derived(
 		buildOptions('articles', uniqueSorted(cases.flatMap((record) => record.dsa_articles ?? [])))
@@ -99,7 +96,7 @@
 	);
 	const filteredCases = $derived(cases.filter((record) => matchesFilters(record)));
 	const activeChips = $derived(buildActiveChips());
-	const rowHeight = $derived(viewMode === 'cards' ? 146 : 176);
+	const rowHeight = $derived(viewMode === 'cards' ? 252 : 176);
 	const virtualStart = $derived(Math.max(0, Math.floor(tableScrollTop / rowHeight) - rowOverscan));
 	const virtualEnd = $derived(
 		Math.min(
@@ -190,10 +187,6 @@
 		);
 	}
 
-	function hasKeyword(record: CaseRecord, value: string) {
-		return (record.keywords ?? []).includes(value);
-	}
-
 	function countryLabel(country: string) {
 		return [countryFlags[country], country].filter(Boolean).join(' ');
 	}
@@ -206,8 +199,39 @@
 		return selected.length === 0 || values.some((value) => value && selected.includes(value));
 	}
 
+	function decodeHtmlEntities(value?: string) {
+		return (value ?? '')
+			.replace(/&amp;/g, '&')
+			.replace(/&lt;/g, '<')
+			.replace(/&gt;/g, '>')
+			.replace(/&quot;/g, '"')
+			.replace(/&#39;/g, "'");
+	}
+
+	function cleanText(value?: string) {
+		return decodeHtmlEntities(value).replace(/\s+/g, ' ').trim();
+	}
+
 	function stripHtml(value?: string) {
-		return (value ?? '').replace(/<[^>]+>/g, ' ');
+		return cleanText((value ?? '').replace(/<[^>]+>/g, ' '));
+	}
+
+	function listOrFallback(values: string[] | undefined, fallback?: string) {
+		const list = Array.isArray(values) ? values.map(cleanText).filter(Boolean) : [];
+		if (list.length) return list;
+		return cleanText(fallback) ? [cleanText(fallback)] : [];
+	}
+
+	function getCategories(record: CaseRecord) {
+		const categories = listOrFallback(record.categories);
+		if (categories.length) return categories;
+		return (record.keywords ?? []).filter((keyword) => categoryOptions.includes(keyword));
+	}
+
+	function getThemes(record: CaseRecord) {
+		const themes = listOrFallback(record.themes);
+		if (themes.length) return themes;
+		return (record.keywords ?? []).filter((keyword) => !categoryOptions.includes(keyword));
 	}
 
 	function getSummarySection(record: CaseRecord, heading: string) {
@@ -217,7 +241,7 @@
 	}
 
 	function getTimeline(record: CaseRecord) {
-		return getSummarySection(record, 'Case timeline');
+		return stripHtml(record.timeline) || getSummarySection(record, 'Case timeline');
 	}
 
 	function getPrimarySources(record: CaseRecord) {
@@ -228,17 +252,45 @@
 		return getSummarySection(record, 'Secondary sources');
 	}
 
+	function getPrimarySourcesList(record: CaseRecord) {
+		return listOrFallback(record.primary_sources, getPrimarySources(record));
+	}
+
+	function getSecondarySourcesList(record: CaseRecord) {
+		return listOrFallback(record.secondary_sources, getSecondarySources(record));
+	}
+
 	function getSourceText(record: CaseRecord) {
-		return [getPrimarySources(record), getSecondarySources(record), record.commentary]
+		return [...getPrimarySourcesList(record), ...getSecondarySourcesList(record), record.commentary]
 			.filter(Boolean)
 			.join(' ');
 	}
 
+	function extractUrls(value?: string) {
+		return Array.from(decodeHtmlEntities(value).matchAll(/https?:\/\/[^\s)]+/g), (match) =>
+			match[0].replace(/[.,;]+$/, '')
+		);
+	}
+
 	function sourceLinks(record: CaseRecord) {
-		return uniqueSorted([
+		const links = [
 			...(record.document_links ?? []),
-			...Array.from(stripHtml(record.summary).matchAll(/https?:\/\/[^\s)]+/g), (match) => match[0])
-		]);
+			...extractUrls(record.summary),
+			...extractUrls(record.timeline),
+			...getPrimarySourcesList(record).flatMap(extractUrls),
+			...getSecondarySourcesList(record).flatMap(extractUrls)
+		];
+		const deduped = new Map<string, string>();
+
+		for (const link of links
+			.map(decodeHtmlEntities)
+			.map((link) => link.trim())
+			.filter(Boolean)) {
+			const key = link.toLowerCase();
+			if (!deduped.has(key)) deduped.set(key, link);
+		}
+
+		return [...deduped.values()].sort((a, b) => sourceLabel(a).localeCompare(sourceLabel(b)));
 	}
 
 	function sourceLabel(url: string) {
@@ -249,24 +301,10 @@
 		}
 	}
 
-	function sourceText(record: CaseRecord) {
-		const links = sourceLinks(record);
-		if (links.length === 0) return getSourceText(record) || '-';
-		return links.length === 1 ? '1 source' : `${links.length} sources`;
-	}
-
 	function getDecisionYear(record: CaseRecord) {
 		return record.decision_date
 			? new Date(record.decision_date).getFullYear().toString()
 			: undefined;
-	}
-
-	function formatDate(value?: string) {
-		return value ? new Date(value).toLocaleDateString() : '-';
-	}
-
-	function caseTags(record: CaseRecord) {
-		return [...(record.dsa_articles ?? []), ...(record.keywords ?? [])];
 	}
 
 	function getPartyValues(record: CaseRecord) {
@@ -282,9 +320,17 @@
 			record.jurisdiction
 		];
 		const partyValues = getPartyValues(record);
-		const legalValues = [...(record.keywords ?? []), ...(record.dsa_articles ?? [])];
+		const legalValues = [
+			...(record.dsa_articles ?? []),
+			...getCategories(record),
+			...getThemes(record),
+			...(record.keywords ?? [])
+		];
 		const sourceValues = [
 			stripHtml(record.summary),
+			getTimeline(record),
+			...getPrimarySourcesList(record),
+			...getSecondarySourcesList(record),
 			record.commentary,
 			...(record.document_links ?? [])
 		];
@@ -293,8 +339,8 @@
 		if (searchScope === 'parties') return partyValues;
 		if (searchScope === 'legal') return legalValues;
 		if (searchScope === 'timeline') return [getTimeline(record)];
-		if (searchScope === 'primary') return [getPrimarySources(record)];
-		if (searchScope === 'secondary') return [getSecondarySources(record), record.commentary];
+		if (searchScope === 'primary') return getPrimarySourcesList(record);
+		if (searchScope === 'secondary') return [...getSecondarySourcesList(record), record.commentary];
 		if (searchScope === 'sources') return sourceValues;
 		return [...caseValues, ...partyValues, ...legalValues, ...sourceValues];
 	}
@@ -313,8 +359,8 @@
 			matchesSearch(record) &&
 			(ignoredGroup === 'statuses' || matchesAny(statuses, [record.status])) &&
 			(ignoredGroup === 'countries' || matchesAny(countries, [record.jurisdiction])) &&
-			(ignoredGroup === 'categories' || matchesAny(categories, record.keywords ?? [])) &&
-			(ignoredGroup === 'themes' || matchesAny(themes, record.keywords ?? [])) &&
+			(ignoredGroup === 'categories' || matchesAny(categories, getCategories(record))) &&
+			(ignoredGroup === 'themes' || matchesAny(themes, getThemes(record))) &&
 			(ignoredGroup === 'articles' || matchesAny(articles, record.dsa_articles ?? [])) &&
 			(ignoredGroup === 'courts' || matchesAny(courts, [record.court])) &&
 			(ignoredGroup === 'parties' || matchesAny(parties, getPartyValues(record))) &&
@@ -327,7 +373,8 @@
 			if (!matchesFilters(record, group)) return false;
 			if (group === 'statuses') return record.status === option;
 			if (group === 'countries') return record.jurisdiction === option;
-			if (group === 'categories' || group === 'themes') return hasKeyword(record, option);
+			if (group === 'categories') return getCategories(record).includes(option);
+			if (group === 'themes') return getThemes(record).includes(option);
 			if (group === 'articles') return (record.dsa_articles ?? []).includes(option);
 			if (group === 'courts') return record.court === option;
 			if (group === 'parties') return getPartyValues(record).includes(option);
@@ -398,6 +445,7 @@
 
 	function clearFilters() {
 		search = '';
+		searchScope = 'all';
 		statuses = [];
 		countries = [];
 		categories = [];
@@ -495,31 +543,15 @@
 			</div>
 		</div>
 
-		<div
-			class="rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm shadow-slate-200/60 backdrop-blur"
-		>
-			<div class="grid gap-2 lg:grid-cols-[minmax(20rem,1fr)_13rem] lg:items-center">
-				<label
-					class="flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm shadow-xs transition focus-within:border-slate-300 focus-within:ring-2 focus-within:ring-slate-950/10"
-				>
-					<span class="text-slate-400" aria-hidden="true">Search</span>
-					<input
-						class="min-w-0 flex-1 border-0 bg-transparent text-sm text-slate-950 placeholder:text-slate-400 focus:outline-none"
-						type="search"
-						bind:value={search}
-						placeholder="Search cases, parties, articles, sources"
-					/>
-				</label>
-				<select
-					class="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-xs transition outline-none hover:bg-slate-50 focus:ring-2 focus:ring-slate-950/10"
-					bind:value={searchScope}
-					aria-label="Search scope"
-				>
-					{#each searchScopes as option}
-						<option value={option.value}>{option.label}</option>
-					{/each}
-				</select>
-			</div>
+		<div>
+			<Search
+				bind:value={search}
+				bind:searchScope
+				scopes={searchScopes}
+				placeholder="Search cases, parties, articles, sources"
+				navigateOnSubmit={false}
+				variant="hero"
+			/>
 
 			{#if filterLayout === 'top'}
 				<CaseFilterPanel sidebar={false} {...filterPanelProps} />
@@ -553,28 +585,33 @@
 			{#if viewMode !== 'table'}
 				<div
 					bind:this={tableScroller}
-					class="h-full min-h-0 max-w-full overflow-auto rounded-xl border border-slate-200 bg-white/70 p-3 shadow-sm shadow-slate-200/70"
+					class="h-full min-h-0 max-w-full overflow-auto rounded-sm border border-slate-200 bg-white/70 p-3 shadow-sm shadow-slate-200/70"
 					onscroll={updateTableViewport}
 				>
 					<CaseCardsList
 						{...resultProps}
 						{getPartyValues}
 						{countryLabel}
-						{caseTags}
-						{formatDate}
+						{getCategories}
+						{getThemes}
+						{getTimeline}
+						{getPrimarySourcesList}
+						{getSecondarySourcesList}
 						{sourceLinks}
-						{sourceText}
+						{sourceLabel}
 					/>
 				</div>
 			{:else}
 				<div
 					bind:this={tableScroller}
-					class="h-full min-h-0 max-w-full overflow-auto rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70"
+					class="h-full min-h-0 max-w-full overflow-auto rounded-sm border border-slate-200 bg-white shadow-sm shadow-slate-200/70"
 					onscroll={updateTableViewport}
 				>
 					<CaseResultsTable
 						{...resultProps}
 						{countryFlag}
+						{getCategories}
+						{getThemes}
 						{getTimeline}
 						{sourceLinks}
 						{sourceLabel}

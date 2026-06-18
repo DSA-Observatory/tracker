@@ -33,6 +33,13 @@
         "X"
       ],
       "summary": "<h3>Secondary sources</h3><p>Volkskrant 26-02-2025</p>",
+      "timeline": "",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [
+        "Volkskrant 26-02-2025"
+      ],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [],
@@ -52,6 +59,20 @@
         "Meta"
       ],
       "summary": "<h3>Primary sources</h3><p>8-09-2025 Shortened writ of summons</p><h3>Secondary sources</h3><p>28-8-2025 Volkskrant</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Profiling Recommender Systems",
+        "Dark patterns"
+      ],
+      "primary_sources": [
+        "8-09-2025 Shortened writ of summons"
+      ],
+      "secondary_sources": [
+        "28-8-2025 Volkskrant"
+      ],
       "keywords": [
         "Due Diligence",
         "Profiling Recommender Systems",
@@ -80,6 +101,11 @@
         "X"
       ],
       "summary": "",
+      "timeline": "",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [],
@@ -100,6 +126,17 @@
         "X"
       ],
       "summary": "<h3>Primary sources</h3><p>LG Berlin II, Urteil vom 13.05.2025 - 41 O 140/25 eV</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Data Access"
+      ],
+      "primary_sources": [
+        "LG Berlin II, Urteil vom 13.05.2025 - 41 O 140/25 eV"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due Diligence",
         "Data Access"
@@ -125,6 +162,18 @@
         "X"
       ],
       "summary": "<h3>Case timeline</h3><p>05-02-2025 claim initiated 06-04-2025 A cease and desist claim has been filed 02-03-2026 Oral hearing at the Kammergericht in Berlin. 30-04-2026 The collective action claim is dismissed on appeal</p><h3>Primary sources</h3><p>Initial claim: https://www.berlin.de/gerichte/presse/pressemitteilungen-der-ordentlichen-gerichtsbarkeit/2025/pressemitteilung.1562665.php Press release after appeal: https://www.berlin.de/gerichte/presse/pressemitteilungen-der-ordentlichen-gerichtsbarkeit/2026/pressemitteilung.1666701.php</p>",
+      "timeline": "05-02-2025 claim initiated\n06-04-2025 A cease and desist claim has been filed\n02-03-2026 Oral hearing at the Kammergericht in Berlin. 30-04-2026 The collective action claim is dismissed on appeal",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Dark patterns"
+      ],
+      "primary_sources": [
+        "Initial claim: https://www.berlin.de/gerichte/presse/pressemitteilungen-der-ordentlichen-gerichtsbarkeit/2025/pressemitteilung.1562665.php",
+        "Press release after appeal: https://www.berlin.de/gerichte/presse/pressemitteilungen-der-ordentlichen-gerichtsbarkeit/2026/pressemitteilung.1666701.php"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due Diligence",
         "Dark patterns"
@@ -150,6 +199,11 @@
         "TEMU"
       ],
       "summary": "",
+      "timeline": "",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [],
@@ -169,6 +223,22 @@
         "Meta"
       ],
       "summary": "<h3>Case timeline</h3><p>7-05-2019 Lawsuit filed by SIN</p><h3>Primary sources</h3><p>Interim measures ruling by District Court in Warsaw (Polish original) Full judgement: https://en.panoptykon.org/sites/default/files/2025-05/sinvsfb_court-judgment_anonymised_en.pdf</p><h3>Secondary sources</h3><p>Case Timeline by Panoptykon Foundation</p>",
+      "timeline": "7-05-2019 Lawsuit filed by SIN",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Content moderation",
+        "Shadowbanning",
+        "Account blocking"
+      ],
+      "primary_sources": [
+        "Interim measures ruling by District Court in Warsaw (Polish original)",
+        "Full judgement: https://en.panoptykon.org/sites/default/files/2025-05/sinvsfb_court-judgment_anonymised_en.pdf"
+      ],
+      "secondary_sources": [
+        "Case Timeline by Panoptykon Foundation"
+      ],
       "keywords": [
         "Due Diligence",
         "Content moderation",
@@ -195,6 +265,21 @@
         "X.AI LLC (Grok)"
       ],
       "summary": "<h3>Case timeline</h3><p>26-03-2026 Judgment in summary proceedings</p><h3>Primary sources</h3><p>Dagvaarding in kort geding 24-02-2026</p><h3>Secondary sources</h3><p>NRC 26-02-2026</p>",
+      "timeline": "26-03-2026 Judgment in summary proceedings",
+      "categories": [
+        "Intermediary Liability",
+        "Due Diligence"
+      ],
+      "themes": [
+        "Illegal content",
+        "Trusted Flaggers"
+      ],
+      "primary_sources": [
+        "Dagvaarding in kort geding 24-02-2026"
+      ],
+      "secondary_sources": [
+        "NRC 26-02-2026"
+      ],
       "keywords": [
         "Intermediary Liability",
         "Illegal content",
@@ -224,6 +309,22 @@
         "X"
       ],
       "summary": "<h3>Case timeline</h3><p>Hearing at the Rechtbank Amsterdam on 2-4-2026, outcome pending</p><h3>Primary sources</h3><p>Subpoena 15-08-2024</p><h3>Secondary sources</h3><p>BNR 16-08-2024</p>",
+      "timeline": "Hearing at the Rechtbank Amsterdam on 2-4-2026, outcome pending",
+      "categories": [
+        "Due Diligence",
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Micro targeting",
+        "Transparency",
+        "Hate Speech"
+      ],
+      "primary_sources": [
+        "Subpoena 15-08-2024"
+      ],
+      "secondary_sources": [
+        "BNR 16-08-2024"
+      ],
       "keywords": [
         "Due Diligence",
         "Micro targeting",
@@ -255,6 +356,13 @@
         "Meta"
       ],
       "summary": "<h3>Case timeline</h3><p>29-09-2025 SOMI sends Warning Letter to Meta in Denmark</p><h3>Secondary sources</h3><p>SOMI press release 01-04-2026</p>",
+      "timeline": "29-09-2025 SOMI sends Warning Letter to Meta in Denmark",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [
+        "SOMI press release 01-04-2026"
+      ],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [],
@@ -274,6 +382,20 @@
         "Tiktok"
       ],
       "summary": "<h3>Primary sources</h3><p>Higher Regional Court of Bamberg 18-03-2026</p><h3>Secondary sources</h3><p>Mlex 19-03-2026</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Profiling Recommender Systems",
+        "Complaint Mechanism"
+      ],
+      "primary_sources": [
+        "Higher Regional Court of Bamberg 18-03-2026"
+      ],
+      "secondary_sources": [
+        "Mlex 19-03-2026"
+      ],
       "keywords": [
         "Due Diligence",
         "Profiling Recommender Systems",
@@ -305,6 +427,16 @@
         "Meta"
       ],
       "summary": "<h3>Primary sources</h3><p>Warsaw Court of Appeal</p><h3>Secondary sources</h3><p>https://businessinsider.com.pl/prawo/rafal-brzoska-kontra-mark-zuckerberg-jest-decyzja-sadu/eh3hxkh https://www.linkedin.com/posts/natalia-hartung-ba-cantab-llm-3a4a0177_meta-can-be-held-liable-for-the-scams-published-share-7455550216318984192-TidP?utm_source=share&amp;utm_medium=member_desktop&amp;rcm=ACoAAC5R8fUBoJzLoMfmwBv3ygqb09v4CChSGW0</p>",
+      "timeline": "",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [
+        "Warsaw Court of Appeal"
+      ],
+      "secondary_sources": [
+        "https://businessinsider.com.pl/prawo/rafal-brzoska-kontra-mark-zuckerberg-jest-decyzja-sadu/eh3hxkh",
+        "https://www.linkedin.com/posts/natalia-hartung-ba-cantab-llm-3a4a0177_meta-can-be-held-liable-for-the-scams-published-share-7455550216318984192-TidP?utm_source=share&utm_medium=member_desktop&rcm=ACoAAC5R8fUBoJzLoMfmwBv3ygqb09v4CChSGW0"
+      ],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [
@@ -327,6 +459,19 @@
         "Meta"
       ],
       "summary": "<h3>Primary sources</h3><p>Décision Tribunal judiciaire de Paris : RG n°24/02349 | Cour de cassation</p><h3>Secondary sources</h3><p>Michaël Piquet-Fraysse: Lawyer of Barrière who has made multiple statements</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Intellectual Property"
+      ],
+      "primary_sources": [
+        "Décision Tribunal judiciaire de Paris : RG n°24/02349 | Cour de cassation"
+      ],
+      "secondary_sources": [
+        "Michaël Piquet-Fraysse: Lawyer of Barrière who has made multiple statements"
+      ],
       "keywords": [
         "Intermediary Liability",
         "Intellectual Property"
@@ -356,6 +501,17 @@
         "OVH"
       ],
       "summary": "<h3>Primary sources</h3><p>Tribunal Judiciaire de Paris, 2 octobre 2025, n° 24/10705</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Illegal Content"
+      ],
+      "primary_sources": [
+        "Tribunal Judiciaire de Paris, 2 octobre 2025, n° 24/10705"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Illegal Content"
@@ -380,6 +536,17 @@
         "Cyberghost, Nordvpn et Proton"
       ],
       "summary": "<h3>Primary sources</h3><p>TJ Paris, 3e ch. 1re sect., 15 mai 2025, n° 24/15054</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Intellectual Property"
+      ],
+      "primary_sources": [
+        "TJ Paris, 3e ch. 1re sect., 15 mai 2025, n° 24/15054"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Intellectual Property"
@@ -407,6 +574,17 @@
         "Dstorage"
       ],
       "summary": "<h3>Primary sources</h3><p>Cour d&#x27;appel, Paris, Pôle 5, chambre 1, 12 Avril 2023 – n° 21/10585</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Intellectual Property"
+      ],
+      "primary_sources": [
+        "Cour d'appel, Paris, Pôle 5, chambre 1, 12 Avril 2023 – n° 21/10585"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Intellectual Property"
@@ -431,6 +609,17 @@
         "Twitter"
       ],
       "summary": "<h3>Primary sources</h3><p>Tribunal Judiciaire de Paris, Service des referes, 11 avril 2025, n° 24/56234</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Personality Rights"
+      ],
+      "primary_sources": [
+        "Tribunal Judiciaire de Paris, Service des referes, 11 avril 2025, n° 24/56234"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Personality Rights"
@@ -459,6 +648,17 @@
         "Twitter"
       ],
       "summary": "<h3>Primary sources</h3><p>TJ Paris, service des réf., 17 sept. 2025, n° 25/53558</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Personality Rights"
+      ],
+      "primary_sources": [
+        "TJ Paris, service des réf., 17 sept. 2025, n° 25/53558"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Personality Rights"
@@ -483,6 +683,17 @@
         "Google"
       ],
       "summary": "<h3>Primary sources</h3><p>Cour d&#x27;appel, Paris, Pôle 5, chambre 1, 13 Mai 2026 – n° 24/19155</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Intellectual Property"
+      ],
+      "primary_sources": [
+        "Cour d'appel, Paris, Pôle 5, chambre 1, 13 Mai 2026 – n° 24/19155"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Intellectual Property"
@@ -512,6 +723,17 @@
         "Cloudfare"
       ],
       "summary": "<h3>Primary sources</h3><p>CA Paris, pôle 5 ch. 2, 27 mars 2026, n° 24/16310.</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Intellectual Property"
+      ],
+      "primary_sources": [
+        "CA Paris, pôle 5 ch. 2, 27 mars 2026, n° 24/16310."
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Intellectual Property"
@@ -539,6 +761,18 @@
         "S.A. Near Life Experience (NLE)"
       ],
       "summary": "<h3>Primary sources</h3><p>TJ Paris, 3e ch. 2e sect., 21 nov. 2025, n° 23/05116.</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Unfair competition",
+        "Intellectual Property"
+      ],
+      "primary_sources": [
+        "TJ Paris, 3e ch. 2e sect., 21 nov. 2025, n° 23/05116."
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Unfair competition",
@@ -566,6 +800,17 @@
         "Twitter"
       ],
       "summary": "<h3>Primary sources</h3><p>25 septembre 2025 Cour d&#x27;appel de Paris RG n° 24/17261</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Data Access"
+      ],
+      "primary_sources": [
+        "25 septembre 2025 Cour d'appel de Paris RG n° 24/17261"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due Diligence",
         "Data Access"
@@ -590,6 +835,17 @@
         "BackMarket"
       ],
       "summary": "<h3>Primary sources</h3><p>Tribunal Judiciaire de Paris, Service des referes, 6 mai 2026, n° 25/58771</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Seller Traceability"
+      ],
+      "primary_sources": [
+        "Tribunal Judiciaire de Paris, Service des referes, 6 mai 2026, n° 25/58771"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due Diligence",
         "Seller Traceability"
@@ -615,6 +871,21 @@
         "Wikipedia"
       ],
       "summary": "<h3>Primary sources</h3><p>Tribunal Judiciaire de Paris, Service des referes, 19 septembre 2025, n° 25/51051</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence",
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Notice Mechanism",
+        "Terms and Conditions",
+        "Complaint Mechanism",
+        "Personality Rights"
+      ],
+      "primary_sources": [
+        "Tribunal Judiciaire de Paris, Service des referes, 19 septembre 2025, n° 25/51051"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due Diligence",
         "Notice Mechanism",
@@ -653,6 +924,21 @@
         "Google"
       ],
       "summary": "<h3>Primary sources</h3><p>OLG Hamm, judgment of 03.06.2025 - 21 U 62/23 LG Köln, Anerkenntnisurteil vom 22.07.2024 - 14 O 197/24</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence",
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Terms and Conditions",
+        "Account Blocking",
+        "Intellectual Property"
+      ],
+      "primary_sources": [
+        "OLG Hamm, judgment of 03.06.2025 - 21 U 62/23",
+        "LG Köln, Anerkenntnisurteil vom 22.07.2024 - 14 O 197/24"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due Diligence",
         "Terms and Conditions",
@@ -688,6 +974,17 @@
         "Youtube"
       ],
       "summary": "<h3>Primary sources</h3><p>OLG Nurnberg, 23 July 2024 - 3 U 2469/23</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Personality Rights"
+      ],
+      "primary_sources": [
+        "OLG Nurnberg, 23 July 2024 - 3 U 2469/23"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Personality Rights"
@@ -717,6 +1014,17 @@
         "X (2)"
       ],
       "summary": "<h3>Primary sources</h3><p>Kammergericht (KG) Berlin, 17 February 2026</p>",
+      "timeline": "",
+      "categories": [
+        "Due diligence"
+      ],
+      "themes": [
+        "Data Access"
+      ],
+      "primary_sources": [
+        "Kammergericht (KG) Berlin, 17 February 2026"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due diligence",
         "Data Access"
@@ -742,6 +1050,13 @@
         "Meta"
       ],
       "summary": "<h3>Primary sources</h3><p>OLG Frankfurt, 4 March 2025 - 16 W 10/25</p>",
+      "timeline": "",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [
+        "OLG Frankfurt, 4 March 2025 - 16 W 10/25"
+      ],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [
         "Article 6(4)",
@@ -760,6 +1075,18 @@
       "plaintiffs": [],
       "defendants": [],
       "summary": "<h3>Primary sources</h3><p>KG Berlin, 10 W 70/25: https://www.juris.de/static/infodienst/autoren/D_NJRE001618227.htm</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Personality Rights",
+        "Notice Mechanism"
+      ],
+      "primary_sources": [
+        "KG Berlin, 10 W 70/25: https://www.juris.de/static/infodienst/autoren/D_NJRE001618227.htm"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Personality Rights",
@@ -788,6 +1115,18 @@
         "Google"
       ],
       "summary": "<h3>Primary sources</h3><p>LG Düsseldorf, Urteil vom 04.12.2024 , Az. 2a O 112/23 Cologne Regional Court , Judgment of 29 September 2022 - 14 O 29/21</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Intellectual Property"
+      ],
+      "primary_sources": [
+        "LG Düsseldorf, Urteil vom 04.12.2024 , Az. 2a O 112/23",
+        "Cologne Regional Court , Judgment of 29 September 2022 - 14 O 29/21"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Intellectual Property"
@@ -814,6 +1153,17 @@
         "Google"
       ],
       "summary": "<h3>Primary sources</h3><p>LG Bamberg , final judgment from March 11, 2026 - 1 HK O 19/25</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Advertisement"
+      ],
+      "primary_sources": [
+        "LG Bamberg , final judgment from March 11, 2026 - 1 HK O 19/25"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due Diligence",
         "Advertisement"
@@ -842,6 +1192,18 @@
         "Meta"
       ],
       "summary": "<h3>Primary sources</h3><p>OLG München, Endurteil vom 09.04.2024 - 18 U 4603/22 Pre</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Disinformation",
+        "Terms and Conditions"
+      ],
+      "primary_sources": [
+        "OLG München, Endurteil vom 09.04.2024 - 18 U 4603/22 Pre"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due Diligence",
         "Disinformation",
@@ -869,6 +1231,18 @@
         "Google"
       ],
       "summary": "<h3>Primary sources</h3><p>OLG Bamberg, Urteil vom 28.07.2025 - 4 U 62/25 e</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Terms and Conditions",
+        "Moderation Decision"
+      ],
+      "primary_sources": [
+        "OLG Bamberg, Urteil vom 28.07.2025 - 4 U 62/25 e"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due Diligence",
         "Terms and Conditions",
@@ -891,6 +1265,17 @@
       "plaintiffs": [],
       "defendants": [],
       "summary": "<h3>Primary sources</h3><p>AG Bonn Beschluss vom 27.01.2026 - 652 OWi 27/23</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Appointment of legal representative"
+      ],
+      "primary_sources": [
+        "AG Bonn Beschluss vom 27.01.2026 - 652 OWi 27/23"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due Diligence",
         "Appointment of legal representative"
@@ -915,6 +1300,17 @@
         "Meta"
       ],
       "summary": "<h3>Primary sources</h3><p>Higher Regional Court of Munich, final judgment of 17.03.2026 - 18 U 3495/24 Pre e</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Complaint Mechanism"
+      ],
+      "primary_sources": [
+        "Higher Regional Court of Munich, final judgment of 17.03.2026 - 18 U 3495/24 Pre e"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due Diligence",
         "Complaint Mechanism"
@@ -935,6 +1331,21 @@
       "plaintiffs": [],
       "defendants": [],
       "summary": "<h3>Primary sources</h3><p>OLG Hamburg, Urteil vom 21.11.2024 - 5 U 54/23 LG München I, Beschluss vom 27.01.2025 - 33 O 28/25 LG Hamburg, Beschluss vom 28.05.2025 - 416 HKO 62/25</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability",
+        "Due Diligence"
+      ],
+      "themes": [
+        "Intellectual Property",
+        "Point of Contact"
+      ],
+      "primary_sources": [
+        "OLG Hamburg, Urteil vom 21.11.2024 - 5 U 54/23",
+        "LG München I, Beschluss vom 27.01.2025 - 33 O 28/25",
+        "LG Hamburg, Beschluss vom 28.05.2025 - 416 HKO 62/25"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Intellectual Property",
@@ -965,6 +1376,17 @@
         "NordVPN"
       ],
       "summary": "<h3>Primary sources</h3><p>ATIM Córdoba, a 02 de febrero de 2026 - ROJ: ATIM CO 6/2026</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Intellectual Property"
+      ],
+      "primary_sources": [
+        "ATIM Córdoba, a 02 de febrero de 2026 - ROJ: ATIM CO 6/2026"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Intellectual Property"
@@ -990,6 +1412,17 @@
         "ProtonVPN"
       ],
       "summary": "<h3>Primary sources</h3><p>ATIM Córdoba, a 07 de enero de 2026 - ROJ: ATIM CO 7/2026</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Intellectual Property"
+      ],
+      "primary_sources": [
+        "ATIM Córdoba, a 07 de enero de 2026 - ROJ: ATIM CO 7/2026"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Intellectual Property"
@@ -1015,6 +1448,17 @@
         "Internet providers"
       ],
       "summary": "<h3>Primary sources</h3><p>Juzgado de lo Mercantil n° 1 de Córdoba el 17 de noviembre de 2025</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Intellectual Property"
+      ],
+      "primary_sources": [
+        "Juzgado de lo Mercantil n° 1 de Córdoba el 17 de noviembre de 2025"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Intellectual Property"
@@ -1040,6 +1484,17 @@
         "Bankinter Consumer Finance"
       ],
       "summary": "<h3>Primary sources</h3><p>AJPI Madrid, a 31 de enero de 2024 - ROJ: AJPI 2/2024</p>",
+      "timeline": "",
+      "categories": [
+        "Due Diligence"
+      ],
+      "themes": [
+        "Transparency"
+      ],
+      "primary_sources": [
+        "AJPI Madrid, a 31 de enero de 2024 - ROJ: AJPI 2/2024"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Due Diligence",
         "Transparency"
@@ -1064,6 +1519,17 @@
         "private individual"
       ],
       "summary": "<h3>Primary sources</h3><p>STC 83/2023, de 4 de julio - Tribunal Constitucional</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Personality Rights"
+      ],
+      "primary_sources": [
+        "STC 83/2023, de 4 de julio - Tribunal Constitucional"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Personality Rights"
@@ -1089,6 +1555,17 @@
         "AirBnb"
       ],
       "summary": "<h3>Primary sources</h3><p>Tribunal judiciaire, Paris, 5 Novembre 2025 – n° 24/02425</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Order to Provide Information"
+      ],
+      "primary_sources": [
+        "Tribunal judiciaire, Paris, 5 Novembre 2025 – n° 24/02425"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Order to Provide Information"
@@ -1113,6 +1590,17 @@
         "Indeed"
       ],
       "summary": "<h3>Primary sources</h3><p>Tribunal judiciaire, Paris, 4 Octobre 2024 – n° 24/56015</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Personality Rights"
+      ],
+      "primary_sources": [
+        "Tribunal judiciaire, Paris, 4 Octobre 2024 – n° 24/56015"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Personality Rights"
@@ -1137,6 +1625,17 @@
         "SFR"
       ],
       "summary": "<h3>Primary sources</h3><p>Tribunal judiciaire, Paris, 4 Juin 2025 – n° 25/51254</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Personality Rights"
+      ],
+      "primary_sources": [
+        "Tribunal judiciaire, Paris, 4 Juin 2025 – n° 25/51254"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Personality Rights"
@@ -1157,6 +1656,17 @@
       "plaintiffs": [],
       "defendants": [],
       "summary": "<h3>Primary sources</h3><p>Tribunal judiciaire, Paris, 24 Octobre 2025 – n° 25/54263</p>",
+      "timeline": "",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Personality Rights"
+      ],
+      "primary_sources": [
+        "Tribunal judiciaire, Paris, 24 Octobre 2025 – n° 25/54263"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Personality Rights"
@@ -1182,6 +1692,18 @@
         "Fruugo.com"
       ],
       "summary": "<h3>Case timeline</h3><p>Hof Den Haag, 25-11-2025, nr. 200.336.336/01, https://www.inview.nl/document/idb36d3b13dc6e48659b8133a559cdc977/hof-den-haag-25-11-2025-nr-200-336-336-01 Hof &#x27;s-Hertogenbosch, 12-03-2024, nr. 200.327.797, 01, https://www.inview.nl/document/id08224a1be5524f669dfd93ea013cf41e/hof-s-hertogenbosch-12-03-2024-nr-200-327-797-01?ctx=WKNL_CSL_10000001&amp;tab=tekst&amp;searchid=4060956896</p><h3>Primary sources</h3><p>Rb. Den Haag, 30-08-2023, nr. C/09/622304 / HA ZA 21-1105, https://www.inview.nl/document/idc3765c6c376e48efbafb5efdb82bef2a/rb-den-haag-30-08-2023-nr-c-09-622304-ha-za-21-1105</p>",
+      "timeline": "Hof Den Haag, 25-11-2025, nr. 200.336.336/01, https://www.inview.nl/document/idb36d3b13dc6e48659b8133a559cdc977/hof-den-haag-25-11-2025-nr-200-336-336-01\nHof 's-Hertogenbosch, 12-03-2024, nr. 200.327.797, 01, https://www.inview.nl/document/id08224a1be5524f669dfd93ea013cf41e/hof-s-hertogenbosch-12-03-2024-nr-200-327-797-01?ctx=WKNL_CSL_10000001&tab=tekst&searchid=4060956896",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Intellectual Property",
+        "Intermediary liability, Unlawful publication"
+      ],
+      "primary_sources": [
+        "Rb. Den Haag, 30-08-2023, nr. C/09/622304 / HA ZA 21-1105, https://www.inview.nl/document/idc3765c6c376e48efbafb5efdb82bef2a/rb-den-haag-30-08-2023-nr-c-09-622304-ha-za-21-1105"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Intellectual Property",
@@ -1214,6 +1736,17 @@
         "Meta"
       ],
       "summary": "<h3>Case timeline</h3><p>Hof Amsterdam, 26-03-2024, nr. 200.316.164/0, https://www.inview.nl/document/idefc1893dfca641dd8f7f616ec4e8e5b0/hof-amsterdam-26-03-2024-nr-200-316-164-01?ctx=WKNL_CSL_10000001&amp;tab=tekst&amp;pagina=1&amp;searchid=4060956896</p><h3>Primary sources</h3><p>Hof &#x27;s-Hertogenbosch, 12-03-2024, nr. 200.327.797, 01, https://www.inview.nl/document/id08224a1be5524f669dfd93ea013cf41e/hof-s-hertogenbosch-12-03-2024-nr-200-327-797-01?ctx=WKNL_CSL_10000001&amp;tab=tekst&amp;searchid=4060956896</p>",
+      "timeline": "Hof Amsterdam, 26-03-2024, nr. 200.316.164/0, https://www.inview.nl/document/idefc1893dfca641dd8f7f616ec4e8e5b0/hof-amsterdam-26-03-2024-nr-200-316-164-01?ctx=WKNL_CSL_10000001&tab=tekst&pagina=1&searchid=4060956896",
+      "categories": [
+        "Intermediary Liability"
+      ],
+      "themes": [
+        "Unlawful Publication"
+      ],
+      "primary_sources": [
+        "Hof 's-Hertogenbosch, 12-03-2024, nr. 200.327.797, 01, https://www.inview.nl/document/id08224a1be5524f669dfd93ea013cf41e/hof-s-hertogenbosch-12-03-2024-nr-200-327-797-01?ctx=WKNL_CSL_10000001&tab=tekst&searchid=4060956896"
+      ],
+      "secondary_sources": [],
       "keywords": [
         "Intermediary Liability",
         "Unlawful Publication"
@@ -1240,6 +1773,48 @@
       "plaintiffs": [],
       "defendants": [],
       "summary": "<h3>Primary sources</h3><p>Cour d&#x27;appel, Paris, Pôle 1, chambre 3, 17 Octobre 2024 – n° 23/17972 Cour d&#x27;appel, Paris, Pôle 5, chambre 11, 26 Septembre 2025 – n° 25/04280 Tribunal judiciaire, Paris, 21 Janvier 2026 – n° 25/57733 Tribunal judiciaire, Paris, 3e chambre, 3e section, 14 Janvier 2026 – n° 25/12576 Tribunal judiciaire, Paris, 11 Juillet 2025 – n° 25/51722 Tribunal judiciaire, Paris, 3e chambre, 1re section, 29 Janvier 2026 – n° 25/10983 Tribunal judiciaire, Paris, 3e chambre, 3e section, 28 Janvier 2026 – n° 25/12499 Tribunal judiciaire, Paris, 24 Octobre 2025 – n° 25/54263 Tribunal judiciaire, Paris, 27 Novembre 2024 – n° 24/53939 Tribunal judiciaire, Paris, 9 Janvier 2026 – n° 25/56349 Tribunal judiciaire, Paris, 3e chambre, 3e section, 18 Février 2026 – n° 25/10980 Tribunal judiciaire, Paris, 8 Octobre 2024 – n° 24/55637 Tribunal judiciaire, Paris, 17 Septembre 2025 – n° 25/53558 Tribunal judiciaire, Paris, 3e chambre, 1re section, 9 Janvier 2025 – n° 24/10696 Tribunal judiciaire, Paris, 17 Avril 2026 – n° 26/00681 Tribunal judiciaire, Paris, 24 Avril 2024 – n° 24/02349 Tribunal judiciaire, Paris, 30 Octobre 2024 – n° 24/55336 Tribunal judiciaire, Paris, 19 Mars 2025 – n° 24/58239 Tribunal judiciaire, Paris, 3e chambre, 2e section, 21 Novembre 2025 – n° 23/05116 Tribunal judiciaire, Paris, 25 Juin 2024 – n° 24/53422 Tribunal judiciaire, Paris, 12 Mars 2025 – n° 24/06229 Tribunal judiciaire, Limoges, Référé, 12 Décembre 2025 – n° 25/00589 Tribunal judiciaire, Paris, 19 Décembre 2025 – n° 25/58071 Tribunal judiciaire, Paris, 3e chambre, 2e section, 17 Avril 2026 – n° 26/00507 Tribunal judiciaire, Paris, 5 Septembre 2025 – n° 25/52399 Tribunal judiciaire, Paris, 19 Décembre 2025 – n° 25/57861 Tribunal judiciaire, Paris, 19 Décembre 2025 – n° 25/57054 Tribunal judiciaire, Paris, 3e chambre, 2e section, 17 Avril 2026 – n° 26/00517 Tribunal judiciaire, Paris, 3e chambre, 2e section, 17 Avril 2026 – n° 26/00520 Tribunal judiciaire, Paris, 17 Avril 2026 – n° 26/00510 Tribunal judiciaire, Paris, 19 Septembre 2025 – n° 25/51051 Tribunal judiciaire, Paris, 17 Avril 2026 – n° 26/00508 Tribunal judiciaire, Paris, 3e chambre, 1re section, 13 Mai 2026 – n° 26/02207 Tribunal judiciaire, Paris, 3e chambre, 1re section, 7 Mai 2026 – n° 26/02203 Tribunal judiciaire, Paris, 3e chambre, 3e section, 6 Mai 2026 – n° 26/02780 Tribunal judiciaire, Paris, 3e chambre, 2e section, 19 Décembre 2025 – n° 25/11819</p>",
+      "timeline": "",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [
+        "Cour d'appel, Paris, Pôle 1, chambre 3, 17 Octobre 2024 – n° 23/17972",
+        "Cour d'appel, Paris, Pôle 5, chambre 11, 26 Septembre 2025 – n° 25/04280",
+        "Tribunal judiciaire, Paris, 21 Janvier 2026 – n° 25/57733",
+        "Tribunal judiciaire, Paris, 3e chambre, 3e section, 14 Janvier 2026 – n° 25/12576",
+        "Tribunal judiciaire, Paris, 11 Juillet 2025 – n° 25/51722",
+        "Tribunal judiciaire, Paris, 3e chambre, 1re section, 29 Janvier 2026 – n° 25/10983",
+        "Tribunal judiciaire, Paris, 3e chambre, 3e section, 28 Janvier 2026 – n° 25/12499",
+        "Tribunal judiciaire, Paris, 24 Octobre 2025 – n° 25/54263",
+        "Tribunal judiciaire, Paris, 27 Novembre 2024 – n° 24/53939",
+        "Tribunal judiciaire, Paris, 9 Janvier 2026 – n° 25/56349",
+        "Tribunal judiciaire, Paris, 3e chambre, 3e section, 18 Février 2026 – n° 25/10980",
+        "Tribunal judiciaire, Paris, 8 Octobre 2024 – n° 24/55637",
+        "Tribunal judiciaire, Paris, 17 Septembre 2025 – n° 25/53558",
+        "Tribunal judiciaire, Paris, 3e chambre, 1re section, 9 Janvier 2025 – n° 24/10696",
+        "Tribunal judiciaire, Paris, 17 Avril 2026 – n° 26/00681",
+        "Tribunal judiciaire, Paris, 24 Avril 2024 – n° 24/02349",
+        "Tribunal judiciaire, Paris, 30 Octobre 2024 – n° 24/55336",
+        "Tribunal judiciaire, Paris, 19 Mars 2025 – n° 24/58239",
+        "Tribunal judiciaire, Paris, 3e chambre, 2e section, 21 Novembre 2025 – n° 23/05116",
+        "Tribunal judiciaire, Paris, 25 Juin 2024 – n° 24/53422",
+        "Tribunal judiciaire, Paris, 12 Mars 2025 – n° 24/06229",
+        "Tribunal judiciaire, Limoges, Référé, 12 Décembre 2025 – n° 25/00589",
+        "Tribunal judiciaire, Paris, 19 Décembre 2025 – n° 25/58071",
+        "Tribunal judiciaire, Paris, 3e chambre, 2e section, 17 Avril 2026 – n° 26/00507",
+        "Tribunal judiciaire, Paris, 5 Septembre 2025 – n° 25/52399",
+        "Tribunal judiciaire, Paris, 19 Décembre 2025 – n° 25/57861",
+        "Tribunal judiciaire, Paris, 19 Décembre 2025 – n° 25/57054",
+        "Tribunal judiciaire, Paris, 3e chambre, 2e section, 17 Avril 2026 – n° 26/00517",
+        "Tribunal judiciaire, Paris, 3e chambre, 2e section, 17 Avril 2026 – n° 26/00520",
+        "Tribunal judiciaire, Paris, 17 Avril 2026 – n° 26/00510",
+        "Tribunal judiciaire, Paris, 19 Septembre 2025 – n° 25/51051",
+        "Tribunal judiciaire, Paris, 17 Avril 2026 – n° 26/00508",
+        "Tribunal judiciaire, Paris, 3e chambre, 1re section, 13 Mai 2026 – n° 26/02207",
+        "Tribunal judiciaire, Paris, 3e chambre, 1re section, 7 Mai 2026 – n° 26/02203",
+        "Tribunal judiciaire, Paris, 3e chambre, 3e section, 6 Mai 2026 – n° 26/02780",
+        "Tribunal judiciaire, Paris, 3e chambre, 2e section, 19 Décembre 2025 – n° 25/11819"
+      ],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [
         "No specific article cited",
@@ -1264,6 +1839,11 @@
         "Google"
       ],
       "summary": "<h3>Case timeline</h3><p>Rb. Amsterdam, 30-04-2024, nr. C/13/747754 / KG ZA 24-201, https://www.inview.nl/document/id537f855bbbdf4d1eabde5a6b3993e7d3/rb-amsterdam-30-04-2024-nr-c-13-747754-kg-za-24-201?ctx=WKNL_CSL_10000001&amp;tab=tekst&amp;searchid=4060956896</p>",
+      "timeline": "Rb. Amsterdam, 30-04-2024, nr. C/13/747754 / KG ZA 24-201, https://www.inview.nl/document/id537f855bbbdf4d1eabde5a6b3993e7d3/rb-amsterdam-30-04-2024-nr-c-13-747754-kg-za-24-201?ctx=WKNL_CSL_10000001&tab=tekst&searchid=4060956896",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [
@@ -1286,6 +1866,11 @@
         "Google"
       ],
       "summary": "<h3>Case timeline</h3><p>Rb. Den Haag, 12-11-2024, nr. C/09/672032 / KG ZA 24-819, https://www.inview.nl/document/idfaf8b1c6fcec43e4945fde31cb5f66b4/rb-den-haag-12-11-2024-nr-c-09-672032-kg-za-24-819</p>",
+      "timeline": "Rb. Den Haag, 12-11-2024, nr. C/09/672032 / KG ZA 24-819, https://www.inview.nl/document/idfaf8b1c6fcec43e4945fde31cb5f66b4/rb-den-haag-12-11-2024-nr-c-09-672032-kg-za-24-819",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [
@@ -1307,6 +1892,11 @@
         "Booking"
       ],
       "summary": "<h3>Case timeline</h3><p>HR, 07-11-2025, nr. 24/03814, https://www.inview.nl/document/id71aa2dd18a0d4d99b89133aeb9a6f066/hr-07-11-2025-nr-24-03814</p>",
+      "timeline": "HR, 07-11-2025, nr. 24/03814, https://www.inview.nl/document/id71aa2dd18a0d4d99b89133aeb9a6f066/hr-07-11-2025-nr-24-03814",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [
@@ -1328,6 +1918,11 @@
         "Google"
       ],
       "summary": "<h3>Case timeline</h3><p>Rb. Den Haag, 23-01-2026, nr. 696323, https://www.inview.nl/document/id857b2159471345b88bae0427d88db676/rb-den-haag-23-01-2026-nr-696323?ctx=WKNL_CSL_10000001&amp;tab=tekst&amp;searchid=4060956896</p>",
+      "timeline": "Rb. Den Haag, 23-01-2026, nr. 696323, https://www.inview.nl/document/id857b2159471345b88bae0427d88db676/rb-den-haag-23-01-2026-nr-696323?ctx=WKNL_CSL_10000001&tab=tekst&searchid=4060956896",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [
@@ -1349,6 +1944,11 @@
         "Your Hosting B.V."
       ],
       "summary": "",
+      "timeline": "",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [],
@@ -1368,6 +1968,11 @@
         "Bol.com"
       ],
       "summary": "<h3>Case timeline</h3><p>Rb. Amsterdam, 28-05-2025, nr. C/13/767436 / KG ZA 25-254, https://www.inview.nl/document/idde96146751174edfa5b6790d7e073ca6/rb-amsterdam-28-05-2025-nr-c-13-767436-kg-za-25-254?ctx=WKNL_CSL_10000001&amp;tab=tekst&amp;searchid=4060956896</p>",
+      "timeline": "Rb. Amsterdam, 28-05-2025, nr. C/13/767436 / KG ZA 25-254, https://www.inview.nl/document/idde96146751174edfa5b6790d7e073ca6/rb-amsterdam-28-05-2025-nr-c-13-767436-kg-za-25-254?ctx=WKNL_CSL_10000001&tab=tekst&searchid=4060956896",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [
@@ -1389,6 +1994,11 @@
         "Google"
       ],
       "summary": "",
+      "timeline": "",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [],
@@ -1404,6 +2014,11 @@
       "plaintiffs": [],
       "defendants": [],
       "summary": "<h3>Case timeline</h3><p>Rb. Noord-Nederland, 18-12-2025, nr. C/19/154084 / KG ZA 25-152, https://www.inview.nl/document/id3cfd318d665b4089afee8d84e55b25fc/rb-noord-nederland-18-12-2025-nr-c-19-154084-kg-za-25-152?ctx=WKNL_CSL_10000001&amp;tab=uitspraken&amp;pagina=1&amp;searchid=4060956896</p>",
+      "timeline": "Rb. Noord-Nederland, 18-12-2025, nr. C/19/154084 / KG ZA 25-152, https://www.inview.nl/document/id3cfd318d665b4089afee8d84e55b25fc/rb-noord-nederland-18-12-2025-nr-c-19-154084-kg-za-25-152?ctx=WKNL_CSL_10000001&tab=uitspraken&pagina=1&searchid=4060956896",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [
         "Art 28 DSA"
@@ -1423,6 +2038,11 @@
       "plaintiffs": [],
       "defendants": [],
       "summary": "",
+      "timeline": "",
+      "categories": [],
+      "themes": [],
+      "primary_sources": [],
+      "secondary_sources": [],
       "keywords": [],
       "dsa_articles": [],
       "document_links": [],
