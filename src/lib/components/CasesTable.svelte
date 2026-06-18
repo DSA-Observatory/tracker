@@ -511,34 +511,13 @@
 	class="mx-auto flex h-full min-h-0 w-full max-w-[1680px] flex-col overflow-hidden px-4 pt-3 pb-4 sm:px-6 lg:px-8"
 >
 	<div class="z-30 mb-4 flex-none space-y-3">
-		<div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-			<div class="min-w-0">
+		<div>
+		<div class="min-w-0 mb-3">
 				<h1 class="text-2xl font-semibold tracking-tight text-slate-950">Cases</h1>
 				<p class="mt-1 text-sm text-slate-500">
 					Search and filter DSA private enforcement records.
 				</p>
 			</div>
-
-			<div class="flex flex-col gap-2 sm:flex-row sm:items-center lg:justify-end">
-				<CaseVisualizationControls
-					{viewMode}
-					{filterLayout}
-					onViewModeChange={(mode) => (viewMode = mode)}
-					onFilterLayoutChange={(layout) => (filterLayout = layout)}
-				/>
-				{#if canWrite}
-					<button
-						class="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
-						type="button"
-						onclick={() => goto('/cases/new')}
-					>
-						Create case
-					</button>
-				{/if}
-			</div>
-		</div>
-
-		<div>
 			<Search
 				bind:value={search}
 				bind:searchScope
@@ -546,7 +525,25 @@
 				placeholder="Search cases, parties, articles, sources"
 				navigateOnSubmit={false}
 				variant="hero"
-			/>
+			>
+				{#snippet trailing()}
+					<CaseVisualizationControls
+						{viewMode}
+						{filterLayout}
+						onViewModeChange={(mode) => (viewMode = mode)}
+						onFilterLayoutChange={(layout) => (filterLayout = layout)}
+					/>
+					{#if canWrite}
+						<button
+							class="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
+							type="button"
+							onclick={() => goto('/cases/new')}
+						>
+							Create case
+						</button>
+					{/if}
+				{/snippet}
+			</Search>
 
 			{#if filterLayout === 'top'}
 				<CaseFilterPanel sidebar={false} {...filterPanelProps} />

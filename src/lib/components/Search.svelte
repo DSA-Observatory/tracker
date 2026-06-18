@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
+	import type { Snippet } from 'svelte';
 	import type { SearchScope } from '$lib/components/cases/types';
 	import { pb, type CaseRecord } from '$lib/database';
 	import { caseSearchQuery } from '$lib/stores/case-search.store';
@@ -20,6 +21,7 @@
 		showSuggestions?: boolean;
 		showSubmitButton?: boolean;
 		variant?: 'header' | 'hero';
+		trailing?: Snippet;
 	}
 
 	let {
@@ -30,7 +32,8 @@
 		navigateOnSubmit = true,
 		showSuggestions = navigateOnSubmit,
 		showSubmitButton = false,
-		variant = 'header'
+		variant = 'header',
+		trailing
 	}: Props = $props();
 	let cases = $state<CaseRecord[]>([]);
 	let suggestionsOpen = $state(false);
@@ -203,7 +206,11 @@
 		submitSearch();
 	}}
 >
-	<div class={variant === 'hero' ? 'grid gap-2 lg:grid-cols-[minmax(20rem,1fr)_13rem]' : ''}>
+	<div
+		class={variant === 'hero'
+			? 'grid gap-2 lg:grid-cols-[minmax(20rem,1fr)_13rem_auto] lg:items-center'
+			: ''}
+	>
 		<label
 			class={variant === 'hero'
 				? 'flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm shadow-xs transition focus-within:border-slate-300 focus-within:ring-2 focus-within:ring-slate-950/10'
@@ -271,6 +278,12 @@
 					{/each}
 				</select>
 			</label>
+		{/if}
+
+		{#if trailing}
+			<div class="flex flex-wrap items-center gap-2 lg:justify-end">
+				{@render trailing()}
+			</div>
 		{/if}
 	</div>
 
