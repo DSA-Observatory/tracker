@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { authStore, pb } from '$lib/database';
-	import { isAdminEmail } from '$lib/admin';
+	import { isAdminEmail, isAdminUser } from '$lib/admin';
 
 	type ManagedUser = {
 		id: string;
 		email: string;
 		name?: string;
 		username?: string;
+		is_admin?: boolean;
 		verified: boolean;
 		emailVisibility?: boolean;
 		created: string;
@@ -52,6 +53,7 @@
 		error = '';
 
 		try {
+			await refreshAdminSession();
 			users = await pb.collection('users').getFullList<ManagedUser>({
 				sort: '-created'
 			});
@@ -70,6 +72,14 @@
 		return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join('');
 	}
 
+	async function refreshAdminSession() {
+		if (!pb.authStore.isValid) {
+			throw new Error('Your admin session expired. Sign in again to manage users.');
+		}
+
+		await pb.collection('users').authRefresh();
+	}
+
 	async function inviteUser() {
 		const name = inviteName.trim();
 		const email = inviteEmail.trim().toLowerCase();
@@ -85,10 +95,13 @@
 		success = '';
 
 		try {
+			await refreshAdminSession();
+
 			const password = createTemporaryPassword();
 			const user = await pb.collection('users').create<ManagedUser>({
 				email,
 				name,
+				is_admin: false,
 				password,
 				passwordConfirm: password,
 				emailVisibility: true
@@ -122,6 +135,8 @@
 		success = '';
 
 		try {
+			await refreshAdminSession();
+
 			const updated = await pb.collection('users').update<ManagedUser>(user.id, changes);
 			users = users.map((item) => (item.id === user.id ? updated : item));
 			success = `Updated ${updated.email}.`;
@@ -140,6 +155,8 @@
 		success = '';
 
 		try {
+			await refreshAdminSession();
+
 			await pb.collection('users').delete(user.id);
 			users = users.filter((item) => item.id !== user.id);
 			success = `Deleted ${user.email}.`;
@@ -187,9 +204,7 @@
 		{:else if !authStore.isAdmin}
 			<div class="mt-8 rounded-3xl border border-error/25 bg-error/10 p-6 text-error">
 				<h2 class="text-2xl font-black">Access denied</h2>
-				<p class="mt-3">
-					This page is only available to <span class="font-semibold">ctw@ctwhome.com</span>.
-				</p>
+				<p class="mt-3">This page is only available to administrators.</p>
 			</div>
 		{:else}
 			{#if error}
@@ -255,6 +270,7 @@
 							<tr>
 								<th>User</th>
 								<th>Status</th>
+								<th>Role</th>
 								<th>Created</th>
 								<th class="text-right">Actions</th>
 							</tr>
@@ -279,7 +295,7 @@
 														updateUser(user, { name: event.currentTarget.value })}
 												/>
 												<p class="mt-1 text-sm break-all text-base-content/70">{user.email}</p>
-												{#if isAdminEmail(user.email)}
+												{#if isAdminUser(user)}
 													<span class="mt-2 badge badge-primary">Admin</span>
 												{/if}
 											</div>
@@ -296,6 +312,19 @@
 													updateUser(user, { verified: event.currentTarget.checked })}
 											/>
 											<span>{user.verified ? 'Verified' : 'Not verified'}</span>
+										</label>
+									</td>
+									<td>
+										<label class="label w-fit cursor-pointer gap-3">
+											<input
+												type="checkbox"
+												class="toggle toggle-primary"
+												checked={isAdminUser(user)}
+												disabled={savingUserId === user.id || isAdminEmail(user.email)}
+												onchange={(event) =>
+													updateUser(user, { is_admin: event.currentTarget.checked })}
+											/>
+											<span>{isAdminUser(user) ? 'Admin' : 'User'}</span>
 										</label>
 									</td>
 									<td class="whitespace-nowrap text-base-content/70">{formatDate(user.created)}</td>
