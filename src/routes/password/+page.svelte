@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { pb } from '$lib/database';
@@ -39,7 +39,7 @@
 			passwordConfirm = '';
 
 			setTimeout(() => {
-				goto(`${base}/`);
+				goto(resolve('/'));
 			}, 1200);
 		} catch (err) {
 			error =
@@ -125,6 +125,6 @@
 			</button>
 		</form>
 
-		<a class="btn mt-4 w-full btn-ghost" href="{base}/">Return to login</a>
+		<a class="btn mt-4 w-full btn-ghost" href={resolve('/')}>Return to login</a>
 	</section>
 </main>

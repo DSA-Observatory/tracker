@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { authStore, pb, type CaseRecord } from '$lib/database';
 	import CaseSummaryEditor from './CaseSummaryEditor.svelte';
 	import {
@@ -94,7 +95,7 @@
 				await pb.collection('cases').create<CaseRecord>(payload);
 			}
 
-			await goto('/cases');
+			await goto(resolve('/cases'));
 		} catch (err) {
 			console.error('Error saving case:', err);
 			error = 'Could not save the case. Check required fields and permissions.';
@@ -112,7 +113,8 @@
 			</p>
 			<h1 class="text-3xl font-black">{isEditing ? 'Edit case' : 'Create case'}</h1>
 		</div>
-		<button class="btn btn-ghost" type="button" onclick={() => goto('/cases')}>Back to cases</button
+		<button class="btn btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
+			>Back to cases</button
 		>
 	</div>
 
@@ -283,7 +285,9 @@
 			</div>
 
 			<div class="mt-4 flex justify-end gap-2">
-				<button class="btn btn-ghost" type="button" onclick={() => goto('/cases')}>Cancel</button>
+				<button class="btn btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
+					>Cancel</button
+				>
 				<button
 					class="btn btn-primary"
 					type="submit"

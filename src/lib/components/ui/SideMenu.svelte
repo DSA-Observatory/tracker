@@ -4,7 +4,7 @@
 	import { isMenuOpen, closeMenu, openMenu } from '$lib/stores/menu.store';
 	import FeedbackButton from '$lib/components/ui/feedback/FeedbackButton.svelte';
 	import { onMount } from 'svelte';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import menuItems from '$lib/models/menu-itmes';
 
 	let containerElement: HTMLElement | undefined = $state();
@@ -105,7 +105,7 @@
 		class="fixed top-0 bottom-0 left-0 z-[10020] grid w-64 grid-rows-[1fr_auto] overflow-hidden bg-base-100 p-4 shadow-lg sm:hidden"
 	>
 		<div class="flex-1 overflow-y-auto pt-16">
-			<a class="mb-6 flex items-center gap-2.5" href="{base}/" onclick={closeMenu}>
+			<a class="mb-6 flex items-center gap-2.5" href={resolve('/')} onclick={closeMenu}>
 				<span
 					class="grid size-10 place-items-center rounded-2xl bg-primary text-sm font-black tracking-tight text-primary-content shadow-sm ring-1 ring-black/10"
 					aria-hidden="true"
@@ -119,7 +119,7 @@
 				{#each menuItems as link}
 					<a
 						class="rounded-lg px-3 py-2 text-sm font-semibold text-base-content transition hover:bg-base-200"
-						href="{base}{link.path}"
+						href={resolve(link.path)}
 						onclick={closeMenu}
 					>
 						{link.displayTitle}

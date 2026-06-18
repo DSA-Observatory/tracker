@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { authStore } from '$lib/database';
 
 	function formatDate(value?: string) {
@@ -18,13 +18,17 @@
 </svelte:head>
 
 <main class="container mx-auto max-w-4xl px-4 pb-16">
-	<section class="rounded-[2rem] border border-base-300/60 bg-base-100 p-6 shadow-lg shadow-black/5 sm:p-8">
+	<section
+		class="rounded-[2rem] border border-base-300/60 bg-base-100 p-6 shadow-lg shadow-black/5 sm:p-8"
+	>
 		<p class="text-sm font-semibold tracking-[0.25em] text-primary uppercase">Account</p>
 		<h1 class="mt-3 text-4xl font-black">Profile</h1>
 
 		{#if authStore.isAuthenticated && authStore.user}
 			<div class="mt-8 flex flex-col gap-6 md:flex-row md:items-start">
-				<div class="grid size-20 shrink-0 place-items-center rounded-3xl bg-primary text-3xl font-black text-primary-content">
+				<div
+					class="grid size-20 shrink-0 place-items-center rounded-3xl bg-primary text-3xl font-black text-primary-content"
+				>
 					{authStore.user.email?.charAt(0).toUpperCase() || 'U'}
 				</div>
 
@@ -62,7 +66,7 @@
 				<p class="mt-3 max-w-2xl text-base-content/75">
 					Your profile details are available after logging in with the account menu in the header.
 				</p>
-				<a class="btn btn-primary mt-5" href="{base}/">Return home</a>
+				<a class="btn mt-5 btn-primary" href={resolve('/')}>Return home</a>
 			</div>
 		{/if}
 	</section>

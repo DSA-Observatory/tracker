@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
+
 	const highlights = [
 		{
 			title: 'Structured case pages',
@@ -41,8 +43,8 @@
 				enforcement cases while keeping the public site searchable, filterable, and easy to cite.
 			</p>
 			<div class="mt-8 flex flex-wrap gap-3">
-				<a class="btn btn-primary" href="/cases">Open case database</a>
-				<a class="btn btn-outline" href="/about">Learn more</a>
+				<a class="btn btn-primary" href={resolve('/cases')}>Open case database</a>
+				<a class="btn btn-outline" href={resolve('/about')}>Learn more</a>
 			</div>
 		</div>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import Socialicons from '$components/ui/SocialIcons.svelte';
 
 	interface Props {
@@ -68,14 +68,14 @@
 			<a
 				href="https://ctwhome.com"
 				target="_blank"
-				class="hover:text-primary opacity-70 hover:opacity-100"
+				class="opacity-70 hover:text-primary hover:opacity-100"
 			>
 				Latest work
 			</a>
 			<Socialicons />
 			<!-- Version link -->
 			<a
-				href="{base}/changelog"
+				href={resolve('/changelog' as any)}
 				class="text-xs opacity-50 transition-opacity hover:opacity-70"
 				title="View changelog"
 			>
