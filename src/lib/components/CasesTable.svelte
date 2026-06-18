@@ -62,6 +62,8 @@
 	let tableViewportHeight = $state(640);
 	let tableScroller = $state<HTMLElement>();
 	let preferencesLoaded = $state(false);
+	let mobileFiltersOpen = $state(false);
+	let isMobileViewport = $state(false);
 
 	const rowOverscan = 8;
 
@@ -96,6 +98,9 @@
 	);
 	const filteredCases = $derived(cases.filter((record) => matchesFilters(record)));
 	const activeChips = $derived(buildActiveChips());
+	const activeFilterCount = $derived(
+		activeChips.length + (search.trim() || searchScope !== 'all' ? 1 : 0)
+	);
 	const rowHeight = $derived(viewMode === 'cards' ? 252 : 176);
 	const virtualStart = $derived(Math.max(0, Math.floor(tableScrollTop / rowHeight) - rowOverscan));
 	const virtualEnd = $derived(
@@ -107,6 +112,9 @@
 	const virtualRows = $derived(filteredCases.slice(virtualStart, virtualEnd));
 	const topSpacerHeight = $derived(virtualStart * rowHeight);
 	const bottomSpacerHeight = $derived((filteredCases.length - virtualEnd) * rowHeight);
+	const visibleRows = $derived(isMobileViewport ? filteredCases : virtualRows);
+	const visibleTopSpacerHeight = $derived(isMobileViewport ? 0 : topSpacerHeight);
+	const visibleBottomSpacerHeight = $derived(isMobileViewport ? 0 : bottomSpacerHeight);
 	const filterPanelProps = $derived({
 		filteredCount: filteredCases.length,
 		totalCount: cases.length,
@@ -135,9 +143,9 @@
 	const resultProps = $derived({
 		loading,
 		filteredCount: filteredCases.length,
-		virtualRows,
-		topSpacerHeight,
-		bottomSpacerHeight,
+		virtualRows: visibleRows,
+		topSpacerHeight: visibleTopSpacerHeight,
+		bottomSpacerHeight: visibleBottomSpacerHeight,
 		rowHeight,
 		canWrite,
 		onEdit: editCase,
@@ -457,6 +465,10 @@
 		resetTableScroll();
 	}
 
+	function closeMobileFilters() {
+		mobileFiltersOpen = false;
+	}
+
 	function resetTableScroll() {
 		tableScrollTop = 0;
 		if (tableScroller) tableScroller.scrollTop = 0;
@@ -501,54 +513,136 @@
 	}
 
 	onMount(() => {
+		const mediaQuery = window.matchMedia('(max-width: 767px)');
+		const updateMobileViewport = () => {
+			isMobileViewport = mediaQuery.matches;
+		};
+
+		updateMobileViewport();
+		mediaQuery.addEventListener('change', updateMobileViewport);
 		loadPreferences();
 		loadCases();
+
+		return () => {
+			mediaQuery.removeEventListener('change', updateMobileViewport);
+		};
 	});
 </script>
 
+<svelte:window
+	onkeydown={(event) => {
+		if (event.key === 'Escape') closeMobileFilters();
+	}}
+/>
+
 <section
 	id="cases"
-	class="mx-auto flex h-full min-h-0 w-full max-w-[1680px] flex-col overflow-hidden px-4 pt-3 pb-4 sm:px-6 lg:px-8"
+	class="mx-auto flex w-full max-w-[1680px] flex-col px-4 pt-1 pb-4 sm:px-6 md:h-full md:min-h-0 md:overflow-hidden md:pt-3 lg:px-8"
 >
-	<div class="z-30 mb-4 flex-none space-y-3">
+	<div class="z-30 mb-3 flex-none space-y-2 md:mb-4 md:space-y-3">
 		<div>
-		<div class="min-w-0 mb-3">
-				<h1 class="text-2xl font-semibold tracking-tight text-slate-950">Cases</h1>
+			<div class="sr-only md:not-sr-only md:mb-3 md:min-w-0">
+				<h1 class="text-xl font-semibold tracking-tight text-slate-950 md:text-2xl">Cases</h1>
 				<p class="mt-1 text-sm text-slate-500">
 					Search and filter DSA private enforcement records.
 				</p>
 			</div>
-			<Search
-				bind:value={search}
-				bind:searchScope
-				scopes={searchScopes}
-				placeholder="Search cases, parties, articles, sources"
-				navigateOnSubmit={false}
-				variant="hero"
+			<div
+				class="rounded-lg border border-slate-200 bg-white/90 p-2 shadow-sm shadow-slate-200/60 backdrop-blur md:hidden"
 			>
-				{#snippet trailing()}
-					<CaseVisualizationControls
-						{viewMode}
-						{filterLayout}
-						onViewModeChange={(mode) => (viewMode = mode)}
-						onFilterLayoutChange={(layout) => (filterLayout = layout)}
-					/>
-					{#if canWrite}
+				<Search
+					bind:value={search}
+					bind:searchScope
+					scopes={searchScopes}
+					placeholder="Search cases, parties, articles, sources"
+					navigateOnSubmit={false}
+					variant="hero"
+					bare={true}
+				/>
+
+				<div class="mt-2 flex items-center justify-between gap-2">
+					<div
+						class="inline-flex items-center rounded-md border border-slate-200 bg-white/80 p-0.5 shadow-xs"
+					>
 						<button
-							class="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
+							class={viewMode === 'cards'
+								? 'h-7 rounded-sm bg-slate-100 px-2.5 text-xs font-semibold text-slate-950 transition'
+								: 'h-7 rounded-sm px-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800'}
 							type="button"
-							onclick={() => goto('/cases/new')}
+							onclick={() => (viewMode = 'cards')}>Cards</button
 						>
-							Create case
+						<button
+							class={viewMode === 'table'
+								? 'h-7 rounded-sm bg-slate-100 px-2.5 text-xs font-semibold text-slate-950 transition'
+								: 'h-7 rounded-sm px-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800'}
+							type="button"
+							onclick={() => (viewMode = 'table')}>Table</button
+						>
+					</div>
+
+					<div class="flex items-center gap-1.5">
+						{#if canWrite}
+							<button
+								class="inline-flex h-8 shrink-0 items-center rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
+								type="button"
+								onclick={() => goto('/cases/new')}>New</button
+							>
+						{/if}
+						<button
+							class="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
+							type="button"
+							onclick={() => (mobileFiltersOpen = true)}
+							aria-haspopup="dialog"
+							aria-expanded={mobileFiltersOpen}
+						>
+							Filters
+							{#if activeFilterCount > 0}<span
+									class="rounded-full bg-slate-950 px-1.5 py-0.5 text-[0.65rem] font-semibold text-white"
+									>{activeFilterCount}</span
+								>{/if}
 						</button>
-					{/if}
-				{/snippet}
-			</Search>
+					</div>
+				</div>
+			</div>
+
+			<div class="hidden md:block">
+				<Search
+					bind:value={search}
+					bind:searchScope
+					scopes={searchScopes}
+					placeholder="Search cases, parties, articles, sources"
+					navigateOnSubmit={false}
+					variant="hero"
+				>
+					{#snippet trailing()}
+						<CaseVisualizationControls
+							{viewMode}
+							{filterLayout}
+							onViewModeChange={(mode) => (viewMode = mode)}
+							onFilterLayoutChange={(layout) => (filterLayout = layout)}
+						/>
+						{#if canWrite}<button
+								class="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
+								type="button"
+								onclick={() => goto('/cases/new')}>Create case</button
+							>{/if}
+					{/snippet}
+				</Search>
+			</div>
+
+			<div class="hidden items-center justify-between gap-3 md:flex xl:hidden">
+				<p class="min-w-0 text-sm text-slate-500">
+					Showing <span class="font-medium text-slate-900">{filteredCases.length}</span> of {cases.length}
+					cases
+				</p>
+			</div>
 
 			{#if filterLayout === 'top'}
-				<CaseFilterPanel sidebar={false} {...filterPanelProps} />
+				<div class="hidden md:block">
+					<CaseFilterPanel sidebar={false} {...filterPanelProps} />
+				</div>
 			{:else}
-				<div class="xl:hidden">
+				<div class="hidden md:block xl:hidden">
 					<CaseFilterPanel sidebar={false} {...filterPanelProps} />
 				</div>
 			{/if}
@@ -565,19 +659,19 @@
 
 	<div
 		class={filterLayout === 'left'
-			? 'grid min-h-0 min-w-0 flex-1 gap-4 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]'
-			: 'min-h-0 min-w-0 flex-1'}
+			? 'grid min-w-0 gap-4 md:min-h-0 md:flex-1 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]'
+			: 'min-w-0 md:min-h-0 md:flex-1'}
 	>
 		{#if filterLayout === 'left'}
 			<aside class="hidden min-h-0 min-w-0 overflow-hidden xl:block">
 				<CaseFilterPanel sidebar={true} {...filterPanelProps} />
 			</aside>
 		{/if}
-		<div class="h-full min-h-0 min-w-0 overflow-hidden">
+		<div class="min-w-0 md:h-full md:min-h-0 md:overflow-hidden">
 			{#if viewMode !== 'table'}
 				<div
 					bind:this={tableScroller}
-					class="h-full min-h-0 max-w-full overflow-auto rounded-sm border border-slate-200 bg-white/70 p-3 shadow-sm shadow-slate-200/70"
+					class="max-w-full overflow-visible rounded-sm border border-slate-200 bg-white/70 p-3 shadow-sm shadow-slate-200/70 md:h-full md:min-h-0 md:overflow-auto"
 					onscroll={updateTableViewport}
 				>
 					<CaseCardsList
@@ -596,7 +690,7 @@
 			{:else}
 				<div
 					bind:this={tableScroller}
-					class="h-full min-h-0 max-w-full overflow-auto rounded-sm border border-slate-200 bg-white shadow-sm shadow-slate-200/70"
+					class="max-w-full overflow-x-auto overflow-y-visible rounded-sm border border-slate-200 bg-white shadow-sm shadow-slate-200/70 md:h-full md:min-h-0 md:overflow-auto"
 					onscroll={updateTableViewport}
 				>
 					<CaseResultsTable
@@ -614,3 +708,40 @@
 		</div>
 	</div>
 </section>
+
+{#if mobileFiltersOpen}
+	<div
+		class="fixed inset-0 z-[10020] md:hidden"
+		role="dialog"
+		aria-modal="true"
+		aria-label="Case filters"
+	>
+		<button
+			class="absolute inset-0 bg-slate-950/45"
+			type="button"
+			onclick={closeMobileFilters}
+			aria-label="Close filters"
+		></button>
+		<div
+			class="absolute right-0 bottom-0 left-0 max-h-[82dvh] overflow-hidden rounded-t-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/20"
+		>
+			<div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+				<div class="min-w-0">
+					<p class="text-sm font-semibold text-slate-950">Filter cases</p>
+					<p class="text-xs text-slate-500">Showing {filteredCases.length} of {cases.length}</p>
+				</div>
+				<button
+					class="grid size-9 shrink-0 place-items-center rounded-full bg-slate-100 text-xl leading-none text-slate-600 transition hover:bg-slate-200 hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
+					type="button"
+					onclick={closeMobileFilters}
+					aria-label="Close filters"
+				>
+					<span aria-hidden="true">×</span>
+				</button>
+			</div>
+			<div class="max-h-[calc(82dvh-4rem)] overflow-y-auto px-4 pb-5">
+				<CaseFilterPanel sidebar={true} {...filterPanelProps} />
+			</div>
+		</div>
+	</div>
+{/if}
