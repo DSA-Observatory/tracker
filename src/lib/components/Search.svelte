@@ -18,6 +18,7 @@
 		placeholder?: string;
 		navigateOnSubmit?: boolean;
 		showSuggestions?: boolean;
+		showSubmitButton?: boolean;
 		variant?: 'header' | 'hero';
 	}
 
@@ -28,6 +29,7 @@
 		placeholder = 'Search cases',
 		navigateOnSubmit = true,
 		showSuggestions = navigateOnSubmit,
+		showSubmitButton = false,
 		variant = 'header'
 	}: Props = $props();
 	let cases = $state<CaseRecord[]>([]);
@@ -129,6 +131,12 @@
 		goto(`${base}/cases?q=${encodeURIComponent(record.title)}`);
 	}
 
+	function clearSearch() {
+		value = '';
+		activeSuggestionIndex = 0;
+		suggestionsOpen = true;
+	}
+
 	function handleSearchKeydown(event: KeyboardEvent) {
 		if (!showSuggestions || !navigateOnSubmit) return;
 
@@ -214,7 +222,7 @@
 				</svg>
 			{/if}
 			<input
-				type="search"
+				type="text"
 				{placeholder}
 				class={variant === 'hero'
 					? 'min-w-0 flex-1 border-0 bg-transparent text-sm text-slate-950 placeholder:text-slate-400 focus:outline-none'
@@ -231,7 +239,19 @@
 				}}
 				onkeydown={handleSearchKeydown}
 			/>
-			{#if navigateOnSubmit}
+			{#if value}
+				<button
+					class={variant === 'hero'
+						? 'grid size-6 shrink-0 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus:bg-slate-100 focus:text-slate-700 focus:outline-none'
+						: 'grid size-6 shrink-0 place-items-center rounded-full text-slate-400 transition hover:bg-base-200 hover:text-base-content focus:bg-base-200 focus:text-base-content focus:outline-none'}
+					type="button"
+					aria-label="Clear search"
+					onclick={clearSearch}
+				>
+					<span class="text-base leading-none" aria-hidden="true">×</span>
+				</button>
+			{/if}
+			{#if navigateOnSubmit && showSubmitButton}
 				<button class="badge hidden badge-primary sm:inline-flex" type="submit">Go</button>
 			{/if}
 		</label>
