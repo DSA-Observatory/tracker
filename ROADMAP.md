@@ -25,14 +25,14 @@ The project is a working frontend and Database prototype for a DSA private enfor
 - [x] Basic admin user management page exists at `/admin`.
 - [x] Login, registration, logout, and profile UI components exist.
 - [x] SMTP configuration hook/migration exists for transactional email setup.
-- [x] GitHub Pages, Vercel, and release workflow files.
+- [x] GitHub Pages and release workflow files.
 
 ## Needed Before Production
 
 - [ ] Decide final public domain.
 - [ ] Configure DNS for the frontend domain.
 - [ ] Configure DNS/subdomain for Database, for example `api.example.org`.
-- [ ] Choose production hosting for the frontend: Vercel, GitHub Pages, or another static host.
+- [ ] Finalize GitHub Pages as the production frontend host.
 - [ ] Choose production hosting for Database, likely a small VPS such as Hetzner.
 - [ ] Provision the production Database server.
 - [ ] Set up HTTPS/TLS for both frontend and Database.
