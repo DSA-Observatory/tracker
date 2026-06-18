@@ -138,44 +138,44 @@
 						class="grid gap-3 text-sm lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,0.9fr)]"
 					>
 						<section class="min-w-0 rounded-sm border border-slate-100 bg-slate-50/40 p-3">
-							<div class="text-xs font-semibold text-slate-500">Legal focus</div>
+							<div class="text-[0.72rem] font-medium text-slate-400">Legal focus</div>
 							{#if record.dsa_articles?.length}
 								<div class="mt-2 flex flex-wrap gap-1.5">
 									{#each record.dsa_articles.slice(0, 4) as article}
 										<span
-											class="max-w-full rounded-sm border border-slate-200 bg-white px-1.5 py-0.5 text-xs font-medium text-slate-700"
+											class="max-w-full rounded-sm border border-slate-200 bg-white px-1.5 py-0.5 text-[0.82rem] leading-5 font-medium text-slate-800"
 										>
 											{article}
 										</span>
 									{/each}
 									{#if record.dsa_articles.length > 4}
 										<span
-											class="rounded-sm border border-slate-200 bg-white px-1.5 py-0.5 text-xs font-medium text-slate-500"
+											class="rounded-sm border border-slate-200 bg-white px-1.5 py-0.5 text-[0.82rem] leading-5 font-medium text-slate-500"
 										>
 											+{record.dsa_articles.length - 4}
 										</span>
 									{/if}
 								</div>
 							{:else}
-								<p class="mt-2 text-sm text-slate-500">No DSA article tagged</p>
+								<p class="mt-2 text-[0.95rem] text-slate-500">No DSA article tagged</p>
 							{/if}
 							<div class="mt-3 space-y-1.5">
-								<p class="line-clamp-1 text-slate-700">
-									<span class="font-medium text-slate-950">Category</span>
-									<span class="text-slate-300"> / </span>
-									{categories.length ? categories.join(', ') : 'Not classified'}
+								<p class="line-clamp-1 text-[0.95rem] text-slate-900">
+									<span class="text-xs font-normal text-slate-400">Category</span>
+									<span class="text-slate-200"> / </span>
+									<span>{categories.length ? categories.join(', ') : 'Not classified'}</span>
 								</p>
-								<p class="line-clamp-1 text-slate-700">
-									<span class="font-medium text-slate-950">Theme</span>
-									<span class="text-slate-300"> / </span>
-									{themes.length ? themes.join(', ') : 'Not classified'}
+								<p class="line-clamp-1 text-[0.95rem] text-slate-900">
+									<span class="text-xs font-normal text-slate-400">Theme</span>
+									<span class="text-slate-200"> / </span>
+									<span>{themes.length ? themes.join(', ') : 'Not classified'}</span>
 								</p>
 							</div>
 						</section>
 
 						<section class="min-w-0 rounded-sm border border-slate-100 bg-white p-3">
 							<div class="flex items-center justify-between gap-2">
-								<div class="text-xs font-semibold text-slate-500">Sources</div>
+								<div class="text-[0.72rem] font-medium text-slate-400">Sources</div>
 								{#if links.length}
 									<a
 										class="text-xs font-medium text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
@@ -187,26 +187,26 @@
 									</a>
 								{/if}
 							</div>
-							<div class="mt-2 space-y-1.5 text-slate-700">
+							<div class="mt-2 space-y-1.5 text-[0.95rem] text-slate-900">
 								{#if primarySources.length}
 									<p class="line-clamp-1">
-										<span class="font-medium text-slate-950">Primary</span>
-										<span class="text-slate-300"> / </span>
-										{sourcePreview(primarySources[0])}
+										<span class="text-xs font-normal text-slate-400">Primary</span>
+										<span class="text-slate-200"> / </span>
+										<span>{sourcePreview(primarySources[0])}</span>
 									</p>
 								{/if}
 								{#if secondarySources.length}
 									<p class="line-clamp-1">
-										<span class="font-medium text-slate-950">Secondary</span>
-										<span class="text-slate-300"> / </span>
-										{sourcePreview(secondarySources[0])}
+										<span class="text-xs font-normal text-slate-400">Secondary</span>
+										<span class="text-slate-200"> / </span>
+										<span>{sourcePreview(secondarySources[0])}</span>
 									</p>
 								{/if}
 								{#if !primarySources.length && !secondarySources.length && links.length}
 									<p class="line-clamp-1">
-										<span class="font-medium text-slate-950">Linked source</span>
-										<span class="text-slate-300"> / </span>
-										{sourceLabel(links[0])}
+										<span class="text-xs font-normal text-slate-400">Linked source</span>
+										<span class="text-slate-200"> / </span>
+										<span>{sourceLabel(links[0])}</span>
 									</p>
 								{/if}
 								{#if !primarySources.length && !secondarySources.length && !links.length}
@@ -216,26 +216,26 @@
 						</section>
 
 						<section class="min-w-0 rounded-sm border border-slate-100 bg-white p-3">
-							<div class="text-xs font-semibold text-slate-500">Context</div>
-							<div class="mt-2 space-y-1.5 text-slate-700">
+							<div class="text-[0.72rem] font-medium text-slate-400">Context</div>
+							<div class="mt-2 space-y-1.5 text-[0.95rem] text-slate-900">
 								{#if parties.length}
 									<p class="line-clamp-1">
-										<span class="font-medium text-slate-950">Parties</span>
-										<span class="text-slate-300"> / </span>
-										{parties.join(', ')}
+										<span class="text-xs font-normal text-slate-400">Parties</span>
+										<span class="text-slate-200"> / </span>
+										<span>{parties.join(', ')}</span>
 									</p>
 								{/if}
 								{#if timeline}
 									<p class="line-clamp-2">
-										<span class="font-medium text-slate-950">Timeline</span>
-										<span class="text-slate-300"> / </span>
-										{sourcePreview(timeline)}
+										<span class="text-xs font-normal text-slate-400">Timeline</span>
+										<span class="text-slate-200"> / </span>
+										<span>{sourcePreview(timeline)}</span>
 									</p>
 								{:else if !parties.length}
 									<p class="text-slate-500">No contextual metadata</p>
 								{/if}
 							</div>
-							<div class="mt-3 truncate font-mono text-[0.68rem] text-slate-400">
+							<div class="mt-3 truncate font-mono text-[0.66rem] text-slate-300">
 								{record.case_id}
 							</div>
 						</section>
