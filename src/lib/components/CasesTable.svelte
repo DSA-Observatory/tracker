@@ -513,12 +513,7 @@
 	<div class="z-30 mb-4 flex-none space-y-3">
 		<div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
 			<div class="min-w-0">
-				<div class="flex items-center gap-2 text-xs font-medium text-slate-500">
-					<span>Case database</span>
-					<span aria-hidden="true">/</span>
-					<span>{filteredCases.length} of {cases.length}</span>
-				</div>
-				<h1 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">Cases</h1>
+				<h1 class="text-2xl font-semibold tracking-tight text-slate-950">Cases</h1>
 				<p class="mt-1 text-sm text-slate-500">
 					Search and filter DSA private enforcement records.
 				</p>
