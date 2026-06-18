@@ -5,7 +5,9 @@
 	import {
 		emptyCaseForm,
 		joinCaseFormList,
+		joinCaseFormLines,
 		splitCaseFormList,
+		splitCaseFormLines,
 		statusOptions,
 		type CaseForm
 	} from './types';
@@ -41,6 +43,11 @@
 				plaintiffs: joinCaseFormList(record.plaintiffs),
 				defendants: joinCaseFormList(record.defendants),
 				summary: record.summary ?? '',
+				timeline: record.timeline ?? '',
+				categories: joinCaseFormList(record.categories),
+				themes: joinCaseFormList(record.themes),
+				primary_sources: joinCaseFormLines(record.primary_sources),
+				secondary_sources: joinCaseFormLines(record.secondary_sources),
 				keywords: joinCaseFormList(record.keywords),
 				dsa_articles: joinCaseFormList(record.dsa_articles),
 				published: record.published
@@ -70,6 +77,11 @@
 			plaintiffs: splitCaseFormList(form.plaintiffs),
 			defendants: splitCaseFormList(form.defendants),
 			summary: form.summary.trim(),
+			timeline: form.timeline.trim(),
+			categories: splitCaseFormList(form.categories),
+			themes: splitCaseFormList(form.themes),
+			primary_sources: splitCaseFormLines(form.primary_sources),
+			secondary_sources: splitCaseFormLines(form.secondary_sources),
 			keywords: splitCaseFormList(form.keywords),
 			dsa_articles: splitCaseFormList(form.dsa_articles),
 			published: form.published || form.status === 'published'
@@ -215,6 +227,46 @@
 						bind:value={form.dsa_articles}
 						placeholder="Comma separated"
 					/>
+				</label>
+				<label class="form-control w-full">
+					<span class="label-text mb-1 text-sm font-semibold">Categories</span>
+					<input
+						class="input-bordered input input-sm w-full"
+						bind:value={form.categories}
+						placeholder="Comma separated"
+					/>
+				</label>
+				<label class="form-control w-full md:col-span-2">
+					<span class="label-text mb-1 text-sm font-semibold">Themes</span>
+					<input
+						class="input-bordered input input-sm w-full"
+						bind:value={form.themes}
+						placeholder="Comma separated"
+					/>
+				</label>
+				<label class="form-control w-full md:col-span-3">
+					<span class="label-text mb-1 text-sm font-semibold">Timeline</span>
+					<textarea
+						class="textarea-bordered textarea min-h-20 w-full"
+						bind:value={form.timeline}
+						placeholder="Key procedural events, dates, or court references"
+					></textarea>
+				</label>
+				<label class="form-control w-full md:col-span-3">
+					<span class="label-text mb-1 text-sm font-semibold">Primary sources</span>
+					<textarea
+						class="textarea-bordered textarea min-h-20 w-full"
+						bind:value={form.primary_sources}
+						placeholder="One primary source per line"
+					></textarea>
+				</label>
+				<label class="form-control w-full md:col-span-3">
+					<span class="label-text mb-1 text-sm font-semibold">Secondary sources</span>
+					<textarea
+						class="textarea-bordered textarea min-h-20 w-full"
+						bind:value={form.secondary_sources}
+						placeholder="One secondary source per line"
+					></textarea>
 				</label>
 				<label class="form-control w-full md:col-span-3">
 					<span class="label-text mb-1 text-sm font-semibold">Keywords</span>

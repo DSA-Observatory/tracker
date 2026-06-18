@@ -30,26 +30,31 @@ At the prototype stage, the product should behave like a curated editorial track
 
 Each case entry should support the following fields.
 
-| Field           | Purpose                                                                                |
-| --------------- | -------------------------------------------------------------------------------------- |
-| `case_id`       | Internal unique identifier.                                                            |
-| `title`         | Case title or name.                                                                    |
-| `ecli`          | ECLI number or comparable identifier.                                                  |
-| `filing_date`   | Date case was filed, where known.                                                      |
-| `decision_date` | Date of decision, if applicable.                                                       |
-| `status`        | Pending, decided, appealed, closed, draft, review, or published depending on workflow. |
-| `court`         | Court or courts involved.                                                              |
-| `jurisdiction`  | Country or region.                                                                     |
-| `plaintiffs`    | Plaintiff names.                                                                       |
-| `defendants`    | Defendant names.                                                                       |
-| `summary`       | Editorial case summary.                                                                |
-| `keywords`      | Tags, legal themes, and descriptive terms.                                             |
-| `dsa_articles`  | Relevant DSA articles.                                                                 |
-| `documents`     | Links or uploaded files for decisions, pleadings, press releases, or public documents. |
-| `citations_to`  | Cases this decision cites.                                                             |
-| `cited_by`      | Cases that cite this decision.                                                         |
-| `commentary`    | Notable coverage, context, reports, or blog posts.                                     |
-| `published`     | Public visibility flag.                                                                |
+| Field               | Purpose                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| `case_id`           | Internal unique identifier.                                                            |
+| `title`             | Case title or name.                                                                    |
+| `ecli`              | ECLI number or comparable identifier.                                                  |
+| `filing_date`       | Date case was filed, where known.                                                      |
+| `decision_date`     | Date of decision, if applicable.                                                       |
+| `status`            | Pending, decided, appealed, closed, draft, review, or published depending on workflow. |
+| `court`             | Court or courts involved.                                                              |
+| `jurisdiction`      | Country or region.                                                                     |
+| `plaintiffs`        | Plaintiff names.                                                                       |
+| `defendants`        | Defendant names.                                                                       |
+| `summary`           | Editorial case summary.                                                                |
+| `timeline`          | Procedural timeline or key source-derived case events.                                 |
+| `categories`        | High-level legal categories, such as due diligence or intermediary liability.          |
+| `themes`            | More specific themes, such as dark patterns, account blocking, or data access.         |
+| `primary_sources`   | Rulings, pleadings, court documents, or other primary case materials.                  |
+| `secondary_sources` | Press releases, journalism, commentary, or other contextual sources.                   |
+| `keywords`          | Tags, legal themes, and descriptive terms.                                             |
+| `dsa_articles`      | Relevant DSA articles.                                                                 |
+| `documents`         | Links or uploaded files for decisions, pleadings, press releases, or public documents. |
+| `citations_to`      | Cases this decision cites.                                                             |
+| `cited_by`          | Cases that cite this decision.                                                         |
+| `commentary`        | Notable coverage, context, reports, or blog posts.                                     |
+| `published`         | Public visibility flag.                                                                |
 
 ## MVP Features
 
@@ -164,8 +169,16 @@ Important values:
 | `POCKETBASE_URL`            | Server-side PocketBase URL | `http://pocketbase:8090` |
 | `POCKETBASE_ADMIN_EMAIL`    | First-run admin email      | `admin@admin.local`      |
 | `POCKETBASE_ADMIN_PASSWORD` | First-run admin password   | `1234567890`             |
+| `SMTP_ENABLED`              | Enable PocketBase email    | `false`                  |
+| `SMTP_HOST`                 | SMTP server host           | `smtp.resend.com`        |
+| `SMTP_PORT`                 | SMTP server port           | `587`                    |
+| `SMTP_USER`                 | SMTP username              | `resend`                 |
+| `SMTP_PASS`                 | Resend SMTP/API password   |                          |
+| `SMTP_FROM`                 | Verified sender address    |                          |
 
 Change default credentials immediately after first login.
+
+For Resend, set `SMTP_ENABLED=true`, `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587`, `SMTP_USER=resend`, `SMTP_PASS` to your Resend API key, and `SMTP_FROM` to an address on a verified Resend domain. Restart PocketBase after changing these values so the SMTP settings migration can save them into the PocketBase database.
 
 ## GitHub Pages Deployment
 

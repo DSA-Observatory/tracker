@@ -40,6 +40,11 @@ export type CaseForm = {
 	plaintiffs: string;
 	defendants: string;
 	summary: string;
+	timeline: string;
+	categories: string;
+	themes: string;
+	primary_sources: string;
+	secondary_sources: string;
 	keywords: string;
 	dsa_articles: string;
 	published: boolean;
@@ -66,6 +71,11 @@ export const emptyCaseForm = (): CaseForm => ({
 	plaintiffs: '',
 	defendants: '',
 	summary: '',
+	timeline: '',
+	categories: '',
+	themes: '',
+	primary_sources: '',
+	secondary_sources: '',
 	keywords: '',
 	dsa_articles: '',
 	published: false
@@ -79,3 +89,12 @@ export const splitCaseFormList = (value: string) =>
 
 export const joinCaseFormList = (value?: string[]) =>
 	Array.isArray(value) ? value.join(', ') : '';
+
+export const splitCaseFormLines = (value: string) =>
+	value
+		.split('\n')
+		.map((item) => item.trim())
+		.filter(Boolean);
+
+export const joinCaseFormLines = (value?: string[]) =>
+	Array.isArray(value) ? value.join('\n') : '';
