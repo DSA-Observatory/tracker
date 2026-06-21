@@ -4,7 +4,7 @@ services:
     profiles:
       - local-db
     ports:
-      - '${POCKETBASE_PORT:-8095}:8090'
+      - '${POCKETBASE_PORT:-46218}:8090'
     volumes:
       - ./pocketbase/pb_data:/pb/pb_data
       - ./pocketbase/pb_hooks:/pb/pb_hooks
@@ -12,7 +12,7 @@ services:
     environment:
       - POCKETBASE_ADMIN_EMAIL=${POCKETBASE_ADMIN_EMAIL:-admin@admin.local}
       - POCKETBASE_ADMIN_PASSWORD=${POCKETBASE_ADMIN_PASSWORD:-1234567890}
-      - PUBLIC_POCKETBASE_URL=${PUBLIC_POCKETBASE_URL:-http://localhost:8095}
+      - PUBLIC_POCKETBASE_URL=${PUBLIC_POCKETBASE_URL:-http://localhost:46218}
       - SMTP_ENABLED=${SMTP_ENABLED:-false}
       - SMTP_HOST=${SMTP_HOST:-}
       - SMTP_PORT=${SMTP_PORT:-587}
@@ -35,10 +35,10 @@ services:
       - ./:/app
       - /app/node_modules
     ports:
-      - '${FRONTEND_PORT:-8085}:8080'
+      - '${FRONTEND_PORT:-46217}:${FRONTEND_PORT:-46217}'
     environment:
       - NODE_ENV=${NODE_ENV:-development}
-      - PUBLIC_POCKETBASE_URL=${PUBLIC_POCKETBASE_URL:-http://localhost:8095}
-      - POCKETBASE_URL=${POCKETBASE_URL:-${PUBLIC_POCKETBASE_URL:-http://localhost:8095}}
-    command: sh -c "bun install && bun run dev -- --host 0.0.0.0 --port 8080"
+      - PUBLIC_POCKETBASE_URL=${PUBLIC_POCKETBASE_URL:-http://localhost:46218}
+      - POCKETBASE_URL=${POCKETBASE_URL:-${PUBLIC_POCKETBASE_URL:-http://localhost:46218}}
+    command: sh -c "bun install && bun run dev -- --host 0.0.0.0 --port ${FRONTEND_PORT:-46217}"
     restart: unless-stopped

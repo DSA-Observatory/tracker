@@ -4,7 +4,7 @@ import { faker } from '@faker-js/faker';
 import PocketBase from 'pocketbase';
 import { createInterface } from 'readline';
 
-const POCKETBASE_URL = process.env.PUBLIC_POCKETBASE_URL || 'http://localhost:8095';
+const POCKETBASE_URL = process.env.PUBLIC_POCKETBASE_URL || 'http://localhost:46218';
 const TODO_COUNT = 1000;
 const POST_COUNT = 500;
 const BATCH_SIZE = 100; // Process in batches to avoid overwhelming the API

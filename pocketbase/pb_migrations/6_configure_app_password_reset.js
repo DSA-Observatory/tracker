@@ -1,7 +1,7 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 function getAppUrl() {
-	return ($os.getenv('PUBLIC_APP_URL') || $os.getenv('APP_URL') || 'http://localhost:5173').replace(
+	return ($os.getenv('PUBLIC_APP_URL') || $os.getenv('APP_URL') || 'http://localhost:46217').replace(
 		/\/$/,
 		''
 	);

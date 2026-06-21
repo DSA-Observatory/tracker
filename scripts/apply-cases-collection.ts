@@ -7,7 +7,7 @@ const pocketbaseUrl =
 	process.env.POCKETBASE_PROD_URL ||
 	process.env.POCKETBASE_URL ||
 	process.env.PUBLIC_POCKETBASE_URL ||
-	'http://localhost:8095';
+	'http://localhost:46218';
 const adminEmail = process.env.POCKETBASE_SUPERUSER_EMAIL || process.env.POCKETBASE_ADMIN_EMAIL;
 const adminPassword =
 	process.env.POCKETBASE_SUPERUSER_PASSWORD || process.env.POCKETBASE_ADMIN_PASSWORD;

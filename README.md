@@ -150,8 +150,8 @@ docker compose up
 
 Default services:
 
-- PocketBase: `http://localhost:8095`
-- Frontend: `http://localhost:8085`
+- PocketBase: `http://localhost:46218`
+- Frontend: `http://localhost:46217`
 
 ### Environment Variables
 
@@ -165,10 +165,10 @@ Important values:
 
 | Variable                    | Description                | Default                  |
 | --------------------------- | -------------------------- | ------------------------ |
-| `POCKETBASE_PORT`           | PocketBase host port       | `8095`                   |
-| `FRONTEND_PORT`             | Frontend dev server port   | `8085`                   |
-| `PUBLIC_APP_URL`            | Public frontend app URL    | `http://localhost:8085`  |
-| `PUBLIC_POCKETBASE_URL`     | Browser PocketBase URL     | `http://localhost:8095`  |
+| `POCKETBASE_PORT`           | PocketBase host port       | `46218`                  |
+| `FRONTEND_PORT`             | Frontend dev server port   | `46217`                  |
+| `PUBLIC_APP_URL`            | Public frontend app URL    | `http://localhost:46217` |
+| `PUBLIC_POCKETBASE_URL`     | Browser PocketBase URL     | `http://localhost:46218` |
 | `POCKETBASE_URL`            | Server-side PocketBase URL | `http://pocketbase:8090` |
 | `POCKETBASE_ADMIN_EMAIL`    | First-run admin email      | `admin@admin.local`      |
 | `POCKETBASE_ADMIN_PASSWORD` | First-run admin password   | `1234567890`             |

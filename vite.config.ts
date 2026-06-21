@@ -15,6 +15,9 @@ const getVersion = (): string => {
 };
 
 export default defineConfig({
+	server: {
+		port: 46217
+	},
 	define: {
 		__APP_VERSION__: JSON.stringify(getVersion()),
 		__BUILD_DATE__: JSON.stringify(new Date().toISOString())
