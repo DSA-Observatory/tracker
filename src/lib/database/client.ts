@@ -30,6 +30,7 @@ export type CaseStatus =
 	| 'decided'
 	| 'appealed'
 	| 'closed'
+	| 'archived'
 	| 'published';
 
 export interface CaseRecord {
@@ -39,11 +40,17 @@ export interface CaseRecord {
 	ecli?: string;
 	filing_date?: string;
 	decision_date?: string;
+	outcome?: string;
 	status: CaseStatus;
 	court?: string;
+	courts?: string[];
 	jurisdiction?: string;
 	plaintiffs?: string[];
 	defendants?: string[];
+	legal_areas?: string[];
+	legal_basis?: string[];
+	case_scope?: string;
+	procedural_events?: { date?: string; label?: string; description?: string }[];
 	summary?: string;
 	timeline?: string;
 	categories?: string[];
@@ -54,10 +61,31 @@ export interface CaseRecord {
 	dsa_articles?: string[];
 	documents?: string[];
 	document_links?: string[];
+	source_limitations?: string;
 	citations_to?: string[];
 	cited_by?: string[];
 	commentary?: string;
+	editorial_notes?: string;
+	submitted_by?: string;
 	published: boolean;
+	created: string;
+	updated: string;
+}
+
+export type CaseSubmissionStatus = 'new' | 'review' | 'accepted' | 'rejected' | 'archived';
+
+export interface CaseSubmissionRecord {
+	id: string;
+	title: string;
+	jurisdiction?: string;
+	court?: string;
+	parties?: string;
+	case_url?: string;
+	summary?: string;
+	submitter_name?: string;
+	submitter_email?: string;
+	status: CaseSubmissionStatus;
+	editorial_notes?: string;
 	created: string;
 	updated: string;
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import type { CaseRecord } from '$lib/database';
 
 	let {
@@ -93,11 +94,12 @@
 									</span>
 								{/if}
 							</div>
-							<h3
-								class="line-clamp-2 text-lg leading-tight font-semibold tracking-tight text-slate-950"
+							<a
+								class="line-clamp-2 text-lg leading-tight font-semibold tracking-tight text-slate-950 hover:text-slate-700 hover:underline"
+								href={resolve(`/cases/${record.id}`)}
 							>
 								{record.title}
-							</h3>
+							</a>
 							<div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
 								<span
 									>{record.jurisdiction

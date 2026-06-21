@@ -43,12 +43,25 @@
 				jurisdiction: record.jurisdiction ?? '',
 				plaintiffs: joinCaseFormList(record.plaintiffs),
 				defendants: joinCaseFormList(record.defendants),
+				outcome: record.outcome ?? '',
+				courts: joinCaseFormList(record.courts),
+				legal_areas: joinCaseFormList(record.legal_areas),
+				legal_basis: joinCaseFormList(record.legal_basis),
+				case_scope: record.case_scope ?? 'private enforcement',
+				procedural_events:
+					record.procedural_events
+						?.map((event) =>
+							[event.date, event.label, event.description].filter(Boolean).join(' | ')
+						)
+						.join('\n') ?? '',
 				summary: record.summary ?? '',
 				timeline: record.timeline ?? '',
 				categories: joinCaseFormList(record.categories),
 				themes: joinCaseFormList(record.themes),
 				primary_sources: joinCaseFormLines(record.primary_sources),
 				secondary_sources: joinCaseFormLines(record.secondary_sources),
+				source_limitations: record.source_limitations ?? '',
+				editorial_notes: record.editorial_notes ?? '',
 				keywords: joinCaseFormList(record.keywords),
 				dsa_articles: joinCaseFormList(record.dsa_articles),
 				published: record.published
@@ -77,12 +90,23 @@
 			jurisdiction: form.jurisdiction.trim(),
 			plaintiffs: splitCaseFormList(form.plaintiffs),
 			defendants: splitCaseFormList(form.defendants),
+			outcome: form.outcome.trim(),
+			courts: splitCaseFormList(form.courts),
+			legal_areas: splitCaseFormList(form.legal_areas),
+			legal_basis: splitCaseFormList(form.legal_basis),
+			case_scope: form.case_scope.trim(),
+			procedural_events: splitCaseFormLines(form.procedural_events).map((line) => {
+				const [date, label, description] = line.split('|').map((part) => part.trim());
+				return { date, label, description };
+			}),
 			summary: form.summary.trim(),
 			timeline: form.timeline.trim(),
 			categories: splitCaseFormList(form.categories),
 			themes: splitCaseFormList(form.themes),
 			primary_sources: splitCaseFormLines(form.primary_sources),
 			secondary_sources: splitCaseFormLines(form.secondary_sources),
+			source_limitations: form.source_limitations.trim(),
+			editorial_notes: form.editorial_notes.trim(),
 			keywords: splitCaseFormList(form.keywords),
 			dsa_articles: splitCaseFormList(form.dsa_articles),
 			published: form.published || form.status === 'published'
@@ -223,6 +247,22 @@
 					/>
 				</label>
 				<label class="form-control w-full">
+					<span class="label-text mb-1 text-sm font-semibold">Outcome</span>
+					<input
+						class="input-bordered input input-sm w-full"
+						bind:value={form.outcome}
+						placeholder="Granted, dismissed, pending..."
+					/>
+				</label>
+				<label class="form-control w-full md:col-span-2">
+					<span class="label-text mb-1 text-sm font-semibold">Courts involved</span>
+					<input
+						class="input-bordered input input-sm w-full"
+						bind:value={form.courts}
+						placeholder="Comma separated if multiple courts"
+					/>
+				</label>
+				<label class="form-control w-full">
 					<span class="label-text mb-1 text-sm font-semibold">DSA articles</span>
 					<input
 						class="input-bordered input input-sm w-full"
@@ -246,6 +286,38 @@
 						placeholder="Comma separated"
 					/>
 				</label>
+				<label class="form-control w-full">
+					<span class="label-text mb-1 text-sm font-semibold">Case scope</span>
+					<input
+						class="input-bordered input input-sm w-full"
+						bind:value={form.case_scope}
+						placeholder="private enforcement"
+					/>
+				</label>
+				<label class="form-control w-full md:col-span-2">
+					<span class="label-text mb-1 text-sm font-semibold">Legal areas</span>
+					<input
+						class="input-bordered input input-sm w-full"
+						bind:value={form.legal_areas}
+						placeholder="DSA, GDPR, consumer protection..."
+					/>
+				</label>
+				<label class="form-control w-full md:col-span-3">
+					<span class="label-text mb-1 text-sm font-semibold">Legal basis / grounds</span>
+					<textarea
+						class="textarea-bordered textarea min-h-20 w-full"
+						bind:value={form.legal_basis}
+						placeholder="Comma separated legal grounds, including non-DSA claims"
+					></textarea>
+				</label>
+				<label class="form-control w-full md:col-span-3">
+					<span class="label-text mb-1 text-sm font-semibold">Procedural events</span>
+					<textarea
+						class="textarea-bordered textarea min-h-24 w-full font-mono text-sm"
+						bind:value={form.procedural_events}
+						placeholder="YYYY-MM-DD | Event label | Short description"
+					></textarea>
+				</label>
 				<label class="form-control w-full md:col-span-3">
 					<span class="label-text mb-1 text-sm font-semibold">Timeline</span>
 					<textarea
@@ -268,6 +340,22 @@
 						class="textarea-bordered textarea min-h-20 w-full"
 						bind:value={form.secondary_sources}
 						placeholder="One secondary source per line"
+					></textarea>
+				</label>
+				<label class="form-control w-full md:col-span-3">
+					<span class="label-text mb-1 text-sm font-semibold">Source limitations</span>
+					<textarea
+						class="textarea-bordered textarea min-h-20 w-full"
+						bind:value={form.source_limitations}
+						placeholder="Notes on missing documents, copyright, confidentiality, or source reliability"
+					></textarea>
+				</label>
+				<label class="form-control w-full md:col-span-3">
+					<span class="label-text mb-1 text-sm font-semibold">Internal editorial notes</span>
+					<textarea
+						class="textarea-bordered textarea min-h-20 w-full"
+						bind:value={form.editorial_notes}
+						placeholder="Internal notes for reviewers; not intended for public display"
 					></textarea>
 				</label>
 				<label class="form-control w-full md:col-span-3">

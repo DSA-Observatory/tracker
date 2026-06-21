@@ -58,6 +58,7 @@
 		"@tiptap/extension-underline": "^3.27.0",
 		"@tiptap/starter-kit": "^3.27.0",
 		"daisyui": "^5.4.3",
+		"maplibre-gl": "^5.24.0",
 		"pocketbase": "^0.26.3",
 		"svelte-french-toast": "^1.2.0"
 	}
