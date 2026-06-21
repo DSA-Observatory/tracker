@@ -1,7 +1,7 @@
 import PocketBase from 'pocketbase';
 import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
 
-export const pb = new PocketBase(PUBLIC_POCKETBASE_URL || 'http://localhost:8095');
+export const pb = new PocketBase(PUBLIC_POCKETBASE_URL || 'http://localhost:46218');
 
 // Types for the todos collection
 export interface Todo {

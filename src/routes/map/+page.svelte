@@ -2,7 +2,7 @@
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import maplibregl, { type Map, type Marker } from 'maplibre-gl';
 	import { resolve } from '$app/paths';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { pb, type CaseRecord } from '$lib/database';
 
 	type JurisdictionCount = { jurisdiction: string; count: number };
@@ -17,6 +17,35 @@
 		Poland: { lng: 19.1451, lat: 51.9194 },
 		Spain: { lng: -3.7492, lat: 40.4637 }
 	};
+	const lightMapStyle = {
+		version: 8,
+		sources: {
+			'carto-light': {
+				type: 'raster',
+				tiles: [
+					'https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png',
+					'https://b.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png',
+					'https://c.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png',
+					'https://d.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png'
+				],
+				tileSize: 256,
+				attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+			}
+		},
+		layers: [
+			{
+				id: 'background',
+				type: 'background',
+				paint: { 'background-color': '#f8fafc' }
+			},
+			{
+				id: 'carto-light',
+				type: 'raster',
+				source: 'carto-light',
+				paint: { 'raster-opacity': 0.72 }
+			}
+		]
+	} as const;
 
 	let loading = $state(true);
 	let error = $state('');
@@ -44,7 +73,7 @@
 
 		map = new maplibregl.Map({
 			container: mapContainer,
-			style: 'https://demotiles.maplibre.org/style.json',
+			style: lightMapStyle,
 			center: [10, 49],
 			zoom: 2.8,
 			attributionControl: false
@@ -99,12 +128,13 @@
 			error = 'Could not load jurisdiction data.';
 		} finally {
 			loading = false;
+			await tick();
+			initializeMap();
 			renderMarkers();
 		}
 	}
 
 	onMount(() => {
-		initializeMap();
 		loadMapData();
 
 		return () => {

@@ -14,7 +14,7 @@
 		"lint": "prettier --check . && eslint .",
 		"seed": "bun scripts/seed-data.ts",
 		"db:cases": "bun --env-file=.env scripts/apply-cases-collection.ts",
-		"db:cases:local": "POCKETBASE_TARGET_URL=http://localhost:8095 bun --env-file=.env scripts/apply-cases-collection.ts",
+		"db:cases:local": "POCKETBASE_TARGET_URL=http://localhost:46218 bun --env-file=.env scripts/apply-cases-collection.ts",
 		"normalize:cases": "python3 scripts/import-cases-xlsx.py",
 		"import:cases": "python3 scripts/import-cases-xlsx.py --apply",
 		"replace:cases": "python3 scripts/import-cases-xlsx.py --apply --replace-managed"
