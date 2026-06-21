@@ -48,7 +48,11 @@
 	let search = $state(page.url.searchParams.get('q') ?? '');
 	let searchScope = $state<SearchScope>('all');
 	let statuses = $state<string[]>([]);
-	let countries = $state<string[]>([]);
+	let countries = $state<string[]>(
+		page.url.searchParams.get('jurisdiction')
+			? [page.url.searchParams.get('jurisdiction') as string]
+			: []
+	);
 	let categories = $state<string[]>([]);
 	let themes = $state<string[]>([]);
 	let articles = $state<string[]>([]);
@@ -325,12 +329,15 @@
 			record.case_id,
 			record.title,
 			record.ecli,
+			record.outcome,
 			record.court,
 			record.jurisdiction
 		];
 		const partyValues = getPartyValues(record);
 		const legalValues = [
 			...(record.dsa_articles ?? []),
+			...(record.legal_areas ?? []),
+			...(record.legal_basis ?? []),
 			...getCategories(record),
 			...getThemes(record),
 			...(record.keywords ?? [])
@@ -338,6 +345,7 @@
 		const sourceValues = [
 			stripHtml(record.summary),
 			getTimeline(record),
+			record.source_limitations,
 			...getPrimarySourcesList(record),
 			...getSecondarySourcesList(record),
 			record.commentary,
@@ -513,6 +521,48 @@
 		}
 	}
 
+	function downloadFilteredCases(format: 'csv' | 'json') {
+		const rows = filteredCases.map((record) => ({
+			case_id: record.case_id,
+			title: record.title,
+			status: record.status,
+			outcome: record.outcome ?? '',
+			jurisdiction: record.jurisdiction ?? '',
+			court: record.court ?? '',
+			decision_date: record.decision_date ?? '',
+			ecli: record.ecli ?? '',
+			plaintiffs: (record.plaintiffs ?? []).join('; '),
+			defendants: (record.defendants ?? []).join('; '),
+			dsa_articles: (record.dsa_articles ?? []).join('; '),
+			legal_areas: (record.legal_areas ?? []).join('; '),
+			legal_basis: (record.legal_basis ?? []).join('; '),
+			url: `${window.location.origin}${resolve(`/cases/${record.id}`)}`
+		}));
+
+		const body = format === 'json' ? JSON.stringify(rows, null, 2) : toCsv(rows);
+		const type = format === 'json' ? 'application/json' : 'text/csv';
+		const blob = new Blob([body], { type: `${type};charset=utf-8` });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `dsa-cases-${new Date().toISOString().slice(0, 10)}.${format}`;
+		link.click();
+		URL.revokeObjectURL(url);
+	}
+
+	function toCsv(rows: Record<string, string>[]) {
+		if (!rows.length) return '';
+		const headers = Object.keys(rows[0]);
+		return [
+			headers.join(','),
+			...rows.map((row) => headers.map((header) => csvCell(row[header])).join(','))
+		].join('\n');
+	}
+
+	function csvCell(value: string) {
+		return `"${value.replace(/"/g, '""')}"`;
+	}
+
 	onMount(() => {
 		const mediaQuery = window.matchMedia('(max-width: 767px)');
 		const updateMobileViewport = () => {
@@ -582,6 +632,11 @@
 					</div>
 
 					<div class="flex items-center gap-1.5">
+						<button
+							class="inline-flex h-8 shrink-0 items-center rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
+							type="button"
+							onclick={() => downloadFilteredCases('csv')}>CSV</button
+						>
 						{#if canWrite}
 							<button
 								class="inline-flex h-8 shrink-0 items-center rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
@@ -622,6 +677,20 @@
 							onViewModeChange={(mode) => (viewMode = mode)}
 							onFilterLayoutChange={(layout) => (filterLayout = layout)}
 						/>
+						<div
+							class="inline-flex items-center rounded-md border border-slate-200 bg-white p-0.5 shadow-xs"
+						>
+							<button
+								class="h-8 rounded-sm px-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+								type="button"
+								onclick={() => downloadFilteredCases('csv')}>CSV</button
+							>
+							<button
+								class="h-8 rounded-sm px-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+								type="button"
+								onclick={() => downloadFilteredCases('json')}>JSON</button
+							>
+						</div>
 						{#if canWrite}<button
 								class="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
 								type="button"

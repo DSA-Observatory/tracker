@@ -39,12 +39,20 @@ export type CaseForm = {
 	jurisdiction: string;
 	plaintiffs: string;
 	defendants: string;
+	outcome: string;
+	courts: string;
+	legal_areas: string;
+	legal_basis: string;
+	case_scope: string;
+	procedural_events: string;
 	summary: string;
 	timeline: string;
 	categories: string;
 	themes: string;
 	primary_sources: string;
 	secondary_sources: string;
+	source_limitations: string;
+	editorial_notes: string;
 	keywords: string;
 	dsa_articles: string;
 	published: boolean;
@@ -57,6 +65,7 @@ export const statusOptions: CaseStatus[] = [
 	'decided',
 	'appealed',
 	'closed',
+	'archived',
 	'published'
 ];
 
@@ -70,12 +79,20 @@ export const emptyCaseForm = (): CaseForm => ({
 	jurisdiction: '',
 	plaintiffs: '',
 	defendants: '',
+	outcome: '',
+	courts: '',
+	legal_areas: '',
+	legal_basis: '',
+	case_scope: 'private enforcement',
+	procedural_events: '',
 	summary: '',
 	timeline: '',
 	categories: '',
 	themes: '',
 	primary_sources: '',
 	secondary_sources: '',
+	source_limitations: '',
+	editorial_notes: '',
 	keywords: '',
 	dsa_articles: '',
 	published: false

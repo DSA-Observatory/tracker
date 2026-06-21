@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import type { CaseRecord } from '$lib/database';
 
 	let {
@@ -72,7 +73,10 @@
 			{#each virtualRows as record (record.id)}
 				<tr class="transition hover:bg-slate-50/80" style={`height: ${rowHeight}px;`}>
 					<td class="min-w-72 border-b border-slate-100 px-4 py-3 align-top">
-						<div class="font-semibold tracking-tight text-slate-950">{record.title}</div>
+						<a
+							class="font-semibold tracking-tight text-slate-950 hover:text-slate-700 hover:underline"
+							href={resolve(`/cases/${record.id}`)}>{record.title}</a
+						>
 						<div class="mt-1 font-mono text-xs text-slate-400">
 							{record.case_id}{record.ecli ? ` · ${record.ecli}` : ''}
 						</div>

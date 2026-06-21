@@ -4,18 +4,26 @@ This roadmap tracks what is already working, what still needs to be finished bef
 
 ## Current Status
 
-The project is a working frontend and Database prototype for a DSA private enforcement case law tracker. It already has a public product direction, a local database setup, imported case data, search/filter UI, case editing routes, authentication pieces, and deployment workflow files.
+The project is now a Phase 2 research-grade prototype for a DSA private enforcement case law tracker. It has a documented product direction, a local PocketBase setup, imported case data, public search/filtering, public case detail pages, editorial case management, community submissions, exports, and deployment workflow files.
 
-## Done
+## Delivery Phases
+
+These phases separate what was delivered at each handoff so the project history is clear for presentations, invoices, and stakeholder updates.
+
+### Phase 0: Project Setup And Direction
 
 - [x] Project direction documented for the DSA Case Law Tracker.
 - [x] Core audience, scope, MVP features, data model, and future AI/NLP ideas captured in `README.md`.
 - [x] SvelteKit 2 / Svelte 5 frontend scaffolded.
 - [x] Tailwind CSS 4 and DaisyUI styling setup in the app.
-- [x] Database included as the backend/database choice.
-- [x] Docker Compose local development setup for frontend and Database.
+- [x] PocketBase selected and included as the backend/database choice.
+- [x] Docker Compose local development setup for frontend and PocketBase.
 - [x] Environment variable template added in `.env.example`.
-- [x] Database migrations added for initial setup, cases collection, admin user management, promoted case metadata, and SMTP settings.
+- [x] GitHub Pages and release workflow files added.
+
+### Phase 1: MVP Tracker Foundation
+
+- [x] PocketBase migrations added for initial setup, cases collection, admin user management, promoted case metadata, and SMTP settings.
 - [x] Case import and schema utility scripts added under `scripts/`.
 - [x] Normalized case data exists in `data/normalized-cases.json`.
 - [x] Public case database route exists at `/cases`.
@@ -26,7 +34,24 @@ The project is a working frontend and Database prototype for a DSA private enfor
 - [x] Basic admin user management page exists at `/admin`.
 - [x] Login, registration, logout, and profile UI components exist.
 - [x] SMTP configuration hook/migration exists for transactional email setup.
-- [x] GitHub Pages and release workflow files.
+
+### Phase 2: Research-Grade Public Tracker
+
+- [x] Phase 2 case schema fields added for outcome, courts, legal areas, legal basis, case scope, procedural events, source limitations, editorial notes, and submitter attribution.
+- [x] Explicit editorial workflow statuses support draft, review, published, appealed, closed, and archived cases.
+- [x] Public canonical case detail route exists at `/cases/[id]` with metadata, timeline, sources, commentary, and related cases.
+- [x] Case cards and table rows link to canonical public case records.
+- [x] Filtered case results can be exported as CSV or JSON.
+- [x] Community case lead submissions exist at `/submit`.
+- [x] Authenticated submission moderation queue exists at `/admin/submissions`.
+- [x] Jurisdiction browsing view exists at `/map` with click-through to filtered case results.
+- [x] Navigation includes Cases, Map, Suggest a Case, and About.
+- [x] `ROADMAP.md` updated to track phases and remaining launch work.
+
+### Phase 2 Verification Notes
+
+- [x] `npm run build` passes after Phase 2 changes.
+- [ ] `npm run check` is still blocked by pre-existing unrelated project issues in demo/paraglide, optional UI dependencies, and older demo components.
 
 ## Needed Before Production
 
@@ -48,11 +73,11 @@ The project is a working frontend and Database prototype for a DSA private enfor
 - [ ] Test database restore from backup before launch.
 - [ ] Decide whether production case data should be edited only through the custom app, Database admin, or both.
 - [ ] Confirm Database collection rules for public reads, authenticated editing, admin-only user management, and unpublished draft protection.
-- [ ] Add an explicit editorial workflow for draft, review, published, appealed, closed, and archived statuses.
+- [x] Add an explicit editorial workflow for draft, review, published, appealed, closed, and archived statuses.
 - [ ] Confirm which document files can be uploaded, linked, or publicly shown.
 - [ ] Add clear privacy/copyright guidance for case documents and contributor submissions.
-- [ ] Add a public case detail page if not already implemented as a stable route.
-- [ ] Add community submission flow and moderation queue.
+- [x] Add a public case detail page if not already implemented as a stable route.
+- [x] Add community submission flow and moderation queue.
 - [ ] Add production analytics if required.
 - [ ] Add error monitoring/logging for frontend and Database.
 - [ ] Run final accessibility, mobile, and browser checks.
@@ -63,8 +88,9 @@ The project is a working frontend and Database prototype for a DSA private enfor
 
 ## Nice-To-Have Next
 
-- [ ] Public CSV/JSON export for filtered case results.
-- [ ] Interactive EU jurisdiction map.
+- [x] Public CSV/JSON export for filtered case results.
+- [x] Jurisdiction visualization with click-through filtering.
+- [ ] Interactive EU jurisdiction map with geographic shapes and tooltips.
 - [ ] Timeline visualization for case events.
 - [ ] Advanced filters for party type, court level, outcome, DSA article, and keyword.
 - [ ] Bulk import UI for CSV/Excel updates.
