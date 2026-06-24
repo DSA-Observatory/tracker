@@ -50,7 +50,7 @@
 	let statuses = $state<string[]>([]);
 	let countries = $state<string[]>(
 		page.url.searchParams.get('jurisdiction')
-			? [page.url.searchParams.get('jurisdiction') as string]
+			? [normalizeJurisdiction(page.url.searchParams.get('jurisdiction') as string) as string]
 			: []
 	);
 	let categories = $state<string[]>([]);
@@ -74,7 +74,9 @@
 
 	const canWrite = $derived(authStore.isAuthenticated);
 	const statusFilterOptions = $derived(buildOptions('statuses', statusOptions));
-	const availableCountries = $derived(uniqueSorted(cases.map((record) => record.jurisdiction)));
+	const availableCountries = $derived(
+		uniqueSorted(cases.map((record) => normalizeJurisdiction(record.jurisdiction)))
+	);
 	const countryFilterOptions = $derived(buildOptions('countries', availableCountries));
 	const availableCategories = $derived(
 		categoryOptions.filter((category) =>
@@ -208,8 +210,16 @@
 		return countryFlags[country] ?? '';
 	}
 
+	function normalizeJurisdiction(jurisdiction?: string) {
+		return jurisdiction?.trim() === 'FR' ? 'France' : jurisdiction?.trim();
+	}
+
 	function matchesAny(selected: string[], values: (string | undefined)[]) {
 		return selected.length === 0 || values.some((value) => value && selected.includes(value));
+	}
+
+	function matchesJurisdiction(record: CaseRecord, country: string) {
+		return normalizeJurisdiction(record.jurisdiction) === country;
 	}
 
 	function decodeHtmlEntities(value?: string) {
@@ -375,7 +385,7 @@
 		return (
 			matchesSearch(record) &&
 			(ignoredGroup === 'statuses' || matchesAny(statuses, [record.status])) &&
-			(ignoredGroup === 'countries' || matchesAny(countries, [record.jurisdiction])) &&
+			(ignoredGroup === 'countries' || matchesAny(countries, [normalizeJurisdiction(record.jurisdiction)])) &&
 			(ignoredGroup === 'categories' || matchesAny(categories, getCategories(record))) &&
 			(ignoredGroup === 'themes' || matchesAny(themes, getThemes(record))) &&
 			(ignoredGroup === 'articles' || matchesAny(articles, record.dsa_articles ?? [])) &&
@@ -389,7 +399,7 @@
 		return cases.filter((record) => {
 			if (!matchesFilters(record, group)) return false;
 			if (group === 'statuses') return record.status === option;
-			if (group === 'countries') return record.jurisdiction === option;
+			if (group === 'countries') return matchesJurisdiction(record, option);
 			if (group === 'categories') return getCategories(record).includes(option);
 			if (group === 'themes') return getThemes(record).includes(option);
 			if (group === 'articles') return (record.dsa_articles ?? []).includes(option);
