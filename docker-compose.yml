@@ -19,6 +19,7 @@ services:
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASS=${SMTP_PASS:-}
       - SMTP_FROM=${SMTP_FROM:-}
+      - CASE_SUBMISSION_NOTIFY_EMAILS=${CASE_SUBMISSION_NOTIFY_EMAILS:-}
     healthcheck:
       test:
         ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8090/api/health']

@@ -76,12 +76,34 @@ export type CaseSubmissionStatus = 'new' | 'review' | 'accepted' | 'rejected' | 
 
 export interface CaseSubmissionRecord {
 	id: string;
+	case_id?: string;
 	title: string;
+	ecli?: string;
+	filing_date?: string;
+	decision_date?: string;
+	case_status?: CaseStatus;
+	outcome?: string;
 	jurisdiction?: string;
 	court?: string;
+	courts?: string[];
+	plaintiffs?: string[];
+	defendants?: string[];
 	parties?: string;
+	legal_areas?: string[];
+	legal_basis?: string[];
+	case_scope?: string;
+	procedural_events?: { date?: string; label?: string; description?: string }[];
+	timeline?: string;
+	categories?: string[];
+	themes?: string[];
+	primary_sources?: string[];
+	secondary_sources?: string[];
+	keywords?: string[];
+	dsa_articles?: string[];
+	document_links?: string[];
 	case_url?: string;
 	summary?: string;
+	source_limitations?: string;
 	submitter_name?: string;
 	submitter_email?: string;
 	status: CaseSubmissionStatus;

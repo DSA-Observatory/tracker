@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import AdminPanelLayout from '$lib/components/admin/AdminPanelLayout.svelte';
 	import { authStore, pb } from '$lib/database';
 	import { isAdminEmail, isAdminUser } from '$lib/admin';
 
@@ -147,6 +148,30 @@
 		}
 	}
 
+	async function updateUserVerified(user: ManagedUser, verified: boolean) {
+		savingUserId = user.id;
+		error = '';
+		success = '';
+
+		try {
+			await refreshAdminSession();
+
+			const updated = await pb.send<ManagedUser>(
+				`/api/admin/users/${encodeURIComponent(user.id)}/verified`,
+				{
+					method: 'PATCH',
+					body: { verified }
+				}
+			);
+			users = users.map((item) => (item.id === user.id ? updated : item));
+			success = `Updated ${updated.email}.`;
+		} catch (err) {
+			error = err instanceof Error ? err.message : `Could not update ${user.email}.`;
+		} finally {
+			savingUserId = '';
+		}
+	}
+
 	async function deleteUser(user: ManagedUser) {
 		if (!confirm(`Delete ${user.email}? This cannot be undone.`)) return;
 
@@ -173,7 +198,7 @@
 	<meta name="description" content="Manage DSA Case Law Tracker users." />
 </svelte:head>
 
-<main class="container mx-auto max-w-6xl px-4 pb-16">
+<AdminPanelLayout>
 	<section
 		class="rounded-[2rem] border border-base-300/60 bg-base-100 p-6 shadow-lg shadow-black/5 sm:p-8"
 	>
@@ -308,8 +333,7 @@
 												class="toggle toggle-primary"
 												checked={user.verified}
 												disabled={savingUserId === user.id}
-												onchange={(event) =>
-													updateUser(user, { verified: event.currentTarget.checked })}
+												onchange={(event) => updateUserVerified(user, event.currentTarget.checked)}
 											/>
 											<span>{user.verified ? 'Verified' : 'Not verified'}</span>
 										</label>
@@ -346,4 +370,4 @@
 			{/if}
 		{/if}
 	</section>
-</main>
+</AdminPanelLayout>
