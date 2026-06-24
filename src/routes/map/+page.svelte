@@ -1,6 +1,11 @@
 <script lang="ts">
 	import 'maplibre-gl/dist/maplibre-gl.css';
-	import maplibregl, { type Map, type Marker } from 'maplibre-gl';
+	import maplibregl, {
+		type GeoJSONSource,
+		type Map as MaplibreMap,
+		type MapLayerMouseEvent,
+		type StyleSpecification
+	} from 'maplibre-gl';
 	import { resolve } from '$app/paths';
 	import { onMount, tick } from 'svelte';
 	import { pb, type CaseRecord } from '$lib/database';
@@ -17,7 +22,9 @@
 		Poland: { lng: 19.1451, lat: 51.9194 },
 		Spain: { lng: -3.7492, lat: 40.4637 }
 	};
-	const lightMapStyle = {
+	const casePinsSourceId = 'case-pins';
+	const casePinsUrl = resolve('/cases');
+	const lightMapStyle: StyleSpecification = {
 		version: 8,
 		sources: {
 			'carto-voyager': {
@@ -30,6 +37,10 @@
 				],
 				tileSize: 256,
 				attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+			},
+			[casePinsSourceId]: {
+				type: 'geojson',
+				data: { type: 'FeatureCollection', features: [] }
 			}
 		},
 		layers: [
@@ -43,16 +54,51 @@
 				type: 'raster',
 				source: 'carto-voyager',
 				paint: { 'raster-opacity': 0.86 }
+			},
+			{
+				id: 'case-pin-halo',
+				type: 'circle',
+				source: casePinsSourceId,
+				paint: {
+					'circle-radius': ['+', ['get', 'radius'], 8],
+					'circle-color': '#facc15',
+					'circle-opacity': 0.28
+				}
+			},
+			{
+				id: 'case-pin-circle',
+				type: 'circle',
+				source: casePinsSourceId,
+				paint: {
+					'circle-radius': ['get', 'radius'],
+					'circle-color': '#facc15',
+					'circle-stroke-color': '#ffffff',
+					'circle-stroke-width': 3
+				}
+			},
+			{
+				id: 'case-pin-count',
+				type: 'symbol',
+				source: casePinsSourceId,
+				layout: {
+					'text-field': ['to-string', ['get', 'count']],
+					'text-size': 14,
+					'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+					'text-allow-overlap': true,
+					'text-ignore-placement': true
+				},
+				paint: {
+					'text-color': '#111827'
+				}
 			}
 		]
-	} as const;
+	};
 
 	let loading = $state(true);
 	let error = $state('');
 	let jurisdictions = $state<JurisdictionCount[]>([]);
 	let mapContainer = $state<HTMLDivElement>();
-	let map: Map | undefined;
-	let markers: Marker[] = [];
+	let map: MaplibreMap | undefined;
 
 	const maxCount = $derived(Math.max(1, ...jurisdictions.map((item) => item.count)));
 	const mapPins = $derived(
@@ -64,8 +110,30 @@
 			.filter(Boolean) as MapPin[]
 	);
 
-	function pinSize(pin: MapPin) {
-		return 2.25 + (pin.count / maxCount) * 1.25;
+	function pinRadius(pin: MapPin) {
+		return 18 + (pin.count / maxCount) * 10;
+	}
+
+	function pinHref(jurisdiction: string) {
+		return `${casePinsUrl}?jurisdiction=${encodeURIComponent(jurisdiction)}`;
+	}
+
+	function pinFeatureCollection() {
+		return {
+			type: 'FeatureCollection' as const,
+			features: mapPins.map((pin) => ({
+				type: 'Feature' as const,
+				properties: {
+					jurisdiction: pin.jurisdiction,
+					count: pin.count,
+					radius: pinRadius(pin)
+				},
+				geometry: {
+					type: 'Point' as const,
+					coordinates: [pin.lng, pin.lat]
+				}
+			}))
+		};
 	}
 
 	function initializeMap() {
@@ -81,29 +149,31 @@
 
 		map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 		map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
-		map.on('load', renderMarkers);
+		map.on('load', renderPins);
+		map.on('click', 'case-pin-circle', openPin);
+		map.on('click', 'case-pin-count', openPin);
+		map.on('mouseenter', 'case-pin-circle', showPinCursor);
+		map.on('mouseenter', 'case-pin-count', showPinCursor);
+		map.on('mouseleave', 'case-pin-circle', hidePinCursor);
+		map.on('mouseleave', 'case-pin-count', hidePinCursor);
 	}
 
-	function renderMarkers() {
-		if (!map) return;
-		markers.forEach((marker) => marker.remove());
-		markers = [];
+	function renderPins() {
+		if (!map || !map.loaded()) return;
+		(map.getSource(casePinsSourceId) as GeoJSONSource).setData(pinFeatureCollection());
+	}
 
-		for (const pin of mapPins) {
-			const markerElement = document.createElement('a');
-			markerElement.href = `${resolve('/cases')}?jurisdiction=${encodeURIComponent(pin.jurisdiction)}`;
-			markerElement.className = 'case-map-marker';
-			markerElement.style.width = `${pinSize(pin)}rem`;
-			markerElement.style.height = `${pinSize(pin)}rem`;
-			markerElement.textContent = String(pin.count);
-			markerElement.title = `${pin.jurisdiction}: ${pin.count} cases`;
+	function openPin(event: MapLayerMouseEvent) {
+		const jurisdiction = event.features?.[0]?.properties?.jurisdiction;
+		if (typeof jurisdiction === 'string') window.location.href = pinHref(jurisdiction);
+	}
 
-			const marker = new maplibregl.Marker({ element: markerElement })
-				.setLngLat([pin.lng, pin.lat])
-				.addTo(map);
+	function showPinCursor() {
+		if (map) map.getCanvas().style.cursor = 'pointer';
+	}
 
-			markers.push(marker);
-		}
+	function hidePinCursor() {
+		if (map) map.getCanvas().style.cursor = '';
 	}
 
 	async function loadMapData() {
@@ -130,7 +200,7 @@
 			loading = false;
 			await tick();
 			initializeMap();
-			renderMarkers();
+			renderPins();
 		}
 	}
 
@@ -138,7 +208,6 @@
 		loadMapData();
 
 		return () => {
-			markers.forEach((marker) => marker.remove());
 			map?.remove();
 			map = undefined;
 		};
@@ -219,31 +288,3 @@
 		</div>
 	</section>
 </main>
-
-<style>
-	:global(.case-map-marker) {
-		display: grid;
-		place-items: center;
-		border: 3px solid white;
-		border-radius: 9999px;
-		background: var(--color-primary);
-		box-shadow:
-			0 10px 24px rgb(15 23 42 / 0.22),
-			0 0 0 8px color-mix(in oklab, var(--color-primary) 22%, transparent);
-		color: var(--color-primary-content);
-		font-size: 0.9rem;
-		font-weight: 900;
-		line-height: 1;
-		text-decoration: none;
-		transition:
-			transform 160ms ease,
-			box-shadow 160ms ease;
-	}
-
-	:global(.case-map-marker:hover) {
-		transform: scale(1.08);
-		box-shadow:
-			0 14px 30px rgb(15 23 42 / 0.28),
-			0 0 0 10px color-mix(in oklab, var(--color-primary) 28%, transparent);
-	}
-</style>
