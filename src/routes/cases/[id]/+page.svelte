@@ -58,6 +58,41 @@
 		}
 	}
 
+	function shortUrlLabel(url: string) {
+		return url.length > 72 ? `${url.slice(0, 69)}...` : url;
+	}
+
+	function linkedTextParts(value?: string) {
+		const parts: { text: string; href?: string }[] = [];
+		let lastIndex = 0;
+
+		for (const match of (value ?? '').matchAll(/https?:\/\/[^\s)]+/g)) {
+			const rawUrl = match[0];
+			const href = rawUrl.replace(/[.,;]+$/, '');
+			const index = match.index ?? 0;
+			if (index > lastIndex) parts.push({ text: (value ?? '').slice(lastIndex, index) });
+			parts.push({ text: shortUrlLabel(href), href });
+			lastIndex = index + href.length;
+		}
+
+		if (lastIndex < (value ?? '').length) parts.push({ text: (value ?? '').slice(lastIndex) });
+		return parts;
+	}
+
+	function linkifyHtml(value?: string) {
+		const linkifyText = (text: string) =>
+			text.replace(/https?:\/\/[^\s<")]+/g, (rawUrl) => {
+				const href = rawUrl.replace(/[.,;]+$/, '');
+				const trailing = rawUrl.slice(href.length);
+				return `<a href="${href}" target="_blank" rel="noreferrer">${shortUrlLabel(href)}</a>${trailing}`;
+			});
+
+		return (value ?? '')
+			.split(/(<[^>]+>)/g)
+			.map((part) => (part.startsWith('<') ? part : linkifyText(part)))
+			.join('');
+	}
+
 	function normalizeProceduralEvents(item?: CaseRecord) {
 		if (!item) return [];
 		if (Array.isArray(item.procedural_events) && item.procedural_events.length) {
@@ -174,7 +209,7 @@
 				<section class="rounded-2xl border border-slate-200 bg-white p-6">
 					<h2 class="text-xl font-black">Summary</h2>
 					{#if record.summary}<div class="prose mt-4 max-w-none text-slate-700">
-							{@html record.summary}
+							{@html linkifyHtml(record.summary)}
 						</div>{:else}<p class="mt-4 text-slate-500">No summary has been added yet.</p>{/if}
 				</section>
 
@@ -191,7 +226,14 @@
 										{event.label || 'Procedural event'}
 									</div>
 									{#if event.description}<p class="mt-1 text-sm text-slate-600">
-											{event.description}
+											{#each linkedTextParts(event.description) as part}
+												{#if part.href}<a
+														class="underline decoration-slate-300 underline-offset-2 hover:text-slate-950"
+														href={part.href}
+														target="_blank"
+														rel="noreferrer">{part.text}</a
+													>{:else}{part.text}{/if}
+											{/each}
 										</p>{/if}
 								</li>
 							{/each}
@@ -208,14 +250,32 @@
 							<div>
 								<h3 class="font-semibold">Primary sources</h3>
 								<ul class="mt-2 space-y-2 text-sm text-slate-600">
-									{#each list(record.primary_sources) as source}<li>{source}</li>{/each}
+									{#each list(record.primary_sources) as source}<li>
+											{#each linkedTextParts(source) as part}
+												{#if part.href}<a
+														class="underline decoration-slate-300 underline-offset-2 hover:text-slate-950"
+														href={part.href}
+														target="_blank"
+														rel="noreferrer">{part.text}</a
+													>{:else}{part.text}{/if}
+											{/each}
+										</li>{/each}
 									{#if !list(record.primary_sources).length}<li>None recorded</li>{/if}
 								</ul>
 							</div>
 							<div>
 								<h3 class="font-semibold">Secondary sources</h3>
 								<ul class="mt-2 space-y-2 text-sm text-slate-600">
-									{#each list(record.secondary_sources) as source}<li>{source}</li>{/each}
+									{#each list(record.secondary_sources) as source}<li>
+											{#each linkedTextParts(source) as part}
+												{#if part.href}<a
+														class="underline decoration-slate-300 underline-offset-2 hover:text-slate-950"
+														href={part.href}
+														target="_blank"
+														rel="noreferrer">{part.text}</a
+													>{:else}{part.text}{/if}
+											{/each}
+										</li>{/each}
 									{#if !list(record.secondary_sources).length}<li>None recorded</li>{/if}
 								</ul>
 							</div>
@@ -245,7 +305,9 @@
 				{#if record.commentary}
 					<section class="rounded-2xl border border-slate-200 bg-white p-6">
 						<h2 class="text-xl font-black">Commentary & Context</h2>
-						<div class="prose mt-4 max-w-none text-slate-700">{@html record.commentary}</div>
+						<div class="prose mt-4 max-w-none text-slate-700">
+							{@html linkifyHtml(record.commentary)}
+						</div>
 					</section>
 				{/if}
 			</div>
