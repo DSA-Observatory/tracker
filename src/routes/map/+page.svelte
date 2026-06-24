@@ -12,18 +12,11 @@
 
 	type JurisdictionCount = { jurisdiction: string; count: number };
 	type MapPin = JurisdictionCount & { lng: number; lat: number };
+	type Coordinates = { lng: number; lat: number };
 
-	const jurisdictionCoordinates: Record<string, { lng: number; lat: number }> = {
-		Denmark: { lng: 9.5018, lat: 56.2639 },
-		FR: { lng: 2.2137, lat: 46.2276 },
-		France: { lng: 2.2137, lat: 46.2276 },
-		Germany: { lng: 10.4515, lat: 51.1657 },
-		Netherlands: { lng: 5.2913, lat: 52.1326 },
-		Poland: { lng: 19.1451, lat: 51.9194 },
-		Spain: { lng: -3.7492, lat: 40.4637 }
-	};
 	const casePinsSourceId = 'case-pins';
 	const casePinsUrl = resolve('/cases');
+	const geocodeCacheKey = 'map:jurisdiction-coordinates';
 	const lightMapStyle: StyleSpecification = {
 		version: 8,
 		sources: {
@@ -97,6 +90,7 @@
 	let loading = $state(true);
 	let error = $state('');
 	let jurisdictions = $state<JurisdictionCount[]>([]);
+	let jurisdictionCoordinates = $state<Record<string, Coordinates>>({});
 	let mapContainer = $state<HTMLDivElement>();
 	let map: MaplibreMap | undefined;
 
@@ -116,6 +110,48 @@
 
 	function pinHref(jurisdiction: string) {
 		return `${casePinsUrl}?jurisdiction=${encodeURIComponent(jurisdiction)}`;
+	}
+
+	function normalizeJurisdiction(jurisdiction: string) {
+		return jurisdiction === 'FR' ? 'France' : jurisdiction;
+	}
+
+	function readGeocodeCache() {
+		try {
+			return JSON.parse(localStorage.getItem(geocodeCacheKey) ?? '{}') as Record<string, Coordinates>;
+		} catch {
+			return {};
+		}
+	}
+
+	function writeGeocodeCache(cache: Record<string, Coordinates>) {
+		localStorage.setItem(geocodeCacheKey, JSON.stringify(cache));
+	}
+
+	async function geocodeJurisdiction(jurisdiction: string) {
+		const url = new URL('https://nominatim.openstreetmap.org/search');
+		url.searchParams.set('format', 'jsonv2');
+		url.searchParams.set('limit', '1');
+		url.searchParams.set('q', jurisdiction);
+
+		const response = await fetch(url);
+		if (!response.ok) return undefined;
+
+		const [result] = (await response.json()) as { lat: string; lon: string }[];
+		return result ? { lng: Number(result.lon), lat: Number(result.lat) } : undefined;
+	}
+
+	async function loadJurisdictionCoordinates(items: JurisdictionCount[]) {
+		const cache = readGeocodeCache();
+
+		for (const { jurisdiction } of items) {
+			if (jurisdiction === 'Unknown' || cache[jurisdiction]) continue;
+			const coordinates = await geocodeJurisdiction(jurisdiction);
+			if (coordinates) cache[jurisdiction] = coordinates;
+		}
+
+		writeGeocodeCache(cache);
+		jurisdictionCoordinates = cache;
 	}
 
 	function pinFeatureCollection() {
@@ -187,12 +223,13 @@
 			});
 			const counts = new Map<string, number>();
 			for (const record of cases) {
-				const jurisdiction = record.jurisdiction?.trim() || 'Unknown';
+				const jurisdiction = normalizeJurisdiction(record.jurisdiction?.trim() || 'Unknown');
 				counts.set(jurisdiction, (counts.get(jurisdiction) ?? 0) + 1);
 			}
 			jurisdictions = [...counts.entries()]
 				.map(([jurisdiction, count]) => ({ jurisdiction, count }))
 				.sort((a, b) => b.count - a.count || a.jurisdiction.localeCompare(b.jurisdiction));
+			await loadJurisdictionCoordinates(jurisdictions);
 		} catch (err) {
 			console.error('Error loading map data:', err);
 			error = 'Could not load jurisdiction data.';
