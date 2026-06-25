@@ -516,7 +516,7 @@
 	}
 
 	function editCase(record: CaseRecord) {
-		goto(`/cases/${record.id}/edit`);
+		goto(resolve(`/cases/${record.id}/edit`));
 	}
 
 	async function deleteCase(record: CaseRecord) {
