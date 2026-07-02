@@ -1,0 +1,52 @@
+name: Deploy PR Preview
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        if: github.event.action != 'closed'
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        if: github.event.action != 'closed'
+        run: bun install --frozen-lockfile
+
+      - name: Build static site
+        if: github.event.action != 'closed'
+        env:
+          BASE_PATH: ${{ format('/{0}/pr-preview/pr-{1}', github.event.repository.name, github.event.pull_request.number) }}
+          PUBLIC_POCKETBASE_URL: ${{ vars.PUBLIC_POCKETBASE_URL || 'https://casetracker.ctwhome.com' }}
+        run: bun run build
+
+      - name: Prepare preview artifact
+        if: github.event.action != 'closed'
+        run: |
+          cp build/index.html build/404.html
+          touch build/.nojekyll
+
+      - name: Deploy or remove preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./build/
+          preview-branch: gh-pages
+          wait-for-pages-deployment: true

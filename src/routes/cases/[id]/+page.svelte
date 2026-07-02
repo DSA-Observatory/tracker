@@ -12,6 +12,7 @@
 
 	const canWrite = $derived(authStore.isAuthenticated);
 	const sourceLinks = $derived(buildSourceLinks(record));
+	const documentFiles = $derived(record?.documents ?? []);
 	const proceduralEvents = $derived(normalizeProceduralEvents(record));
 
 	function stripHtml(value?: string) {
@@ -60,6 +61,10 @@
 
 	function shortUrlLabel(url: string) {
 		return url.length > 72 ? `${url.slice(0, 69)}...` : url;
+	}
+
+	function documentUrl(filename: string) {
+		return record ? pb.files.getURL(record, filename) : '#';
 	}
 
 	function linkedTextParts(value?: string) {
@@ -245,7 +250,26 @@
 
 				<section class="rounded-2xl border border-slate-200 bg-white p-6">
 					<h2 class="text-xl font-black">Documents & References</h2>
-					{#if sourceLinks.length || list(record.primary_sources).length || list(record.secondary_sources).length}
+					{#if documentFiles.length || sourceLinks.length || list(record.primary_sources).length || list(record.secondary_sources).length}
+						{#if documentFiles.length}
+							<div class="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
+								<h3 class="font-semibold">Uploaded documents</h3>
+								<ul class="mt-2 space-y-2 text-sm text-slate-600">
+									{#each documentFiles as filename}
+										<li>
+											<a
+												class="underline decoration-slate-300 underline-offset-2 hover:text-slate-950"
+												href={documentUrl(filename)}
+												target="_blank"
+												rel="noreferrer"
+											>
+												{filename}
+											</a>
+										</li>
+									{/each}
+								</ul>
+							</div>
+						{/if}
 						<div class="mt-4 grid gap-4 md:grid-cols-2">
 							<div>
 								<h3 class="font-semibold">Primary sources</h3>

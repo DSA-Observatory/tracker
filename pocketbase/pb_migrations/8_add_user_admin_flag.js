@@ -34,14 +34,16 @@ migrate(
 
 		app.save(users);
 
-		const bootstrapAdmin = app.findFirstRecordByFilter('users', 'email = {:email}', {
-			email: bootstrapAdminEmail
-		});
+		try {
+			const bootstrapAdmin = app.findFirstRecordByFilter('users', 'email = {:email}', {
+				email: bootstrapAdminEmail
+			});
 
-		if (bootstrapAdmin) {
 			bootstrapAdmin.set('is_admin', true);
 			bootstrapAdmin.set('emailVisibility', true);
 			app.save(bootstrapAdmin);
+		} catch (e) {
+			console.log(`Bootstrap admin not found: ${bootstrapAdminEmail}`);
 		}
 	},
 	(app) => {
