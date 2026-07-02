@@ -366,10 +366,10 @@
 						placeholder="Comma separated"
 					/>
 				</label>
-				<label class="form-control w-full md:col-span-3">
+				<div class="form-control w-full md:col-span-3">
 					<span class="label-text mb-1 text-sm font-semibold">Editorial summary</span>
 					<CaseSummaryEditor bind:value={form.summary} />
-				</label>
+				</div>
 			</div>
 
 			<div class="mt-4 flex justify-end gap-2">

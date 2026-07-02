@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import type { SearchScope } from '$lib/components/cases/types';
 	import { pb, type CaseRecord } from '$lib/database';
 	import { caseSearchQuery } from '$lib/stores/case-search.store';
+	import { debounce } from '$lib/utils/debounce';
 
 	interface SearchScopeOption {
 		value: SearchScope;
@@ -44,8 +45,18 @@
 	let activeSuggestionIndex = $state(0);
 	let searchForm = $state<HTMLFormElement>();
 	let syncedSearchValue = '';
+	let inputValue = $state(value);
 	let suggestions = $derived(buildSuggestions());
 	let suggestionActionCount = $derived(suggestions.length + 1);
+	const applyListSearch = debounce((nextValue: string) => {
+		if (inputValue !== nextValue) return;
+		value = nextValue;
+	}, 150);
+
+	$effect(() => {
+		const nextValue = value;
+		if (untrack(() => inputValue) !== nextValue) inputValue = nextValue;
+	});
 
 	$effect(() => {
 		if (value === syncedSearchValue) return;
@@ -55,35 +66,40 @@
 	});
 
 	$effect(() => {
-		value;
+		inputValue;
 		suggestions.length;
 		activeSuggestionIndex = 0;
 	});
 
 	function normalize(value?: string) {
-		return (value ?? '').toLowerCase().trim();
+		return (value ?? '')
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.toLowerCase()
+			.trim();
 	}
 
 	function searchableText(record: CaseRecord) {
-		return [
-			record.title,
-			record.case_id,
-			record.ecli,
-			record.court,
-			record.jurisdiction,
-			...(record.plaintiffs ?? []),
-			...(record.defendants ?? []),
-			...(record.dsa_articles ?? []),
-			...(record.categories ?? []),
-			...(record.themes ?? [])
-		]
-			.filter(Boolean)
-			.join(' ')
-			.toLowerCase();
+		return normalize(
+			[
+				record.title,
+				record.case_id,
+				record.ecli,
+				record.court,
+				record.jurisdiction,
+				...(record.plaintiffs ?? []),
+				...(record.defendants ?? []),
+				...(record.dsa_articles ?? []),
+				...(record.categories ?? []),
+				...(record.themes ?? [])
+			]
+				.filter(Boolean)
+				.join(' ')
+		);
 	}
 
 	function buildSuggestions() {
-		const query = normalize(value);
+		const query = normalize(inputValue);
 		if (!showSuggestions) return [];
 		if (!query) return cases.slice(0, 5);
 		if (query.length < 2) return [];
@@ -122,8 +138,17 @@
 		}
 	}
 
+	function updateSearch(nextValue: string) {
+		inputValue = nextValue;
+		if (navigateOnSubmit) {
+			value = nextValue;
+		} else {
+			applyListSearch(nextValue);
+		}
+	}
+
 	function submitSearch() {
-		const query = value.trim();
+		const query = inputValue.trim();
 		if (!query || !navigateOnSubmit) return;
 
 		suggestionsOpen = false;
@@ -131,12 +156,13 @@
 	}
 
 	function openSuggestion(record: CaseRecord) {
-		value = record.title;
+		updateSearch(record.title);
 		suggestionsOpen = false;
 		goto(`${resolve('/cases')}?q=${encodeURIComponent(record.title)}`);
 	}
 
 	function clearSearch() {
+		inputValue = '';
 		value = '';
 		activeSuggestionIndex = 0;
 		suggestionsOpen = true;
@@ -183,7 +209,10 @@
 		loadSuggestions();
 		const unsubscribeSearch = caseSearchQuery.subscribe((nextValue) => {
 			syncedSearchValue = nextValue;
-			if (value !== nextValue) value = nextValue;
+			if (value !== nextValue) {
+				inputValue = nextValue;
+				value = nextValue;
+			}
 		});
 
 		function closeOnOutsideClick(event: PointerEvent) {
@@ -239,18 +268,19 @@
 					? 'min-w-0 flex-1 border-0 bg-transparent text-sm text-slate-950 placeholder:text-slate-400 focus:outline-none'
 					: 'grow'}
 				aria-label="Search cases"
-				bind:value
+				value={inputValue}
 				onfocus={() => {
 					suggestionsOpen = true;
 					loadSuggestions();
 				}}
-				oninput={() => {
+				oninput={(event) => {
+					updateSearch(event.currentTarget.value);
 					suggestionsOpen = true;
 					activeSuggestionIndex = 0;
 				}}
 				onkeydown={handleSearchKeydown}
 			/>
-			{#if value}
+			{#if inputValue}
 				<button
 					class={variant === 'hero'
 						? 'grid size-6 shrink-0 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus:bg-slate-100 focus:text-slate-700 focus:outline-none'
@@ -331,14 +361,14 @@
 					type="submit"
 					onmouseenter={() => (activeSuggestionIndex = suggestions.length)}
 				>
-					Search all cases for "{value.trim()}"
+					Search all cases for "{inputValue.trim()}"
 				</button>
 			{:else}
 				<button
 					class="block w-full bg-primary px-3 py-2 text-left text-sm font-medium text-primary-content transition focus:outline-none"
 					type="submit"
 				>
-					Search all cases for "{value.trim()}"
+					Search all cases for "{inputValue.trim()}"
 				</button>
 			{/if}
 		</div>
