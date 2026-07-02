@@ -24,5 +24,5 @@
 <main
 	class="-mt-4 min-h-[calc(100dvh-4rem)] overflow-visible bg-slate-50/80 sm:-mt-10 md:h-[calc(100dvh-4rem)] md:overflow-hidden"
 >
-	<CasesTable showMap={true} {mapStartsCollapsed} />
+	<CasesTable showMap={true} {mapStartsCollapsed} homeIntro={true} />
 </main>

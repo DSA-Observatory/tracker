@@ -16,12 +16,18 @@
 
 	let {
 		cases: providedCases,
+		collapsed: controlledCollapsed,
+		compact = false,
 		startCollapsed = false,
-		showList = true
+		showList = true,
+		showToggle = true
 	} = $props<{
 		cases?: CaseRecord[];
+		collapsed?: boolean;
+		compact?: boolean;
 		startCollapsed?: boolean;
 		showList?: boolean;
+		showToggle?: boolean;
 	}>();
 
 	const casePinsSourceId = 'case-pins';
@@ -114,6 +120,7 @@
 	let mapContainer = $state<HTMLDivElement>();
 	let map: MaplibreMap | undefined;
 
+	const isCollapsed = $derived(controlledCollapsed ?? collapsed);
 	const maxCount = $derived(Math.max(1, ...jurisdictions.map((item) => item.count)));
 	const mapPins = $derived(
 		jurisdictions
@@ -197,7 +204,7 @@
 	}
 
 	function initializeMap() {
-		if (!mapContainer || map || collapsed) return;
+		if (!mapContainer || map || isCollapsed) return;
 
 		map = new maplibregl.Map({
 			container: mapContainer,
@@ -229,8 +236,8 @@
 	}
 
 	async function setCollapsed(value: boolean) {
-		collapsed = value;
-		if (collapsed) {
+		if (controlledCollapsed === undefined) collapsed = value;
+		if (value) {
 			removeMap();
 			return;
 		}
@@ -240,6 +247,21 @@
 		renderPins();
 		map?.resize();
 	}
+
+	$effect(() => {
+		if (isCollapsed) {
+			removeMap();
+			return;
+		}
+
+		untrack(() => {
+			tick().then(() => {
+				initializeMap();
+				renderPins();
+				map?.resize();
+			});
+		});
+	});
 
 	function openPin(event: MapLayerMouseEvent) {
 		const jurisdiction = event.features?.[0]?.properties?.jurisdiction;
@@ -306,37 +328,29 @@
 </script>
 
 <section class="relative overflow-hidden rounded-[1rem] border border-slate-200 bg-white/90 shadow-sm shadow-slate-200/60">
-	{#if collapsed}
-		<svg
-			class="pointer-events-none absolute top-1/2 right-20 hidden h-28 w-28 -translate-y-1/2 text-amber-400/20 md:block"
-			viewBox="0 0 120 120"
-			fill="none"
-			aria-hidden="true"
-		>
-			<circle cx="60" cy="60" r="38" stroke="currentColor" stroke-width="2" />
-			<path d="M22 60h76M60 22c12 13 18 26 18 38s-6 25-18 38M60 22C48 35 42 48 42 60s6 25 18 38" stroke="currentColor" stroke-width="2" />
-			<path d="M30 38c20 9 40 9 60 0M30 82c20-9 40-9 60 0" stroke="currentColor" stroke-width="2" />
-		</svg>
-	{/if}
-	<div class="relative flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-4 sm:px-5">
-		<div>
-			<p class="text-sm font-semibold tracking-[0.22em] text-primary uppercase">Geographic view</p>
-			<p class="mt-1 text-sm text-slate-500">
-				{jurisdictions.reduce((sum, item) => sum + item.count, 0)} cases with jurisdiction data
-			</p>
+	{#if !compact}
+		<div class="relative flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-4 sm:px-5">
+			<div>
+				<p class="text-sm font-semibold tracking-[0.22em] text-primary uppercase">Geographic view</p>
+				<p class="mt-1 text-sm text-slate-500">
+					{jurisdictions.reduce((sum, item) => sum + item.count, 0)} cases with jurisdiction data
+				</p>
+			</div>
+			{#if showToggle}
+				<button
+					class="inline-flex h-9 items-center rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
+					type="button"
+					onclick={() => setCollapsed(!isCollapsed)}
+					aria-expanded={!isCollapsed}
+				>
+					{isCollapsed ? 'Expand map' : 'Collapse map'}
+				</button>
+			{/if}
 		</div>
-		<button
-			class="inline-flex h-9 items-center rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
-			type="button"
-			onclick={() => setCollapsed(!collapsed)}
-			aria-expanded={!collapsed}
-		>
-			{collapsed ? 'Expand map' : 'Collapse map'}
-		</button>
-	</div>
+	{/if}
 
-	{#if !collapsed}
-		<div class="bg-slate-50 p-4 sm:p-5">
+	{#if !isCollapsed}
+		<div class={compact ? 'bg-slate-50 p-3 sm:p-4' : 'bg-slate-50 p-4 sm:p-5'}>
 			{#if loading}
 				<p class="text-slate-500">Loading jurisdiction data...</p>
 			{:else if error}
@@ -345,7 +359,7 @@
 				<p class="text-slate-500">No cases with jurisdiction data yet.</p>
 			{:else}
 				<div
-					class="relative overflow-hidden rounded-[1.25rem] border border-slate-200 bg-slate-100 shadow-inner"
+					class="relative overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-100 shadow-inner"
 				>
 					<div
 						bind:this={mapContainer}

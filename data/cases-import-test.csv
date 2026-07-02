@@ -1,0 +1,3 @@
+case_id,title,status,jurisdiction,court,plaintiffs,defendants,dsa_articles,summary
+DSA-TEST-101,"CSV test case: content moderation notice",draft,France,"Paris Judicial Court","Test Plaintiff A; Test Plaintiff B","Example Platform Inc.","Article 14; Article 17","A small test case for validating CSV import."
+DSA-TEST-102,"CSV test case: recommender transparency",draft,Germany,"Berlin Regional Court","Research Group Example","Social Network Example GmbH","Article 27; Article 38","A second small test case for validating CSV import."
