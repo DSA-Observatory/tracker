@@ -1,0 +1,1 @@
+import{p as r}from"./pW8NtNCL.js";import{s as t}from"./Cg3_tCVz.js";const s={get data(){return r.data},get error(){return r.error},get form(){return r.form},get params(){return r.params},get route(){return r.route},get state(){return r.state},get status(){return r.status},get url(){return r.url}};t.updated.check;export{s as p};
