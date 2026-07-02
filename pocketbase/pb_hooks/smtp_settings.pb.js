@@ -1,20 +1,21 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-function getAppUrl() {
-	return (
-		$os.getenv('PUBLIC_APP_URL') ||
-		$os.getenv('APP_URL') ||
-		'https://casetracker.ctwhome.com'
-	).replace(/\/$/, '');
-}
+onBootstrap((e) => {
+	e.next();
 
-function syncPasswordResetTemplate(app) {
-	const users = app.findCollectionByNameOrId('users');
-	const passwordUrl = `${getAppUrl()}/password?token={TOKEN}`;
+	const getAppUrl = () =>
+		(
+			$os.getenv('PUBLIC_APP_URL') ||
+			$os.getenv('APP_URL') ||
+			'https://casetracker.ctwhome.com'
+		).replace(/\/$/, '');
 
-	users.options.resetPasswordTemplate = users.options.resetPasswordTemplate || {};
-	users.options.resetPasswordTemplate.subject = 'Set your DSA Case Law Tracker password';
-	users.options.resetPasswordTemplate.body = `
+	const syncPasswordResetTemplate = (app) => {
+		const users = app.findCollectionByNameOrId('users');
+		const passwordUrl = `${getAppUrl()}/password?token={TOKEN}`;
+
+		users.resetPasswordTemplate.subject = 'Set your DSA Case Law Tracker password';
+		users.resetPasswordTemplate.body = `
 <p>Hello,</p>
 <p>You have been invited to DSA Case Law Tracker. Use the secure link below to set your password:</p>
 <p><a href="${passwordUrl}">Set your password</a></p>
@@ -22,11 +23,8 @@ function syncPasswordResetTemplate(app) {
 <p>If you did not expect this invitation, you can ignore this email.</p>
 `;
 
-	app.save(users);
-}
-
-onBootstrap((e) => {
-	e.next();
+		app.save(users);
+	};
 
 	const settings = e.app.settings();
 	const smtpEnabled = $os.getenv('SMTP_ENABLED') || 'false';

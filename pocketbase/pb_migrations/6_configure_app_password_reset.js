@@ -12,9 +12,8 @@ function applyPasswordResetTemplate(app) {
 	const users = app.findCollectionByNameOrId('users');
 	const passwordUrl = `${getAppUrl()}/password?token={TOKEN}`;
 
-	users.options.resetPasswordTemplate = users.options.resetPasswordTemplate || {};
-	users.options.resetPasswordTemplate.subject = 'Set your DSA Case Law Tracker password';
-	users.options.resetPasswordTemplate.body = `
+	users.resetPasswordTemplate.subject = 'Set your DSA Case Law Tracker password';
+	users.resetPasswordTemplate.body = `
 <p>Hello,</p>
 <p>You have been invited to DSA Case Law Tracker. Use the secure link below to set your password:</p>
 <p><a href="${passwordUrl}">Set your password</a></p>
@@ -36,9 +35,8 @@ migrate(
 	(app) => {
 		const users = app.findCollectionByNameOrId('users');
 
-		users.options.resetPasswordTemplate = users.options.resetPasswordTemplate || {};
-		users.options.resetPasswordTemplate.subject = '';
-		users.options.resetPasswordTemplate.body = '';
+		users.resetPasswordTemplate.subject = '';
+		users.resetPasswordTemplate.body = '';
 
 		app.save(users);
 	}

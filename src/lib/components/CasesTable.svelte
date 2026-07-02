@@ -7,6 +7,7 @@
 	import type { FilterOption } from '$lib/components/FilterMenu.svelte';
 	import CaseCardsList from '$lib/components/cases/CaseCardsList.svelte';
 	import CaseFilterPanel from '$lib/components/cases/CaseFilterPanel.svelte';
+	import CaseJurisdictionMap from '$lib/components/cases/CaseJurisdictionMap.svelte';
 	import CaseResultsTable from '$lib/components/cases/CaseResultsTable.svelte';
 	import CaseVisualizationControls from '$lib/components/cases/CaseVisualizationControls.svelte';
 	import Search from '$lib/components/Search.svelte';
@@ -32,6 +33,12 @@
 	};
 	const viewModeStorageKey = 'cases:viewMode';
 	const filterLayoutStorageKey = 'cases:filterLayout';
+	type SearchIndexEntry = { text: string; words: string[] };
+
+	let { showMap = false, mapStartsCollapsed = false } = $props<{
+		showMap?: boolean;
+		mapStartsCollapsed?: boolean;
+	}>();
 
 	const searchScopes: { value: SearchScope; label: string }[] = [
 		{ value: 'all', label: 'All fields' },
@@ -102,6 +109,22 @@
 	);
 	const yearFilterOptions = $derived(
 		buildOptions('years', uniqueSorted(cases.map((record) => getDecisionYear(record))))
+	);
+	const normalizedSearch = $derived(normalizeSearchText(search.trim()));
+	const searchParts = $derived(searchTokens(normalizedSearch));
+	const searchIndex = $derived<Record<string, SearchIndexEntry>>(
+		Object.fromEntries(cases.map((record) => [record.id, buildSearchIndexEntry(record)]))
+	);
+	const searchMatches = $derived<Record<string, boolean>>(
+		Object.fromEntries(
+			cases.map((record) => {
+				const entry = searchIndex[record.id];
+				return [
+					record.id,
+					!normalizedSearch || (entry ? matchesSearchIndexEntry(entry, normalizedSearch) : false)
+				] as const;
+			})
+		)
 	);
 	const filteredCases = $derived(cases.filter((record) => matchesFilters(record)));
 	const activeChips = $derived(buildActiveChips());
@@ -271,15 +294,18 @@
 		return previous[token.length] <= maxDistance;
 	}
 
-	function matchesSearchText(value: string, query: string) {
-		const text = normalizeSearchText(value);
-		if (text.includes(query)) return true;
+	function buildSearchIndexEntry(record: CaseRecord): SearchIndexEntry {
+		const text = normalizeSearchText(recordValuesForSearch(record).filter(Boolean).join(' '));
+		return { text, words: searchTokens(text) };
+	}
 
-		const words = searchTokens(value);
-		const parts = searchTokens(query);
+	function matchesSearchIndexEntry(entry: SearchIndexEntry, query: string) {
+		if (entry.text.includes(query)) return true;
 		return (
-			parts.length > 0 &&
-			parts.every((part) => words.some((word) => word.includes(part) || isNearToken(part, word)))
+			searchParts.length > 0 &&
+			searchParts.every((part) =>
+				entry.words.some((word) => word.includes(part) || isNearToken(part, word))
+			)
 		);
 	}
 
@@ -421,10 +447,7 @@
 	}
 
 	function matchesSearch(record: CaseRecord) {
-		const query = normalizeSearchText(search.trim());
-		if (!query) return true;
-
-		return matchesSearchText(recordValuesForSearch(record).filter(Boolean).join(' '), query);
+		return searchMatches[record.id] ?? false;
 	}
 
 	function matchesFilters(record: CaseRecord, ignoredGroup?: FilterGroup) {
@@ -599,10 +622,14 @@
 		const body = format === 'json' ? JSON.stringify(rows, null, 2) : toCsv(rows);
 		const type = format === 'json' ? 'application/json' : 'text/csv';
 		const blob = new Blob([body], { type: `${type};charset=utf-8` });
+		downloadBlob(`dsa-cases-${new Date().toISOString().slice(0, 10)}.${format}`, blob);
+	}
+
+	function downloadBlob(filename: string, blob: Blob) {
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.href = url;
-		link.download = `dsa-cases-${new Date().toISOString().slice(0, 10)}.${format}`;
+		link.download = filename;
 		link.click();
 		URL.revokeObjectURL(url);
 	}
@@ -689,16 +716,33 @@
 					</div>
 
 					<div class="flex items-center gap-1.5">
-						<button
-							class="inline-flex h-8 shrink-0 items-center rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
-							type="button"
-							onclick={() => downloadFilteredCases('csv')}>CSV</button
-						>
+						<details class="relative">
+							<summary
+								class="inline-flex h-8 shrink-0 cursor-pointer list-none items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
+							>
+								Export
+								<span class="text-[0.6rem] text-slate-500" aria-hidden="true">▼</span>
+							</summary>
+							<div
+								class="absolute right-0 z-50 mt-1 min-w-32 rounded-md border border-slate-200 bg-white p-1 shadow-lg"
+							>
+								<button
+									class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+									type="button"
+									onclick={() => downloadFilteredCases('csv')}>CSV</button
+								>
+								<button
+									class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+									type="button"
+									onclick={() => downloadFilteredCases('json')}>JSON</button
+								>
+							</div>
+						</details>
 						{#if canWrite}
 							<button
 								class="inline-flex h-8 shrink-0 items-center rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
 								type="button"
-								onclick={() => goto(resolve('/cases/new'))}>New</button
+								onclick={() => goto(resolve('/cases/new'))}>Create</button
 							>
 						{/if}
 						<button
@@ -734,20 +778,28 @@
 							onViewModeChange={(mode) => (viewMode = mode)}
 							onFilterLayoutChange={(layout) => (filterLayout = layout)}
 						/>
-						<div
-							class="inline-flex items-center rounded-md border border-slate-200 bg-white p-0.5 shadow-xs"
-						>
-							<button
-								class="h-8 rounded-sm px-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
-								type="button"
-								onclick={() => downloadFilteredCases('csv')}>CSV</button
+						<details class="relative">
+							<summary
+								class="inline-flex h-8 cursor-pointer list-none items-center justify-center gap-1 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
 							>
-							<button
-								class="h-8 rounded-sm px-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
-								type="button"
-								onclick={() => downloadFilteredCases('json')}>JSON</button
+								Export
+								<span class="text-[0.6rem] text-slate-500" aria-hidden="true">▼</span>
+							</summary>
+							<div
+								class="absolute right-0 z-50 mt-1 min-w-36 rounded-md border border-slate-200 bg-white p-1 shadow-lg"
 							>
-						</div>
+								<button
+									class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+									type="button"
+									onclick={() => downloadFilteredCases('csv')}>CSV</button
+								>
+								<button
+									class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+									type="button"
+									onclick={() => downloadFilteredCases('json')}>JSON</button
+								>
+							</div>
+						</details>
 						{#if canWrite}<button
 								class="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
 								type="button"
@@ -756,7 +808,6 @@
 					{/snippet}
 				</Search>
 			</div>
-
 			<div class="hidden items-center justify-between gap-3 md:flex xl:hidden">
 				<p class="min-w-0 text-sm text-slate-500">
 					Showing <span class="font-medium text-slate-900">{filteredCases.length}</span> of {cases.length}
@@ -781,6 +832,12 @@
 			class="mb-4 flex-none rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
 		>
 			{error}
+		</div>
+	{/if}
+
+	{#if showMap}
+		<div class="mb-4 flex-none">
+			<CaseJurisdictionMap cases={cases} startCollapsed={mapStartsCollapsed} showList={false} />
 		</div>
 	{/if}
 

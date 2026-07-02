@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { authStore, pb, type CaseRecord } from '$lib/database';
+	import { authStore, pb, type CaseRecord, type CaseStatus } from '$lib/database';
 	import CaseSummaryEditor from './CaseSummaryEditor.svelte';
 	import {
 		emptyCaseForm,
@@ -19,6 +19,39 @@
 	let saving = $state(false);
 	let error = $state('');
 	let form = $state<CaseForm>(emptyCaseForm());
+	let currentRecord = $state<CaseRecord>();
+	let existingDocuments = $state<string[]>([]);
+	let selectedDocuments = $state<File[]>([]);
+	let csvInput = $state<HTMLInputElement>();
+	let importingCsv = $state(false);
+	let importMessage = $state('');
+
+	const csvColumns = [
+		'case_id',
+		'title',
+		'status',
+		'outcome',
+		'jurisdiction',
+		'court',
+		'courts',
+		'decision_date',
+		'ecli',
+		'plaintiffs',
+		'defendants',
+		'dsa_articles',
+		'legal_areas',
+		'legal_basis',
+		'case_scope',
+		'categories',
+		'themes',
+		'keywords',
+		'primary_sources',
+		'secondary_sources',
+		'source_limitations',
+		'editorial_notes',
+		'summary',
+		'timeline'
+	] satisfies (keyof CaseForm)[];
 
 	const canWrite = $derived(authStore.isAuthenticated);
 	const isEditing = $derived(Boolean(caseId));
@@ -33,6 +66,8 @@
 
 		try {
 			const record = await pb.collection('cases').getOne<CaseRecord>(id);
+			currentRecord = record;
+			existingDocuments = record.documents ?? [];
 			form = {
 				case_id: record.case_id,
 				title: record.title,
@@ -72,6 +107,181 @@
 		} finally {
 			loading = false;
 		}
+	}
+
+	function documentUrl(filename: string) {
+		return currentRecord ? pb.files.getURL(currentRecord, filename) : '#';
+	}
+
+	function selectDocuments(event: Event) {
+		selectedDocuments = Array.from((event.currentTarget as HTMLInputElement).files ?? []);
+	}
+
+	function appendPayload(target: FormData, payload: Record<string, unknown>) {
+		for (const [key, value] of Object.entries(payload)) {
+			if (value == null) target.append(key, '');
+			else target.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
+		}
+	}
+
+	async function importCsv(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file || !canWrite || isEditing || importingCsv) return;
+
+		importingCsv = true;
+		importMessage = '';
+		error = '';
+
+		try {
+			const rows = parseCsv(await file.text());
+			const existing = await pb.collection('cases').getFullList<CaseRecord>({ fields: 'case_id' });
+			const existingCaseIds = existing.map((record) => record.case_id.trim().toLowerCase());
+			let imported = 0;
+			let skipped = 0;
+
+			for (const row of rows) {
+				const caseId = row.case_id?.trim();
+				const title = row.title?.trim();
+				if (!caseId || !title || existingCaseIds.includes(caseId.toLowerCase())) {
+					skipped += 1;
+					continue;
+				}
+
+				await pb.collection('cases').create<CaseRecord>(csvRowToCase(row));
+				existingCaseIds.push(caseId.toLowerCase());
+				imported += 1;
+			}
+
+			importMessage = `Imported ${imported} case${imported === 1 ? '' : 's'}${skipped ? `; skipped ${skipped}` : ''}.`;
+		} catch (err) {
+			console.error('Error importing CSV:', err);
+			error = 'Could not import CSV. Check the columns and your permissions.';
+		} finally {
+			input.value = '';
+			importingCsv = false;
+		}
+	}
+
+	function parseCsv(text: string) {
+		const rows: string[][] = [];
+		let row: string[] = [];
+		let cell = '';
+		let quoted = false;
+
+		for (let index = 0; index < text.length; index += 1) {
+			const char = text[index];
+			const next = text[index + 1];
+
+			if (char === '"') {
+				if (quoted && next === '"') {
+					cell += '"';
+					index += 1;
+				} else {
+					quoted = !quoted;
+				}
+			} else if (char === ',' && !quoted) {
+				row.push(cell);
+				cell = '';
+			} else if ((char === '\n' || char === '\r') && !quoted) {
+				if (char === '\r' && next === '\n') index += 1;
+				row.push(cell);
+				if (row.some((value) => value.trim())) rows.push(row);
+				row = [];
+				cell = '';
+			} else {
+				cell += char;
+			}
+		}
+
+		row.push(cell);
+		if (row.some((value) => value.trim())) rows.push(row);
+
+		const headers = rows.shift()?.map((header) => header.trim().replace(/^\uFEFF/, '')) ?? [];
+		return rows.map((values) =>
+			Object.fromEntries(headers.map((header, index) => [header, values[index] ?? '']))
+		);
+	}
+
+	function csvRowToCase(row: Record<string, string>) {
+		const status = statusOptions.includes(row.status as CaseStatus)
+			? (row.status as CaseStatus)
+			: 'draft';
+
+		return Object.fromEntries(
+			csvColumns.map((field) => {
+				const value = row[field]?.trim() ?? '';
+				if (field === 'status') return [field, status];
+				if (field === 'decision_date') return [field, value || null];
+				if (field === 'primary_sources' || field === 'secondary_sources') {
+					return [field, splitCaseFormLines(value)];
+				}
+				if (isCsvListField(field)) return [field, splitCsvList(value)];
+				return [field, value];
+			})
+		);
+	}
+
+	function isCsvListField(field: keyof CaseForm) {
+		return [
+			'courts',
+			'plaintiffs',
+			'defendants',
+			'dsa_articles',
+			'legal_areas',
+			'legal_basis',
+			'categories',
+			'themes',
+			'keywords'
+		].includes(field);
+	}
+
+	function splitCsvList(value: string) {
+		return value.includes(';')
+			? value
+					.split(';')
+					.map((item) => item.trim())
+					.filter(Boolean)
+			: splitCaseFormList(value);
+	}
+
+	function downloadCsvTemplate() {
+		const sample = Object.fromEntries(csvColumns.map((column) => [column, '']));
+		sample.case_id = 'DSA-EXAMPLE-001';
+		sample.title = 'Example platform enforcement case';
+		sample.status = 'draft';
+		sample.jurisdiction = 'France';
+		sample.decision_date = '2026-01-31';
+		sample.plaintiffs = 'Plaintiff A; Plaintiff B';
+		sample.defendants = 'Platform Inc.';
+		sample.dsa_articles = 'Article 14; Article 17';
+
+		downloadBlob(
+			'dsa-cases-import-template.csv',
+			new Blob([toCsv([sample])], { type: 'text/csv;charset=utf-8' })
+		);
+	}
+
+	function downloadBlob(filename: string, blob: Blob) {
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = filename;
+		link.click();
+		URL.revokeObjectURL(url);
+	}
+
+	function toCsv(rows: Record<string, string>[]) {
+		if (!rows.length) return '';
+		const headers = Object.keys(rows[0]);
+		return [
+			headers.join(','),
+			...rows.map((row) => headers.map((header) => csvCell(row[header])).join(','))
+		].join('\n');
+	}
+
+	function csvCell(value: string) {
+		return `"${value.replace(/"/g, '""')}"`;
 	}
 
 	async function saveCase() {
@@ -114,9 +324,23 @@
 
 		try {
 			if (caseId) {
-				await pb.collection('cases').update<CaseRecord>(caseId, payload);
+				if (selectedDocuments.length) {
+					const body = new FormData();
+					appendPayload(body, payload);
+					selectedDocuments.forEach((file) => body.append('documents+', file));
+					await pb.collection('cases').update<CaseRecord>(caseId, body);
+				} else {
+					await pb.collection('cases').update<CaseRecord>(caseId, payload);
+				}
 			} else {
-				await pb.collection('cases').create<CaseRecord>(payload);
+				if (selectedDocuments.length) {
+					const body = new FormData();
+					appendPayload(body, payload);
+					selectedDocuments.forEach((file) => body.append('documents', file));
+					await pb.collection('cases').create<CaseRecord>(body);
+				} else {
+					await pb.collection('cases').create<CaseRecord>(payload);
+				}
 			}
 
 			await goto(resolve('/cases'));
@@ -130,6 +354,15 @@
 </script>
 
 <section class="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+	{#if !isEditing}
+		<input
+			bind:this={csvInput}
+			class="hidden"
+			type="file"
+			accept=".csv,text/csv"
+			onchange={importCsv}
+		/>
+	{/if}
 	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<div>
 			<p class="text-xs font-semibold tracking-[0.2em] text-base-content/50 uppercase">
@@ -137,10 +370,31 @@
 			</p>
 			<h1 class="text-3xl font-black">{isEditing ? 'Edit case' : 'Create case'}</h1>
 		</div>
-		<button class="btn btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
-			>Back to cases</button
-		>
+		<div class="flex flex-wrap items-center gap-2">
+			{#if canWrite && !isEditing}
+				<button class="btn btn-outline btn-sm" type="button" onclick={downloadCsvTemplate}
+					>Template</button
+				>
+				<button
+					class="btn btn-outline btn-sm"
+					type="button"
+					disabled={importingCsv}
+					onclick={() => csvInput?.click()}>{importingCsv ? 'Importing' : 'Import CSV'}</button
+				>
+			{/if}
+			<button class="btn btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
+				>Back to cases</button
+			>
+		</div>
 	</div>
+
+	{#if importMessage}
+		<p
+			class="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800"
+		>
+			{importMessage}
+		</p>
+	{/if}
 
 	{#if !canWrite}
 		<div class="alert alert-warning">Log in with editor privileges to create or edit cases.</div>
@@ -334,6 +588,39 @@
 						placeholder="One primary source per line"
 					></textarea>
 				</label>
+				<div class="form-control w-full md:col-span-3">
+					<span class="label-text mb-1 text-sm font-semibold">Uploaded documents</span>
+					<input
+						class="file-input-bordered file-input w-full"
+						type="file"
+						multiple
+						accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.html,.jpg,.jpeg,.png,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,text/html,image/jpeg,image/png,image/webp"
+						onchange={selectDocuments}
+					/>
+					<p class="mt-1 text-xs text-base-content/60">
+						Uploaded files are public when this case is public. Use links or notes for internal-only
+						material.
+					</p>
+					{#if selectedDocuments.length}
+						<p class="mt-2 text-sm text-base-content/70">
+							Selected: {selectedDocuments.map((file) => file.name).join(', ')}
+						</p>
+					{/if}
+					{#if existingDocuments.length}
+						<div class="mt-3 rounded-lg border border-base-300 p-3 text-sm">
+							<div class="font-semibold">Current public files</div>
+							<ul class="mt-2 list-disc space-y-1 pl-5">
+								{#each existingDocuments as filename}
+									<li>
+										<a class="link" href={documentUrl(filename)} target="_blank" rel="noreferrer">
+											{filename}
+										</a>
+									</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
+				</div>
 				<label class="form-control w-full md:col-span-3">
 					<span class="label-text mb-1 text-sm font-semibold">Secondary sources</span>
 					<textarea
