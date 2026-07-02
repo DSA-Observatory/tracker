@@ -368,7 +368,7 @@
 					></div>
 
 					<div
-						class="absolute right-4 bottom-4 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-600 shadow-sm backdrop-blur"
+						class="absolute top-4 right-4 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm text-slate-600 shadow-sm backdrop-blur"
 					>
 						<span class="font-semibold text-slate-950">Pin number</span> = cases
 					</div>
