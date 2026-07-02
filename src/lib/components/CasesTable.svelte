@@ -235,6 +235,54 @@
 		return decodeHtmlEntities(value).replace(/\s+/g, ' ').trim();
 	}
 
+	function normalizeSearchText(value: string) {
+		return value
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.toLowerCase();
+	}
+
+	function searchTokens(value: string) {
+		return normalizeSearchText(value).match(/[\p{L}\p{N}]+/gu) ?? [];
+	}
+
+	function isNearToken(query: string, token: string) {
+		const maxDistance = query.length < 4 ? 0 : query.length < 7 ? 1 : 2;
+		if (Math.abs(query.length - token.length) > maxDistance) return false;
+
+		const previous = Array.from({ length: token.length + 1 }, (_, index) => index);
+		for (let i = 1; i <= query.length; i += 1) {
+			let best = i;
+			const current = [i];
+
+			for (let j = 1; j <= token.length; j += 1) {
+				current[j] = Math.min(
+					current[j - 1] + 1,
+					previous[j] + 1,
+					previous[j - 1] + (query[i - 1] === token[j - 1] ? 0 : 1)
+				);
+				best = Math.min(best, current[j]);
+			}
+
+			if (best > maxDistance) return false;
+			previous.splice(0, previous.length, ...current);
+		}
+
+		return previous[token.length] <= maxDistance;
+	}
+
+	function matchesSearchText(value: string, query: string) {
+		const text = normalizeSearchText(value);
+		if (text.includes(query)) return true;
+
+		const words = searchTokens(value);
+		const parts = searchTokens(query);
+		return (
+			parts.length > 0 &&
+			parts.every((part) => words.some((word) => word.includes(part) || isNearToken(part, word)))
+		);
+	}
+
 	function stripHtml(value?: string) {
 		return cleanText((value ?? '').replace(/<[^>]+>/g, ' '));
 	}
@@ -373,19 +421,18 @@
 	}
 
 	function matchesSearch(record: CaseRecord) {
-		const query = search.trim().toLowerCase();
+		const query = normalizeSearchText(search.trim());
 		if (!query) return true;
 
-		return recordValuesForSearch(record)
-			.filter(Boolean)
-			.some((value) => String(value).toLowerCase().includes(query));
+		return matchesSearchText(recordValuesForSearch(record).filter(Boolean).join(' '), query);
 	}
 
 	function matchesFilters(record: CaseRecord, ignoredGroup?: FilterGroup) {
 		return (
 			matchesSearch(record) &&
 			(ignoredGroup === 'statuses' || matchesAny(statuses, [record.status])) &&
-			(ignoredGroup === 'countries' || matchesAny(countries, [normalizeJurisdiction(record.jurisdiction)])) &&
+			(ignoredGroup === 'countries' ||
+				matchesAny(countries, [normalizeJurisdiction(record.jurisdiction)])) &&
 			(ignoredGroup === 'categories' || matchesAny(categories, getCategories(record))) &&
 			(ignoredGroup === 'themes' || matchesAny(themes, getThemes(record))) &&
 			(ignoredGroup === 'articles' || matchesAny(articles, record.dsa_articles ?? [])) &&

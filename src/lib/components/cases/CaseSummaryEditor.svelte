@@ -72,6 +72,10 @@
 
 	$effect(() => {
 		if (!editor || value === lastHtml) return;
+		if (value === editor.getHTML()) {
+			lastHtml = value;
+			return;
+		}
 		editor.commands.setContent(value, { emitUpdate: false });
 		lastHtml = value;
 	});
