@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import IconMap from '~icons/lucide/map';
 	import type { FilterOption } from '$lib/components/FilterMenu.svelte';
 	import CaseCardsList from '$lib/components/cases/CaseCardsList.svelte';
 	import CaseFilterPanel from '$lib/components/cases/CaseFilterPanel.svelte';
@@ -35,9 +36,10 @@
 	const filterLayoutStorageKey = 'cases:filterLayout';
 	type SearchIndexEntry = { text: string; words: string[] };
 
-	let { showMap = false, mapStartsCollapsed = false } = $props<{
+	let { showMap = false, mapStartsCollapsed = false, homeIntro = false } = $props<{
 		showMap?: boolean;
 		mapStartsCollapsed?: boolean;
+		homeIntro?: boolean;
 	}>();
 
 	const searchScopes: { value: SearchScope; label: string }[] = [
@@ -73,6 +75,7 @@
 	let tableScrollTop = $state(0);
 	let tableViewportHeight = $state(640);
 	let tableScroller = $state<HTMLElement>();
+	let mapCollapsed = $state(mapStartsCollapsed);
 	let preferencesLoaded = $state(false);
 	let mobileFiltersOpen = $state(false);
 	let isMobileViewport = $state(false);
@@ -131,6 +134,7 @@
 	const activeFilterCount = $derived(
 		activeChips.length + (search.trim() || searchScope !== 'all' ? 1 : 0)
 	);
+	const jurisdictionCount = $derived(availableCountries.length);
 	const rowHeight = $derived(viewMode === 'cards' ? 252 : 176);
 	const virtualStart = $derived(Math.max(0, Math.floor(tableScrollTop / rowHeight) - rowOverscan));
 	const virtualEnd = $derived(
@@ -676,12 +680,59 @@
 >
 	<div class="z-30 mb-3 flex-none space-y-2 md:mb-4 md:space-y-3">
 		<div>
-			<div class="sr-only md:not-sr-only md:mb-3 md:min-w-0">
-				<h1 class="text-xl font-semibold tracking-tight text-slate-950 md:text-2xl">Cases</h1>
-				<p class="mt-1 text-sm text-slate-500">
-					Search and filter DSA private enforcement records.
-				</p>
-			</div>
+			{#if homeIntro}
+				<div
+					class="mb-3 overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-sm shadow-slate-200/60"
+				>
+					<div class="relative flex flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-5">
+						<div class="min-w-0">
+							<p class="text-xs font-black tracking-[0.28em] text-amber-500 uppercase">
+								DSA Case Law Tracker
+							</p>
+							<h1 class="mt-1 text-2xl font-black tracking-tight text-slate-950 md:text-3xl">
+								Private enforcement cases, ready to explore.
+							</h1>
+							<p class="mt-1 max-w-2xl text-sm text-slate-600">
+								Search, filter, map, and compare DSA litigation across jurisdictions.
+							</p>
+						</div>
+						<div class="flex shrink-0 flex-wrap gap-2 text-sm">
+							<div class="rounded-xl border border-slate-200 bg-white/75 px-3 py-2 shadow-xs">
+								<span class="font-black text-slate-950">{cases.length}</span>
+								<span class="text-slate-500"> cases</span>
+							</div>
+							{#if showMap}
+								<button
+									class={mapCollapsed
+										? 'inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/75 px-3 py-2 text-left shadow-xs transition hover:border-slate-300 hover:bg-white focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none'
+										: 'inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-100 px-3 py-2 text-left shadow-xs transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none'}
+									type="button"
+									aria-pressed={!mapCollapsed}
+									title={mapCollapsed ? 'Show map' : 'Hide map'}
+									onclick={() => (mapCollapsed = !mapCollapsed)}
+								>
+									<IconMap class="size-4 text-slate-500" />
+									<span><span class="font-black text-slate-950">{jurisdictionCount}</span>
+										<span class="text-slate-500"> countries</span></span
+									>
+								</button>
+							{:else}
+								<div class="rounded-xl border border-slate-200 bg-white/75 px-3 py-2 shadow-xs">
+									<span class="font-black text-slate-950">{jurisdictionCount}</span>
+									<span class="text-slate-500"> countries</span>
+								</div>
+							{/if}
+						</div>
+					</div>
+				</div>
+			{:else}
+				<div class="sr-only md:not-sr-only md:mb-3 md:min-w-0">
+					<h1 class="text-xl font-semibold tracking-tight text-slate-950 md:text-2xl">Cases</h1>
+					<p class="mt-1 text-sm text-slate-500">
+						Search and filter DSA private enforcement records.
+					</p>
+				</div>
+			{/if}
 			<div
 				class="rounded-lg border border-slate-200 bg-white/90 p-2 shadow-sm shadow-slate-200/60 backdrop-blur md:hidden"
 			>
@@ -835,9 +886,15 @@
 		</div>
 	{/if}
 
-	{#if showMap}
+	{#if showMap && !mapCollapsed}
 		<div class="mb-4 flex-none">
-			<CaseJurisdictionMap cases={cases} startCollapsed={mapStartsCollapsed} showList={false} />
+			<CaseJurisdictionMap
+				cases={cases}
+				collapsed={mapCollapsed}
+				compact={true}
+				showList={false}
+				showToggle={false}
+			/>
 		</div>
 	{/if}
 

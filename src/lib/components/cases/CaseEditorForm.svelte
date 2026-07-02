@@ -2,6 +2,9 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { authStore, pb, type CaseRecord, type CaseStatus } from '$lib/database';
+	import IconArrowLeft from '~icons/lucide/arrow-left';
+	import IconDownload from '~icons/lucide/download';
+	import IconUpload from '~icons/lucide/upload';
 	import CaseSummaryEditor from './CaseSummaryEditor.svelte';
 	import {
 		emptyCaseForm,
@@ -53,7 +56,7 @@
 		'timeline'
 	] satisfies (keyof CaseForm)[];
 
-	const canWrite = $derived(authStore.isAuthenticated);
+	const canWrite = $derived(authStore.isAuthenticated && pb.authStore.isValid);
 	const isEditing = $derived(Boolean(caseId));
 
 	$effect(() => {
@@ -127,7 +130,12 @@
 	async function importCsv(event: Event) {
 		const input = event.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
-		if (!file || !canWrite || isEditing || importingCsv) return;
+		if (!file || isEditing || importingCsv) return;
+		if (!canWrite) {
+			error = 'Your session expired. Log in again before importing CSV.';
+			input.value = '';
+			return;
+		}
 
 		importingCsv = true;
 		importMessage = '';
@@ -140,7 +148,7 @@
 			let imported = 0;
 			let skipped = 0;
 
-			for (const row of rows) {
+			for (const [index, row] of rows.entries()) {
 				const caseId = row.case_id?.trim();
 				const title = row.title?.trim();
 				if (!caseId || !title || existingCaseIds.includes(caseId.toLowerCase())) {
@@ -148,19 +156,60 @@
 					continue;
 				}
 
-				await pb.collection('cases').create<CaseRecord>(csvRowToCase(row));
-				existingCaseIds.push(caseId.toLowerCase());
-				imported += 1;
+				try {
+					await pb.collection('cases').create<CaseRecord>(csvRowToCase(row));
+					existingCaseIds.push(caseId.toLowerCase());
+					imported += 1;
+				} catch (err) {
+					if (isDuplicateCaseIdError(err)) {
+						skipped += 1;
+						continue;
+					}
+
+					throw new Error(`Row ${index + 2} (${caseId}): ${importErrorDetails(err)}`);
+				}
 			}
 
 			importMessage = `Imported ${imported} case${imported === 1 ? '' : 's'}${skipped ? `; skipped ${skipped}` : ''}.`;
 		} catch (err) {
 			console.error('Error importing CSV:', err);
-			error = 'Could not import CSV. Check the columns and your permissions.';
+			error = importErrorMessage(err);
 		} finally {
 			input.value = '';
 			importingCsv = false;
 		}
+	}
+
+	function importErrorMessage(err: unknown) {
+		if (err instanceof Error) return `Could not import CSV. ${err.message}`;
+
+		const details = importErrorDetails(err);
+		return details
+			? `Could not import CSV. ${details}`
+			: 'Could not import CSV. Check the columns and your permissions.';
+	}
+
+	function importErrorDetails(err: unknown) {
+		const response = err as {
+			data?: { data?: Record<string, { message?: string }>; message?: string };
+			response?: { data?: Record<string, { message?: string }>; message?: string };
+			message?: string;
+		};
+		const data = response.data?.data ?? response.response?.data;
+		const details = data
+			? Object.entries(data)
+					.map(([field, issue]) => `${field}: ${issue.message ?? 'invalid value'}`)
+					.join('; ')
+			: '';
+
+		return (
+			details || response.data?.message || response.response?.message || response.message || ''
+		);
+	}
+
+	function isDuplicateCaseIdError(err: unknown) {
+		const details = importErrorDetails(err).toLowerCase();
+		return details.includes('case_id') && (details.includes('unique') || details.includes('exist'));
 	}
 
 	function parseCsv(text: string) {
@@ -207,19 +256,25 @@
 		const status = statusOptions.includes(row.status as CaseStatus)
 			? (row.status as CaseStatus)
 			: 'draft';
+		const payload: Record<string, unknown> = {
+			case_id: row.case_id.trim(),
+			title: row.title.trim(),
+			status
+		};
 
-		return Object.fromEntries(
-			csvColumns.map((field) => {
-				const value = row[field]?.trim() ?? '';
-				if (field === 'status') return [field, status];
-				if (field === 'decision_date') return [field, value || null];
-				if (field === 'primary_sources' || field === 'secondary_sources') {
-					return [field, splitCaseFormLines(value)];
-				}
-				if (isCsvListField(field)) return [field, splitCsvList(value)];
-				return [field, value];
-			})
-		);
+		for (const field of csvColumns) {
+			const value = row[field]?.trim() ?? '';
+			if (!value || field === 'case_id' || field === 'title' || field === 'status') continue;
+			if (field === 'primary_sources' || field === 'secondary_sources') {
+				payload[field] = splitCaseFormLines(value);
+			} else if (isCsvListField(field)) {
+				payload[field] = splitCsvList(value);
+			} else {
+				payload[field] = value;
+			}
+		}
+
+		return payload;
 	}
 
 	function isCsvListField(field: keyof CaseForm) {
@@ -251,7 +306,6 @@
 		sample.title = 'Example platform enforcement case';
 		sample.status = 'draft';
 		sample.jurisdiction = 'France';
-		sample.decision_date = '2026-01-31';
 		sample.plaintiffs = 'Plaintiff A; Plaintiff B';
 		sample.defendants = 'Platform Inc.';
 		sample.dsa_articles = 'Article 14; Article 17';
@@ -285,7 +339,11 @@
 	}
 
 	async function saveCase() {
-		if (!canWrite || !form.case_id.trim() || !form.title.trim()) return;
+		if (!form.case_id.trim() || !form.title.trim()) return;
+		if (!canWrite) {
+			error = 'Your session expired. Log in again before saving cases.';
+			return;
+		}
 
 		saving = true;
 		error = '';
@@ -372,18 +430,19 @@
 		</div>
 		<div class="flex flex-wrap items-center gap-2">
 			{#if canWrite && !isEditing}
-				<button class="btn btn-outline btn-sm" type="button" onclick={downloadCsvTemplate}
-					>Template</button
+				<button class="btn gap-2 btn-outline btn-sm" type="button" onclick={downloadCsvTemplate}
+					><IconDownload class="size-4" /> Download CSV template</button
 				>
 				<button
-					class="btn btn-outline btn-sm"
+					class="btn gap-2 btn-outline btn-sm"
 					type="button"
 					disabled={importingCsv}
-					onclick={() => csvInput?.click()}>{importingCsv ? 'Importing' : 'Import CSV'}</button
+					onclick={() => csvInput?.click()}
+					><IconUpload class="size-4" />{importingCsv ? 'Importing' : 'Import CSV'}</button
 				>
 			{/if}
-			<button class="btn btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
-				>Back to cases</button
+			<button class="btn gap-2 btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
+				><IconArrowLeft class="size-4" /> Back to cases</button
 			>
 		</div>
 	</div>
