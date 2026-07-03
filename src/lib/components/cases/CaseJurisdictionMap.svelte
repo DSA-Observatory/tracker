@@ -18,6 +18,7 @@
 		cases: providedCases,
 		collapsed: controlledCollapsed,
 		compact = false,
+		bare = false,
 		startCollapsed = false,
 		showList = true,
 		showToggle = true
@@ -25,6 +26,7 @@
 		cases?: CaseRecord[];
 		collapsed?: boolean;
 		compact?: boolean;
+		bare?: boolean;
 		startCollapsed?: boolean;
 		showList?: boolean;
 		showToggle?: boolean;
@@ -145,7 +147,10 @@
 
 	function readGeocodeCache() {
 		try {
-			return JSON.parse(localStorage.getItem(geocodeCacheKey) ?? '{}') as Record<string, Coordinates>;
+			return JSON.parse(localStorage.getItem(geocodeCacheKey) ?? '{}') as Record<
+				string,
+				Coordinates
+			>;
 		} catch {
 			return {};
 		}
@@ -277,12 +282,12 @@
 	}
 
 	async function setMapCases(records: CaseRecord[]) {
-		const counts = new Map<string, number>();
+		const counts: Record<string, number> = {};
 		for (const record of records) {
 			const jurisdiction = normalizeJurisdiction(record.jurisdiction?.trim() || 'Unknown');
-			counts.set(jurisdiction, (counts.get(jurisdiction) ?? 0) + 1);
+			counts[jurisdiction] = (counts[jurisdiction] ?? 0) + 1;
 		}
-		jurisdictions = [...counts.entries()]
+		jurisdictions = Object.entries(counts)
 			.map(([jurisdiction, count]) => ({ jurisdiction, count }))
 			.sort((a, b) => b.count - a.count || a.jurisdiction.localeCompare(b.jurisdiction));
 		await loadJurisdictionCoordinates(jurisdictions);
@@ -327,11 +332,19 @@
 	});
 </script>
 
-<section class="relative overflow-hidden rounded-[1rem] border border-slate-200 bg-white/90 shadow-sm shadow-slate-200/60">
+<section
+	class={bare
+		? 'relative overflow-hidden rounded-xl'
+		: 'relative overflow-hidden rounded-[1rem] border border-slate-200 bg-white/90 shadow-sm shadow-slate-200/60'}
+>
 	{#if !compact}
-		<div class="relative flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-4 sm:px-5">
+		<div
+			class="relative flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-4 sm:px-5"
+		>
 			<div>
-				<p class="text-sm font-semibold tracking-[0.22em] text-primary uppercase">Geographic view</p>
+				<p class="text-sm font-semibold tracking-[0.22em] text-primary uppercase">
+					Geographic view
+				</p>
 				<p class="mt-1 text-sm text-slate-500">
 					{jurisdictions.reduce((sum, item) => sum + item.count, 0)} cases with jurisdiction data
 				</p>
@@ -350,7 +363,7 @@
 	{/if}
 
 	{#if !isCollapsed}
-		<div class={compact ? 'bg-slate-50 p-3 sm:p-4' : 'bg-slate-50 p-4 sm:p-5'}>
+		<div class={bare ? '' : compact ? 'bg-slate-50 p-3 sm:p-4' : 'bg-slate-50 p-4 sm:p-5'}>
 			{#if loading}
 				<p class="text-slate-500">Loading jurisdiction data...</p>
 			{:else if error}
@@ -359,7 +372,9 @@
 				<p class="text-slate-500">No cases with jurisdiction data yet.</p>
 			{:else}
 				<div
-					class="relative overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-100 shadow-inner"
+					class={bare
+						? 'relative overflow-hidden rounded-xl'
+						: 'relative overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-100 shadow-inner'}
 				>
 					<div
 						bind:this={mapContainer}
@@ -376,7 +391,8 @@
 
 				{#if showList}
 					<div class="mt-5 space-y-3">
-						{#each jurisdictions as item}
+						{#each jurisdictions as item (item.jurisdiction)}
+							<!-- eslint-disable svelte/no-navigation-without-resolve -->
 							<a
 								class="group grid gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xs transition hover:border-slate-300 hover:bg-slate-50 sm:grid-cols-[12rem_minmax(0,1fr)_auto] sm:items-center"
 								href={pinHref(item.jurisdiction)}
@@ -390,6 +406,7 @@
 								</div>
 								<div class="text-sm font-semibold text-slate-600">{item.count} cases</div>
 							</a>
+							<!-- eslint-enable svelte/no-navigation-without-resolve -->
 						{/each}
 					</div>
 				{/if}

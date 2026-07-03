@@ -4,7 +4,9 @@
 	import { authStore, pb, type CaseRecord, type CaseStatus } from '$lib/database';
 	import IconArrowLeft from '~icons/lucide/arrow-left';
 	import IconDownload from '~icons/lucide/download';
+	import IconFileText from '~icons/lucide/file-text';
 	import IconUpload from '~icons/lucide/upload';
+	import IconX from '~icons/lucide/x';
 	import CaseSummaryEditor from './CaseSummaryEditor.svelte';
 	import {
 		emptyCaseForm,
@@ -21,10 +23,12 @@
 	let loading = $state(Boolean(caseId));
 	let saving = $state(false);
 	let error = $state('');
+	let attemptedSubmit = $state(false);
 	let form = $state<CaseForm>(emptyCaseForm());
 	let currentRecord = $state<CaseRecord>();
 	let existingDocuments = $state<string[]>([]);
 	let selectedDocuments = $state<File[]>([]);
+	let documentInput = $state<HTMLInputElement>();
 	let csvInput = $state<HTMLInputElement>();
 	let importingCsv = $state(false);
 	let importMessage = $state('');
@@ -117,7 +121,20 @@
 	}
 
 	function selectDocuments(event: Event) {
-		selectedDocuments = Array.from((event.currentTarget as HTMLInputElement).files ?? []);
+		const input = event.currentTarget as HTMLInputElement;
+		selectedDocuments = [...selectedDocuments, ...Array.from(input.files ?? [])];
+		input.value = '';
+	}
+
+	function removeSelectedDocument(index: number) {
+		selectedDocuments = selectedDocuments.filter((_, fileIndex) => fileIndex !== index);
+		if (documentInput) documentInput.value = '';
+	}
+
+	function formatFileSize(bytes: number) {
+		if (bytes < 1024) return `${bytes} B`;
+		if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+		return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 	}
 
 	function appendPayload(target: FormData, payload: Record<string, unknown>) {
@@ -210,6 +227,26 @@
 	function isDuplicateCaseIdError(err: unknown) {
 		const details = importErrorDetails(err).toLowerCase();
 		return details.includes('case_id') && (details.includes('unique') || details.includes('exist'));
+	}
+
+	function saveErrorMessage(err: unknown) {
+		const details = importErrorDetails(err);
+		return details
+			? `Could not save the case. ${details}`
+			: 'Could not save the case. Check required fields and permissions.';
+	}
+
+	function missingRequiredFields() {
+		return [
+			{ label: 'Case ID', missing: !form.case_id.trim() },
+			{ label: 'Case title', missing: !form.title.trim() }
+		]
+			.filter((field) => field.missing)
+			.map((field) => field.label);
+	}
+
+	function clearRequiredError() {
+		if (error.startsWith('Fill required fields')) error = '';
 	}
 
 	function parseCsv(text: string) {
@@ -339,7 +376,12 @@
 	}
 
 	async function saveCase() {
-		if (!form.case_id.trim() || !form.title.trim()) return;
+		attemptedSubmit = true;
+		const missingFields = missingRequiredFields();
+		if (missingFields.length) {
+			error = `Fill required fields: ${missingFields.join(', ')}.`;
+			return;
+		}
 		if (!canWrite) {
 			error = 'Your session expired. Log in again before saving cases.';
 			return;
@@ -404,7 +446,7 @@
 			await goto(resolve('/cases'));
 		} catch (err) {
 			console.error('Error saving case:', err);
-			error = 'Could not save the case. Check required fields and permissions.';
+			error = saveErrorMessage(err);
 		} finally {
 			saving = false;
 		}
@@ -461,7 +503,8 @@
 		<div class="border border-base-300 bg-base-100 p-6 shadow-sm">Loading case...</div>
 	{:else}
 		<form
-			class="border border-base-300 bg-base-100 p-4 shadow-sm"
+			class="case-editor-form border border-base-300 bg-base-200/60 p-4 shadow-sm"
+			novalidate
 			onsubmit={(event) => {
 				event.preventDefault();
 				saveCase();
@@ -472,13 +515,13 @@
 			{/if}
 
 			<div
-				class="mb-4 rounded-lg border border-base-300 bg-base-200/40 p-3 text-sm text-base-content/70"
+				class="mb-4 rounded-lg border border-base-300 bg-base-100 p-3 text-sm text-base-content/70 shadow-sm"
 			>
 				Fill the essentials first. Open the sections below only when that metadata is relevant.
 			</div>
 
 			<div class="space-y-3">
-				<details class="rounded-lg border border-base-300 p-4" open>
+				<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm" open>
 					<summary class="cursor-pointer text-base font-bold">
 						Essentials
 						<span class="ml-2 text-sm font-normal text-base-content/60"
@@ -487,22 +530,30 @@
 					</summary>
 					<div class="mt-4 grid gap-3 md:grid-cols-3">
 						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">Case ID</span>
+							<span class="label-text mb-1 text-sm font-semibold">Case ID *</span>
 							<input
-								class="input-bordered input input-sm w-full"
+								class={`input-bordered input input-sm w-full ${attemptedSubmit && !form.case_id.trim() ? 'input-error' : ''}`}
 								bind:value={form.case_id}
 								required
 								placeholder="DSA-..."
+								oninput={clearRequiredError}
 							/>
+							{#if attemptedSubmit && !form.case_id.trim()}
+								<span class="mt-1 text-xs text-error">Case ID is required.</span>
+							{/if}
 						</label>
 						<label class="form-control w-full md:col-span-2">
-							<span class="label-text mb-1 text-sm font-semibold">Case title</span>
+							<span class="label-text mb-1 text-sm font-semibold">Case title *</span>
 							<input
-								class="input-bordered input input-sm w-full"
+								class={`input-bordered input input-sm w-full ${attemptedSubmit && !form.title.trim() ? 'input-error' : ''}`}
 								bind:value={form.title}
 								required
 								placeholder="Case title"
+								oninput={clearRequiredError}
 							/>
+							{#if attemptedSubmit && !form.title.trim()}
+								<span class="mt-1 text-xs text-error">Case title is required.</span>
+							{/if}
 						</label>
 						<label class="form-control w-full">
 							<span class="label-text mb-1 text-sm font-semibold">ECLI or identifier</span>
@@ -539,28 +590,25 @@
 						<label class="form-control w-full">
 							<span class="label-text mb-1 text-sm font-semibold">Status</span>
 							<select class="select-bordered select w-full select-sm" bind:value={form.status}>
-								{#each statusOptions as option}
+								{#each statusOptions as option (option)}
 									<option value={option}>{option}</option>
 								{/each}
 							</select>
 						</label>
 						<label class="form-control w-full">
 							<span class="label-text mb-1 text-sm font-semibold">Publication</span>
-							<span
-								class="label min-h-8 cursor-pointer justify-start gap-3 rounded-lg border border-base-300 px-3"
-							>
-								<input
-									class="checkbox checkbox-primary"
-									type="checkbox"
-									bind:checked={form.published}
-								/>
-								<span class="label-text">Published</span>
+							<span class="publication-toggle">
+								<input class="peer sr-only" type="checkbox" bind:checked={form.published} />
+								<span class="publication-toggle-track" aria-hidden="true">
+									<span class="publication-toggle-thumb"></span>
+								</span>
+								<span class="publication-toggle-text">Published</span>
 							</span>
 						</label>
 					</div>
 				</details>
 
-				<details class="rounded-lg border border-base-300 p-4" open>
+				<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm" open>
 					<summary class="cursor-pointer text-base font-bold">
 						Parties & outcome
 						<span class="ml-2 text-sm font-normal text-base-content/60"
@@ -603,7 +651,7 @@
 					</div>
 				</details>
 
-				<details class="rounded-lg border border-base-300 p-4">
+				<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
 					<summary class="cursor-pointer text-base font-bold">
 						Legal classification
 						<span class="ml-2 text-sm font-normal text-base-content/60"
@@ -670,7 +718,7 @@
 					</div>
 				</details>
 
-				<details class="rounded-lg border border-base-300 p-4">
+				<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
 					<summary class="cursor-pointer text-base font-bold">
 						Procedure & timeline
 						<span class="ml-2 text-sm font-normal text-base-content/60">Events and chronology</span>
@@ -695,7 +743,7 @@
 					</div>
 				</details>
 
-				<details class="rounded-lg border border-base-300 p-4">
+				<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
 					<summary class="cursor-pointer text-base font-bold">
 						Sources & documents
 						<span class="ml-2 text-sm font-normal text-base-content/60"
@@ -714,27 +762,62 @@
 						<div class="form-control w-full md:col-span-3">
 							<span class="label-text mb-1 text-sm font-semibold">Uploaded documents</span>
 							<input
-								class="file-input-bordered file-input w-full"
+								id="case-documents-input"
+								bind:this={documentInput}
+								class="sr-only"
 								type="file"
 								multiple
 								accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.html,.jpg,.jpeg,.png,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,text/html,image/jpeg,image/png,image/webp"
 								onchange={selectDocuments}
 							/>
+							<label
+								for="case-documents-input"
+								class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-base-300 bg-base-200/50 px-5 py-6 text-center transition hover:border-primary hover:bg-primary/5"
+							>
+								<span class="mb-3 rounded-full bg-primary/15 p-3 text-primary">
+									<IconUpload class="h-6 w-6" />
+								</span>
+								<span class="font-semibold">Choose documents</span>
+								<span class="mt-1 text-sm text-base-content/60">
+									PDFs, Office files, text, HTML, or images
+								</span>
+							</label>
 							<p class="mt-1 text-xs text-base-content/60">
 								Uploaded files are public when this case is public. Use links or notes for
 								internal-only material.
 							</p>
 							{#if selectedDocuments.length}
-								<p class="mt-2 text-sm text-base-content/70">
-									Selected: {selectedDocuments.map((file) => file.name).join(', ')}
-								</p>
+								<div class="mt-3 grid gap-2 sm:grid-cols-2">
+									{#each selectedDocuments as file, index (`${file.name}-${file.size}-${file.lastModified}`)}
+										<div
+											class="flex items-center gap-3 rounded-xl border border-base-300 bg-base-100 p-3 shadow-sm"
+										>
+											<span class="rounded-lg bg-primary/10 p-2 text-primary">
+												<IconFileText class="h-5 w-5" />
+											</span>
+											<div class="min-w-0 flex-1">
+												<div class="truncate text-sm font-medium">{file.name}</div>
+												<div class="text-xs text-base-content/60">{formatFileSize(file.size)}</div>
+											</div>
+											<button
+												type="button"
+												class="btn btn-circle text-base-content/60 btn-ghost btn-xs hover:text-error"
+												aria-label={`Remove ${file.name}`}
+												onclick={() => removeSelectedDocument(index)}
+											>
+												<IconX class="h-4 w-4" />
+											</button>
+										</div>
+									{/each}
+								</div>
 							{/if}
 							{#if existingDocuments.length}
 								<div class="mt-3 rounded-lg border border-base-300 p-3 text-sm">
 									<div class="font-semibold">Current public files</div>
 									<ul class="mt-2 list-disc space-y-1 pl-5">
-										{#each existingDocuments as filename}
+										{#each existingDocuments as filename (filename)}
 											<li>
+												<!-- eslint-disable svelte/no-navigation-without-resolve -->
 												<a
 													class="link"
 													href={documentUrl(filename)}
@@ -743,6 +826,7 @@
 												>
 													{filename}
 												</a>
+												<!-- eslint-enable svelte/no-navigation-without-resolve -->
 											</li>
 										{/each}
 									</ul>
@@ -768,7 +852,7 @@
 					</div>
 				</details>
 
-				<details class="rounded-lg border border-base-300 p-4">
+				<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
 					<summary class="cursor-pointer text-base font-bold">
 						Editorial
 						<span class="ml-2 text-sm font-normal text-base-content/60"
@@ -793,19 +877,101 @@
 			</div>
 
 			<div
-				class="sticky bottom-0 -mx-4 mt-4 flex justify-end gap-2 border-t border-base-300 bg-base-100/95 px-4 py-3 backdrop-blur"
+				class="sticky bottom-0 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-base-300 bg-base-100/95 px-4 py-3 shadow-sm backdrop-blur"
 			>
-				<button class="btn btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
-					>Cancel</button
-				>
-				<button
-					class="btn btn-primary"
-					type="submit"
-					disabled={saving || !form.case_id.trim() || !form.title.trim()}
-				>
-					{saving ? 'Saving...' : isEditing ? 'Update case' : 'Create case'}
-				</button>
+				<div class="text-sm text-base-content/60">
+					{#if missingRequiredFields().length}
+						Required: {missingRequiredFields().join(', ')}
+					{:else}
+						Ready to save.
+					{/if}
+				</div>
+				<div class="flex gap-2">
+					<button class="btn btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
+						>Cancel</button
+					>
+					<button class="btn btn-primary" type="submit" disabled={saving}>
+						{saving ? 'Saving...' : isEditing ? 'Update case' : 'Create case'}
+					</button>
+				</div>
 			</div>
 		</form>
 	{/if}
 </section>
+
+<style>
+	.case-editor-form :global(.label-text) {
+		color: color-mix(in oklab, currentColor 62%, transparent);
+		font-size: 0.75rem;
+		font-weight: 600;
+		line-height: 1rem;
+	}
+
+	.case-editor-form :global(input:not([type='checkbox']):not([type='file'])),
+	.case-editor-form :global(select),
+	.case-editor-form :global(textarea) {
+		min-height: 2.75rem;
+		border-color: color-mix(in oklab, currentColor 24%, transparent);
+		background: var(--color-base-100);
+		box-shadow: 0 1px 2px color-mix(in oklab, black 8%, transparent);
+	}
+
+	.case-editor-form :global(input:not([type='checkbox']):not([type='file']):focus),
+	.case-editor-form :global(select:focus),
+	.case-editor-form :global(textarea:focus) {
+		border-color: var(--color-primary);
+		outline: 2px solid color-mix(in oklab, var(--color-primary) 22%, transparent);
+		outline-offset: 1px;
+	}
+
+	.publication-toggle {
+		display: flex;
+		min-height: 2.75rem;
+		cursor: pointer;
+		align-items: center;
+		gap: 0.75rem;
+		border: 1px solid color-mix(in oklab, currentColor 24%, transparent);
+		border-radius: 0.75rem;
+		background: var(--color-base-100);
+		padding: 0.25rem 0.875rem;
+		box-shadow: 0 1px 2px color-mix(in oklab, black 8%, transparent);
+	}
+
+	.publication-toggle:focus-within {
+		border-color: var(--color-primary);
+		outline: 2px solid color-mix(in oklab, var(--color-primary) 22%, transparent);
+		outline-offset: 1px;
+	}
+
+	.publication-toggle-track {
+		display: flex;
+		height: 1.35rem;
+		width: 2.35rem;
+		align-items: center;
+		border-radius: 999px;
+		background: color-mix(in oklab, currentColor 16%, transparent);
+		padding: 0.15rem;
+		transition: background-color 120ms ease;
+	}
+
+	.publication-toggle-thumb {
+		height: 1.05rem;
+		width: 1.05rem;
+		border-radius: 999px;
+		background: var(--color-base-100);
+		box-shadow: 0 1px 2px color-mix(in oklab, black 24%, transparent);
+		transition: transform 120ms ease;
+	}
+
+	.publication-toggle .peer:checked + .publication-toggle-track {
+		background: var(--color-primary);
+	}
+
+	.publication-toggle .peer:checked + .publication-toggle-track .publication-toggle-thumb {
+		transform: translateX(1rem);
+	}
+
+	.publication-toggle-text {
+		font-weight: 600;
+	}
+</style>
