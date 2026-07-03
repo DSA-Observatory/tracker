@@ -373,7 +373,7 @@
 			{:else}
 				<div
 					class={bare
-						? 'relative overflow-hidden rounded-xl'
+						? 'relative overflow-hidden rounded-xl border border-slate-200'
 						: 'relative overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-100 shadow-inner'}
 				>
 					<div

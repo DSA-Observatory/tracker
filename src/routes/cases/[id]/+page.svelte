@@ -48,7 +48,9 @@
 			...(item.secondary_sources ?? []).flatMap(extractUrls)
 		];
 
-		return [...new Map(links.filter(Boolean).map((link) => [link.toLowerCase(), link])).values()];
+		const deduped: Record<string, string> = {};
+		for (const link of links.filter(Boolean)) deduped[link.toLowerCase()] ??= link;
+		return Object.values(deduped);
 	}
 
 	function sourceLabel(url: string) {
@@ -157,7 +159,8 @@
 	<meta name="description" content={record ? stripHtml(record.summary) : 'DSA case record'} />
 </svelte:head>
 
-<main class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+<!-- eslint-disable svelte/no-at-html-tags, svelte/no-navigation-without-resolve -->
+<main class="mx-auto max-w-7xl bg-base-200/60 px-4 pb-16 sm:px-6 lg:px-8">
 	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<button class="btn btn-ghost btn-sm" type="button" onclick={() => goto(resolve('/cases'))}>
 			Back to cases
@@ -168,13 +171,13 @@
 	</div>
 
 	{#if loading}
-		<div class="rounded-2xl border border-slate-200 bg-white p-8 text-slate-500">
+		<div class="rounded-xl border border-slate-200 bg-white p-8 text-slate-500">
 			Loading case...
 		</div>
 	{:else if error}
-		<div class="rounded-2xl border border-red-200 bg-red-50 p-8 text-red-700">{error}</div>
+		<div class="rounded-xl border border-red-200 bg-red-50 p-8 text-red-700">{error}</div>
 	{:else if record}
-		<section class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+		<section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
 			<div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
 				<div class="max-w-4xl">
 					<p class="text-xs font-semibold tracking-[0.24em] text-slate-400 uppercase">
@@ -200,7 +203,7 @@
 					</div>
 				</div>
 				<div
-					class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 lg:w-80"
+					class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 lg:w-80"
 				>
 					<div class="font-mono text-xs text-slate-400">{record.case_id}</div>
 					{#if record.ecli}<div class="mt-2 font-mono text-xs">{record.ecli}</div>{/if}
@@ -211,18 +214,18 @@
 
 		<div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
 			<div class="space-y-6">
-				<section class="rounded-2xl border border-slate-200 bg-white p-6">
+				<section class="rounded-xl border border-slate-200 bg-white p-6">
 					<h2 class="text-xl font-black">Summary</h2>
 					{#if record.summary}<div class="prose mt-4 max-w-none text-slate-700">
 							{@html linkifyHtml(record.summary)}
 						</div>{:else}<p class="mt-4 text-slate-500">No summary has been added yet.</p>{/if}
 				</section>
 
-				<section class="rounded-2xl border border-slate-200 bg-white p-6">
+				<section class="rounded-xl border border-slate-200 bg-white p-6">
 					<h2 class="text-xl font-black">Procedural Timeline</h2>
 					{#if proceduralEvents.length}
 						<ol class="mt-4 space-y-3">
-							{#each proceduralEvents as event}
+							{#each proceduralEvents as event, index (`${event.date}-${event.label}-${index}`)}
 								<li class="rounded-xl border border-slate-100 bg-slate-50 p-4">
 									{#if event.date}<div class="text-xs font-semibold text-slate-400">
 											{formatDate(event.date)}
@@ -231,7 +234,7 @@
 										{event.label || 'Procedural event'}
 									</div>
 									{#if event.description}<p class="mt-1 text-sm text-slate-600">
-											{#each linkedTextParts(event.description) as part}
+											{#each linkedTextParts(event.description) as part, index (`${part.text}-${index}`)}
 												{#if part.href}<a
 														class="underline decoration-slate-300 underline-offset-2 hover:text-slate-950"
 														href={part.href}
@@ -248,14 +251,14 @@
 					{/if}
 				</section>
 
-				<section class="rounded-2xl border border-slate-200 bg-white p-6">
+				<section class="rounded-xl border border-slate-200 bg-white p-6">
 					<h2 class="text-xl font-black">Documents & References</h2>
 					{#if documentFiles.length || sourceLinks.length || list(record.primary_sources).length || list(record.secondary_sources).length}
 						{#if documentFiles.length}
 							<div class="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
 								<h3 class="font-semibold">Uploaded documents</h3>
 								<ul class="mt-2 space-y-2 text-sm text-slate-600">
-									{#each documentFiles as filename}
+									{#each documentFiles as filename (filename)}
 										<li>
 											<a
 												class="underline decoration-slate-300 underline-offset-2 hover:text-slate-950"
@@ -274,8 +277,9 @@
 							<div>
 								<h3 class="font-semibold">Primary sources</h3>
 								<ul class="mt-2 space-y-2 text-sm text-slate-600">
-									{#each list(record.primary_sources) as source}<li>
-											{#each linkedTextParts(source) as part}
+									{#each list(record.primary_sources) as source, sourceIndex (`${source}-${sourceIndex}`)}<li
+										>
+											{#each linkedTextParts(source) as part, partIndex (`${part.text}-${partIndex}`)}
 												{#if part.href}<a
 														class="underline decoration-slate-300 underline-offset-2 hover:text-slate-950"
 														href={part.href}
@@ -290,8 +294,9 @@
 							<div>
 								<h3 class="font-semibold">Secondary sources</h3>
 								<ul class="mt-2 space-y-2 text-sm text-slate-600">
-									{#each list(record.secondary_sources) as source}<li>
-											{#each linkedTextParts(source) as part}
+									{#each list(record.secondary_sources) as source, sourceIndex (`${source}-${sourceIndex}`)}<li
+										>
+											{#each linkedTextParts(source) as part, partIndex (`${part.text}-${partIndex}`)}
 												{#if part.href}<a
 														class="underline decoration-slate-300 underline-offset-2 hover:text-slate-950"
 														href={part.href}
@@ -306,7 +311,7 @@
 						</div>
 						{#if sourceLinks.length}
 							<div class="mt-5 flex flex-wrap gap-2">
-								{#each sourceLinks as link}
+								{#each sourceLinks as link (link)}
 									<a
 										class="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-50"
 										href={link}
@@ -327,7 +332,7 @@
 				</section>
 
 				{#if record.commentary}
-					<section class="rounded-2xl border border-slate-200 bg-white p-6">
+					<section class="rounded-xl border border-slate-200 bg-white p-6">
 						<h2 class="text-xl font-black">Commentary & Context</h2>
 						<div class="prose mt-4 max-w-none text-slate-700">
 							{@html linkifyHtml(record.commentary)}
@@ -337,10 +342,10 @@
 			</div>
 
 			<aside class="space-y-6">
-				<section class="rounded-2xl border border-slate-200 bg-white p-5">
+				<section class="rounded-xl border border-slate-200 bg-white p-5">
 					<h2 class="font-black">At a glance</h2>
 					<dl class="mt-4 space-y-3 text-sm">
-						{#each [['Jurisdiction', record.jurisdiction], ['Court', list(record.courts).join(', ') || record.court], ['Filing date', formatDate(record.filing_date)], ['Decision date', formatDate(record.decision_date)], ['Plaintiffs', list(record.plaintiffs).join(', ')], ['Defendants', list(record.defendants).join(', ')]] as item}
+						{#each [['Jurisdiction', record.jurisdiction], ['Court', list(record.courts).join(', ') || record.court], ['Filing date', formatDate(record.filing_date)], ['Decision date', formatDate(record.decision_date)], ['Plaintiffs', list(record.plaintiffs).join(', ')], ['Defendants', list(record.defendants).join(', ')]] as item (item[0])}
 							{#if item[1]}
 								<div>
 									<dt class="text-slate-400">{item[0]}</dt>
@@ -351,10 +356,10 @@
 					</dl>
 				</section>
 
-				<section class="rounded-2xl border border-slate-200 bg-white p-5">
+				<section class="rounded-xl border border-slate-200 bg-white p-5">
 					<h2 class="font-black">Legal classification</h2>
 					<div class="mt-4 flex flex-wrap gap-2">
-						{#each [...list(record.dsa_articles), ...list(record.legal_areas), ...list(record.legal_basis), ...list(record.categories), ...list(record.themes)] as tag}
+						{#each [...list(record.dsa_articles), ...list(record.legal_areas), ...list(record.legal_basis), ...list(record.categories), ...list(record.themes)] as tag, index (`${tag}-${index}`)}
 							<span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
 								>{tag}</span
 							>
@@ -363,10 +368,10 @@
 				</section>
 
 				{#if relatedCases.length}
-					<section class="rounded-2xl border border-slate-200 bg-white p-5">
+					<section class="rounded-xl border border-slate-200 bg-white p-5">
 						<h2 class="font-black">Related cases</h2>
 						<div class="mt-4 space-y-3">
-							{#each relatedCases as related}
+							{#each relatedCases as related (related.id)}
 								<a
 									class="block rounded-xl border border-slate-100 p-3 text-sm hover:bg-slate-50"
 									href={resolve(`/cases/${related.id}`)}
@@ -384,3 +389,4 @@
 		</div>
 	{/if}
 </main>
+<!-- eslint-enable svelte/no-at-html-tags, svelte/no-navigation-without-resolve -->
