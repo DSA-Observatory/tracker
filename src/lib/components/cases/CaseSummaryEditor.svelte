@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import { Editor } from '@tiptap/core';
-	import Link from '@tiptap/extension-link';
-	import Underline from '@tiptap/extension-underline';
 	import StarterKit from '@tiptap/starter-kit';
 	import IconBold from '~icons/lucide/bold';
 	import IconHeading2 from '~icons/lucide/heading-2';
@@ -37,13 +35,13 @@
 		editor = new Editor({
 			element: editorElement,
 			extensions: [
-				StarterKit,
-				Underline,
-				Link.configure({
-					openOnClick: false,
-					HTMLAttributes: {
-						rel: 'noreferrer',
-						target: '_blank'
+				StarterKit.configure({
+					link: {
+						openOnClick: false,
+						HTMLAttributes: {
+							rel: 'noreferrer',
+							target: '_blank'
+						}
 					}
 				})
 			],
