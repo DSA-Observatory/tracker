@@ -83,8 +83,12 @@
 	<meta name="description" content="Suggest a DSA private enforcement case for editorial review." />
 </svelte:head>
 
-<main class="mx-auto max-w-4xl px-4 pb-16 sm:px-6 lg:px-8">
-	<section class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+<main
+	class="-mt-4 min-h-[calc(100dvh-4rem)] bg-base-200/60 px-4 pt-4 pb-16 sm:-mt-10 sm:px-6 sm:pt-10 lg:px-8"
+>
+	<section
+		class="mx-auto max-w-4xl rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+	>
 		<p class="text-sm font-semibold tracking-[0.24em] text-slate-400 uppercase">
 			Community submission
 		</p>
@@ -105,7 +109,7 @@
 		{/if}
 
 		<form
-			class="mt-8 grid gap-4 md:grid-cols-2"
+			class="suggest-case-form mt-8 grid gap-4 md:grid-cols-2"
 			onsubmit={(event) => {
 				event.preventDefault();
 				submitCaseLead();
@@ -197,3 +201,27 @@
 		</form>
 	</section>
 </main>
+
+<style>
+	.suggest-case-form :global(.label-text) {
+		color: color-mix(in oklab, currentColor 62%, transparent);
+		font-size: 0.75rem;
+		font-weight: 600;
+		line-height: 1rem;
+	}
+
+	.suggest-case-form :global(input),
+	.suggest-case-form :global(textarea) {
+		min-height: 2.75rem;
+		border-color: color-mix(in oklab, currentColor 24%, transparent);
+		background: var(--color-base-100);
+		box-shadow: 0 1px 2px color-mix(in oklab, black 8%, transparent);
+	}
+
+	.suggest-case-form :global(input:focus),
+	.suggest-case-form :global(textarea:focus) {
+		border-color: var(--color-primary);
+		outline: 2px solid color-mix(in oklab, var(--color-primary) 22%, transparent);
+		outline-offset: 1px;
+	}
+</style>
