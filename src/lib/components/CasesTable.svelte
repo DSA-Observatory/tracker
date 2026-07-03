@@ -11,6 +11,7 @@
 	import CaseJurisdictionMap from '$lib/components/cases/CaseJurisdictionMap.svelte';
 	import CaseResultsTable from '$lib/components/cases/CaseResultsTable.svelte';
 	import CaseVisualizationControls from '$lib/components/cases/CaseVisualizationControls.svelte';
+	import LandingCaseCardsList from '$lib/components/cases/LandingCaseCardsList.svelte';
 	import Search from '$lib/components/Search.svelte';
 	import { statusOptions } from '$lib/components/cases/types';
 	import type {
@@ -36,10 +37,16 @@
 	const filterLayoutStorageKey = 'cases:filterLayout';
 	type SearchIndexEntry = { text: string; words: string[] };
 
-	let { showMap = false, mapStartsCollapsed = false, homeIntro = false } = $props<{
+	let {
+		showMap = false,
+		mapStartsCollapsed = false,
+		homeIntro = false,
+		cardVariant = 'default'
+	} = $props<{
 		showMap?: boolean;
 		mapStartsCollapsed?: boolean;
 		homeIntro?: boolean;
+		cardVariant?: 'default' | 'landing';
 	}>();
 
 	const searchScopes: { value: SearchScope; label: string }[] = [
@@ -134,6 +141,20 @@
 	const activeFilterCount = $derived(
 		activeChips.length + (search.trim() || searchScope !== 'all' ? 1 : 0)
 	);
+	const resetScrollTrigger = $derived([
+		search,
+		searchScope,
+		statuses,
+		countries,
+		categories,
+		themes,
+		articles,
+		courts,
+		parties,
+		years,
+		viewMode,
+		filterLayout
+	]);
 	const jurisdictionCount = $derived(availableCountries.length);
 	const rowHeight = $derived(viewMode === 'cards' ? 252 : 176);
 	const virtualStart = $derived(Math.max(0, Math.floor(tableScrollTop / rowHeight) - rowOverscan));
@@ -152,7 +173,6 @@
 	const filterPanelProps = $derived({
 		filteredCount: filteredCases.length,
 		totalCount: cases.length,
-		viewMode,
 		search,
 		activeChips,
 		statusFilterOptions,
@@ -197,18 +217,7 @@
 	});
 
 	$effect(() => {
-		search;
-		searchScope;
-		statuses;
-		countries;
-		categories;
-		themes;
-		articles;
-		courts;
-		parties;
-		years;
-		viewMode;
-		filterLayout;
+		if (!resetScrollTrigger) return;
 		resetTableScroll();
 	});
 
@@ -381,17 +390,17 @@
 			...getPrimarySourcesList(record).flatMap(extractUrls),
 			...getSecondarySourcesList(record).flatMap(extractUrls)
 		];
-		const deduped = new Map<string, string>();
+		const deduped: Record<string, string> = {};
 
 		for (const link of links
 			.map(decodeHtmlEntities)
 			.map((link) => link.trim())
 			.filter(Boolean)) {
 			const key = link.toLowerCase();
-			if (!deduped.has(key)) deduped.set(key, link);
+			deduped[key] ??= link;
 		}
 
-		return [...deduped.values()].sort((a, b) => sourceLabel(a).localeCompare(sourceLabel(b)));
+		return Object.values(deduped).sort((a, b) => sourceLabel(a).localeCompare(sourceLabel(b)));
 	}
 
 	function sourceLabel(url: string) {
@@ -682,7 +691,7 @@
 		<div>
 			{#if homeIntro}
 				<div
-					class="mb-3 overflow-hidden rounded-2xl border border-slate-200 bg-white/90 shadow-sm shadow-slate-200/60"
+					class="mb-3 overflow-hidden rounded-2xl border border-slate-200 bg-base-200/60 shadow-sm shadow-slate-200/60"
 				>
 					<div class="relative flex flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-5">
 						<div class="min-w-0">
@@ -690,7 +699,7 @@
 								DSA Case Law Tracker
 							</p>
 							<h1 class="mt-1 text-2xl font-black tracking-tight text-slate-950 md:text-3xl">
-								Private enforcement cases, ready to explore.
+								Private enforcement cases
 							</h1>
 							<p class="mt-1 max-w-2xl text-sm text-slate-600">
 								Search, filter, map, and compare DSA litigation across jurisdictions.
@@ -712,7 +721,8 @@
 									onclick={() => (mapCollapsed = !mapCollapsed)}
 								>
 									<IconMap class="size-4 text-slate-500" />
-									<span><span class="font-black text-slate-950">{jurisdictionCount}</span>
+									<span
+										><span class="font-black text-slate-950">{jurisdictionCount}</span>
 										<span class="text-slate-500"> countries</span></span
 									>
 								</button>
@@ -734,7 +744,7 @@
 				</div>
 			{/if}
 			<div
-				class="rounded-lg border border-slate-200 bg-white/90 p-2 shadow-sm shadow-slate-200/60 backdrop-blur md:hidden"
+				class="rounded-lg border border-slate-200 bg-base-200/60 p-2 shadow-sm shadow-slate-200/60 backdrop-blur md:hidden"
 			>
 				<Search
 					bind:value={search}
@@ -821,6 +831,7 @@
 					placeholder="Search cases, parties, articles, sources"
 					navigateOnSubmit={false}
 					variant="hero"
+					bare={true}
 				>
 					{#snippet trailing()}
 						<CaseVisualizationControls
@@ -859,7 +870,7 @@
 					{/snippet}
 				</Search>
 			</div>
-			<div class="hidden items-center justify-between gap-3 md:flex xl:hidden">
+			<div class="hidden items-center justify-between gap-3 md:flex lg:hidden">
 				<p class="min-w-0 text-sm text-slate-500">
 					Showing <span class="font-medium text-slate-900">{filteredCases.length}</span> of {cases.length}
 					cases
@@ -871,7 +882,7 @@
 					<CaseFilterPanel sidebar={false} {...filterPanelProps} />
 				</div>
 			{:else}
-				<div class="hidden md:block xl:hidden">
+				<div class="hidden md:block lg:hidden">
 					<CaseFilterPanel sidebar={false} {...filterPanelProps} />
 				</div>
 			{/if}
@@ -889,9 +900,10 @@
 	{#if showMap && !mapCollapsed}
 		<div class="mb-4 flex-none">
 			<CaseJurisdictionMap
-				cases={cases}
+				{cases}
 				collapsed={mapCollapsed}
 				compact={true}
+				bare={true}
 				showList={false}
 				showToggle={false}
 			/>
@@ -900,11 +912,11 @@
 
 	<div
 		class={filterLayout === 'left'
-			? 'grid min-w-0 gap-4 md:min-h-0 md:flex-1 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]'
+			? 'grid min-w-0 gap-4 md:min-h-0 md:flex-1 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]'
 			: 'min-w-0 md:min-h-0 md:flex-1'}
 	>
 		{#if filterLayout === 'left'}
-			<aside class="hidden min-h-0 min-w-0 overflow-hidden xl:block">
+			<aside class="hidden min-h-0 min-w-0 overflow-hidden lg:block">
 				<CaseFilterPanel sidebar={true} {...filterPanelProps} />
 			</aside>
 		{/if}
@@ -912,26 +924,40 @@
 			{#if viewMode !== 'table'}
 				<div
 					bind:this={tableScroller}
-					class="max-w-full overflow-visible rounded-sm border border-slate-200 bg-white/70 p-3 shadow-sm shadow-slate-200/70 md:h-full md:min-h-0 md:overflow-auto"
+					class="max-w-full overflow-visible rounded-xl border border-slate-200 bg-base-200/60 p-3 shadow-sm shadow-slate-200/70 md:h-full md:min-h-0 md:overflow-auto"
 					onscroll={updateTableViewport}
 				>
-					<CaseCardsList
-						{...resultProps}
-						{getPartyValues}
-						{countryLabel}
-						{getCategories}
-						{getThemes}
-						{getTimeline}
-						{getPrimarySourcesList}
-						{getSecondarySourcesList}
-						{sourceLinks}
-						{sourceLabel}
-					/>
+					{#if cardVariant === 'landing'}
+						<LandingCaseCardsList
+							{...resultProps}
+							{getPartyValues}
+							{countryLabel}
+							{getCategories}
+							{getThemes}
+							{getPrimarySourcesList}
+							{getSecondarySourcesList}
+							{sourceLinks}
+							{sourceLabel}
+						/>
+					{:else}
+						<CaseCardsList
+							{...resultProps}
+							{getPartyValues}
+							{countryLabel}
+							{getCategories}
+							{getThemes}
+							{getTimeline}
+							{getPrimarySourcesList}
+							{getSecondarySourcesList}
+							{sourceLinks}
+							{sourceLabel}
+						/>
+					{/if}
 				</div>
 			{:else}
 				<div
 					bind:this={tableScroller}
-					class="max-w-full overflow-x-auto overflow-y-visible rounded-sm border border-slate-200 bg-white shadow-sm shadow-slate-200/70 md:h-full md:min-h-0 md:overflow-auto"
+					class="max-w-full overflow-x-auto overflow-y-visible rounded-xl border border-slate-200 bg-base-200/60 p-2 shadow-sm shadow-slate-200/70 md:h-full md:min-h-0 md:overflow-auto"
 					onscroll={updateTableViewport}
 				>
 					<CaseResultsTable

@@ -17,9 +17,9 @@
 <nav class="bien-nav mb-4 sm:mb-10">
 	<div class="bien-glass"></div>
 	<div class="bien-glass-edge"></div>
-	<div class="relative container mx-auto py-2">
+	<div class="relative mx-auto w-full max-w-[1680px] px-4 py-2 sm:px-6 lg:px-8">
 		<!--Desktop Header-->
-		<header class="flex min-w-0 items-center gap-2 px-2 sm:gap-3 sm:px-0">
+		<header class="flex min-w-0 items-center gap-2 sm:gap-3">
 			<button
 				class="rounded-md p-2 transition-colors duration-200 hover:bg-base-200 sm:hidden"
 				onclick={toggleMenu}
@@ -44,17 +44,16 @@
 					Case Tracker
 				</span>
 			</a>
-			<div class="min-w-0 flex-1"></div>
 			{#if showSearch}
-				<div class="hidden max-w-2xl min-w-0 px-2 sm:block sm:px-0">
+				<div class="hidden min-w-0 flex-[1_1_18rem] px-2 sm:block sm:px-0 lg:max-w-md xl:max-w-xl">
 					<Search />
 				</div>
 			{/if}
 			<!-- Desktop menu -->
-			<div class="z-10 hidden w-full flex-1 justify-end space-x-4 sm:flex lg:space-x-8">
+			<div class="z-10 hidden shrink-0 justify-end space-x-4 sm:flex lg:space-x-8">
 				{#each menuItems as link}
 					<a
-						class="menu-link"
+						class="menu-link whitespace-nowrap"
 						onclick={() => (activeCategory = link.title)}
 						class:active={activeCategory === link.title}
 						href={resolve(link.path)}

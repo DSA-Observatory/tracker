@@ -1,12 +1,11 @@
 <script lang="ts">
 	import FilterMenu, { type FilterOption } from '$lib/components/FilterMenu.svelte';
-	import type { ActiveFilterChip, FilterGroup, ViewMode } from './types';
+	import type { ActiveFilterChip, FilterGroup } from './types';
 
 	let {
 		sidebar,
 		filteredCount,
 		totalCount,
-		viewMode,
 		search,
 		activeChips,
 		statusFilterOptions,
@@ -31,7 +30,6 @@
 		sidebar: boolean;
 		filteredCount: number;
 		totalCount: number;
-		viewMode: ViewMode;
 		search: string;
 		activeChips: ActiveFilterChip[];
 		statusFilterOptions: FilterOption[];
@@ -56,7 +54,7 @@
 </script>
 
 <div
-	class={`max-w-full min-w-0 ${sidebar ? 'h-full overflow-x-hidden overflow-y-auto rounded-xl border border-slate-200 bg-white/90 p-3 shadow-sm shadow-slate-200/60' : 'pt-3'}`}
+	class={`max-w-full min-w-0 ${sidebar ? 'h-full overflow-x-hidden overflow-y-auto rounded-xl border border-slate-200 bg-base-200/60 p-3 shadow-sm shadow-slate-200/60' : 'pt-3'}`}
 >
 	<div
 		class={sidebar
