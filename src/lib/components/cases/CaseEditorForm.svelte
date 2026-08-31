@@ -8,6 +8,7 @@
 	import IconUpload from '~icons/lucide/upload';
 	import IconX from '~icons/lucide/x';
 	import CaseSummaryEditor from './CaseSummaryEditor.svelte';
+	import CaseCommentsPanel from './CaseCommentsPanel.svelte';
 	import {
 		emptyCaseForm,
 		joinCaseFormList,
@@ -18,7 +19,7 @@
 		type CaseForm
 	} from './types';
 
-	let { caseId }: { caseId?: string } = $props();
+	let { caseId, selectedCommentId }: { caseId?: string; selectedCommentId?: string } = $props();
 
 	let loading = $state(Boolean(caseId));
 	let saving = $state(false);
@@ -453,7 +454,7 @@
 	}
 </script>
 
-<section class="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+<section class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 	{#if !isEditing}
 		<input
 			bind:this={csvInput}
@@ -502,400 +503,413 @@
 	{:else if loading}
 		<div class="border border-base-300 bg-base-100 p-6 shadow-sm">Loading case...</div>
 	{:else}
-		<form
-			class="case-editor-form border border-base-300 bg-base-200/60 p-4 shadow-sm"
-			novalidate
-			onsubmit={(event) => {
-				event.preventDefault();
-				saveCase();
-			}}
+		<div
+			class={isEditing && authStore.isAdmin
+				? 'grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]'
+				: ''}
 		>
-			{#if error}
-				<div class="mb-4 alert alert-error">{error}</div>
-			{/if}
-
-			<div
-				class="mb-4 rounded-lg border border-base-300 bg-base-100 p-3 text-sm text-base-content/70 shadow-sm"
+			<form
+				class="case-editor-form border border-base-300 bg-base-200/60 p-4 shadow-sm"
+				novalidate
+				onsubmit={(event) => {
+					event.preventDefault();
+					saveCase();
+				}}
 			>
-				Fill the essentials first. Open the sections below only when that metadata is relevant.
-			</div>
+				{#if error}
+					<div class="mb-4 alert alert-error">{error}</div>
+				{/if}
 
-			<div class="space-y-3">
-				<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm" open>
-					<summary class="cursor-pointer text-base font-bold">
-						Essentials
-						<span class="ml-2 text-sm font-normal text-base-content/60"
-							>ID, title, status, court</span
-						>
-					</summary>
-					<div class="mt-4 grid gap-3 md:grid-cols-3">
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">Case ID *</span>
-							<input
-								class={`input-bordered input input-sm w-full ${attemptedSubmit && !form.case_id.trim() ? 'input-error' : ''}`}
-								bind:value={form.case_id}
-								required
-								placeholder="DSA-..."
-								oninput={clearRequiredError}
-							/>
-							{#if attemptedSubmit && !form.case_id.trim()}
-								<span class="mt-1 text-xs text-error">Case ID is required.</span>
-							{/if}
-						</label>
-						<label class="form-control w-full md:col-span-2">
-							<span class="label-text mb-1 text-sm font-semibold">Case title *</span>
-							<input
-								class={`input-bordered input input-sm w-full ${attemptedSubmit && !form.title.trim() ? 'input-error' : ''}`}
-								bind:value={form.title}
-								required
-								placeholder="Case title"
-								oninput={clearRequiredError}
-							/>
-							{#if attemptedSubmit && !form.title.trim()}
-								<span class="mt-1 text-xs text-error">Case title is required.</span>
-							{/if}
-						</label>
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">ECLI or identifier</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.ecli}
-								placeholder="ECLI:..."
-							/>
-						</label>
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">Court</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.court}
-								placeholder="Court"
-							/>
-						</label>
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">Jurisdiction</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.jurisdiction}
-								placeholder="Country or jurisdiction"
-							/>
-						</label>
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">Decision date</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.decision_date}
-								type="date"
-							/>
-						</label>
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">Status</span>
-							<select class="select-bordered select w-full select-sm" bind:value={form.status}>
-								{#each statusOptions as option (option)}
-									<option value={option}>{option}</option>
-								{/each}
-							</select>
-						</label>
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">Publication</span>
-							<span class="publication-toggle">
-								<input class="peer sr-only" type="checkbox" bind:checked={form.published} />
-								<span class="publication-toggle-track" aria-hidden="true">
-									<span class="publication-toggle-thumb"></span>
-								</span>
-								<span class="publication-toggle-text">Published</span>
-							</span>
-						</label>
-					</div>
-				</details>
+				<div
+					class="mb-4 rounded-lg border border-base-300 bg-base-100 p-3 text-sm text-base-content/70 shadow-sm"
+				>
+					Fill the essentials first. Open the sections below only when that metadata is relevant.
+				</div>
 
-				<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm" open>
-					<summary class="cursor-pointer text-base font-bold">
-						Parties & outcome
-						<span class="ml-2 text-sm font-normal text-base-content/60"
-							>Who sued, who responded, result</span
-						>
-					</summary>
-					<div class="mt-4 grid gap-3 md:grid-cols-3">
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">Plaintiffs</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.plaintiffs}
-								placeholder="Comma separated"
-							/>
-						</label>
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">Defendants</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.defendants}
-								placeholder="Comma separated"
-							/>
-						</label>
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">Outcome</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.outcome}
-								placeholder="Granted, dismissed, pending..."
-							/>
-						</label>
-						<label class="form-control w-full md:col-span-2">
-							<span class="label-text mb-1 text-sm font-semibold">Courts involved</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.courts}
-								placeholder="Comma separated if multiple courts"
-							/>
-						</label>
-					</div>
-				</details>
-
-				<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
-					<summary class="cursor-pointer text-base font-bold">
-						Legal classification
-						<span class="ml-2 text-sm font-normal text-base-content/60"
-							>DSA articles, tags, legal basis</span
-						>
-					</summary>
-					<div class="mt-4 grid gap-3 md:grid-cols-3">
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">DSA articles</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.dsa_articles}
-								placeholder="Comma separated"
-							/>
-						</label>
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">Categories</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.categories}
-								placeholder="Comma separated"
-							/>
-						</label>
-						<label class="form-control w-full md:col-span-2">
-							<span class="label-text mb-1 text-sm font-semibold">Themes</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.themes}
-								placeholder="Comma separated"
-							/>
-						</label>
-						<label class="form-control w-full">
-							<span class="label-text mb-1 text-sm font-semibold">Case scope</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.case_scope}
-								placeholder="private enforcement"
-							/>
-						</label>
-						<label class="form-control w-full md:col-span-2">
-							<span class="label-text mb-1 text-sm font-semibold">Legal areas</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.legal_areas}
-								placeholder="DSA, GDPR, consumer protection..."
-							/>
-						</label>
-						<label class="form-control w-full md:col-span-3">
-							<span class="label-text mb-1 text-sm font-semibold">Legal basis / grounds</span>
-							<textarea
-								class="textarea-bordered textarea min-h-20 w-full"
-								bind:value={form.legal_basis}
-								placeholder="Comma separated legal grounds, including non-DSA claims"
-							></textarea>
-						</label>
-						<label class="form-control w-full md:col-span-3">
-							<span class="label-text mb-1 text-sm font-semibold">Keywords</span>
-							<input
-								class="input-bordered input input-sm w-full"
-								bind:value={form.keywords}
-								placeholder="Comma separated"
-							/>
-						</label>
-					</div>
-				</details>
-
-				<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
-					<summary class="cursor-pointer text-base font-bold">
-						Procedure & timeline
-						<span class="ml-2 text-sm font-normal text-base-content/60">Events and chronology</span>
-					</summary>
-					<div class="mt-4 grid gap-3 md:grid-cols-3">
-						<label class="form-control w-full md:col-span-3">
-							<span class="label-text mb-1 text-sm font-semibold">Procedural events</span>
-							<textarea
-								class="textarea-bordered textarea min-h-24 w-full font-mono text-sm"
-								bind:value={form.procedural_events}
-								placeholder="YYYY-MM-DD | Event label | Short description"
-							></textarea>
-						</label>
-						<label class="form-control w-full md:col-span-3">
-							<span class="label-text mb-1 text-sm font-semibold">Timeline</span>
-							<textarea
-								class="textarea-bordered textarea min-h-20 w-full"
-								bind:value={form.timeline}
-								placeholder="Key procedural events, dates, or court references"
-							></textarea>
-						</label>
-					</div>
-				</details>
-
-				<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
-					<summary class="cursor-pointer text-base font-bold">
-						Sources & documents
-						<span class="ml-2 text-sm font-normal text-base-content/60"
-							>Files, links, source notes</span
-						>
-					</summary>
-					<div class="mt-4 grid gap-3 md:grid-cols-3">
-						<label class="form-control w-full md:col-span-3">
-							<span class="label-text mb-1 text-sm font-semibold">Primary sources</span>
-							<textarea
-								class="textarea-bordered textarea min-h-20 w-full"
-								bind:value={form.primary_sources}
-								placeholder="One primary source per line"
-							></textarea>
-						</label>
-						<div class="form-control w-full md:col-span-3">
-							<span class="label-text mb-1 text-sm font-semibold">Uploaded documents</span>
-							<input
-								id="case-documents-input"
-								bind:this={documentInput}
-								class="sr-only"
-								type="file"
-								multiple
-								accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.html,.jpg,.jpeg,.png,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,text/html,image/jpeg,image/png,image/webp"
-								onchange={selectDocuments}
-							/>
-							<label
-								for="case-documents-input"
-								class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-base-300 bg-base-200/50 px-5 py-6 text-center transition hover:border-primary hover:bg-primary/5"
+				<div class="space-y-3">
+					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm" open>
+						<summary class="cursor-pointer text-base font-bold">
+							Essentials
+							<span class="ml-2 text-sm font-normal text-base-content/60"
+								>ID, title, status, court</span
 							>
-								<span class="mb-3 rounded-full bg-primary/15 p-3 text-primary">
-									<IconUpload class="h-6 w-6" />
-								</span>
-								<span class="font-semibold">Choose documents</span>
-								<span class="mt-1 text-sm text-base-content/60">
-									PDFs, Office files, text, HTML, or images
+						</summary>
+						<div class="mt-4 grid gap-3 md:grid-cols-3">
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">Case ID *</span>
+								<input
+									class={`input-bordered input input-sm w-full ${attemptedSubmit && !form.case_id.trim() ? 'input-error' : ''}`}
+									bind:value={form.case_id}
+									required
+									placeholder="DSA-..."
+									oninput={clearRequiredError}
+								/>
+								{#if attemptedSubmit && !form.case_id.trim()}
+									<span class="mt-1 text-xs text-error">Case ID is required.</span>
+								{/if}
+							</label>
+							<label class="form-control w-full md:col-span-2">
+								<span class="label-text mb-1 text-sm font-semibold">Case title *</span>
+								<input
+									class={`input-bordered input input-sm w-full ${attemptedSubmit && !form.title.trim() ? 'input-error' : ''}`}
+									bind:value={form.title}
+									required
+									placeholder="Case title"
+									oninput={clearRequiredError}
+								/>
+								{#if attemptedSubmit && !form.title.trim()}
+									<span class="mt-1 text-xs text-error">Case title is required.</span>
+								{/if}
+							</label>
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">ECLI or identifier</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.ecli}
+									placeholder="ECLI:..."
+								/>
+							</label>
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">Court</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.court}
+									placeholder="Court"
+								/>
+							</label>
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">Jurisdiction</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.jurisdiction}
+									placeholder="Country or jurisdiction"
+								/>
+							</label>
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">Decision date</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.decision_date}
+									type="date"
+								/>
+							</label>
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">Status</span>
+								<select class="select-bordered select w-full select-sm" bind:value={form.status}>
+									{#each statusOptions as option (option)}
+										<option value={option}>{option}</option>
+									{/each}
+								</select>
+							</label>
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">Publication</span>
+								<span class="publication-toggle">
+									<input class="peer sr-only" type="checkbox" bind:checked={form.published} />
+									<span class="publication-toggle-track" aria-hidden="true">
+										<span class="publication-toggle-thumb"></span>
+									</span>
+									<span class="publication-toggle-text">Published</span>
 								</span>
 							</label>
-							<p class="mt-1 text-xs text-base-content/60">
-								Uploaded files are public when this case is public. Use links or notes for
-								internal-only material.
-							</p>
-							{#if selectedDocuments.length}
-								<div class="mt-3 grid gap-2 sm:grid-cols-2">
-									{#each selectedDocuments as file, index (`${file.name}-${file.size}-${file.lastModified}`)}
-										<div
-											class="flex items-center gap-3 rounded-xl border border-base-300 bg-base-100 p-3 shadow-sm"
-										>
-											<span class="rounded-lg bg-primary/10 p-2 text-primary">
-												<IconFileText class="h-5 w-5" />
-											</span>
-											<div class="min-w-0 flex-1">
-												<div class="truncate text-sm font-medium">{file.name}</div>
-												<div class="text-xs text-base-content/60">{formatFileSize(file.size)}</div>
-											</div>
-											<button
-												type="button"
-												class="btn btn-circle text-base-content/60 btn-ghost btn-xs hover:text-error"
-												aria-label={`Remove ${file.name}`}
-												onclick={() => removeSelectedDocument(index)}
+						</div>
+					</details>
+
+					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm" open>
+						<summary class="cursor-pointer text-base font-bold">
+							Parties & outcome
+							<span class="ml-2 text-sm font-normal text-base-content/60"
+								>Who sued, who responded, result</span
+							>
+						</summary>
+						<div class="mt-4 grid gap-3 md:grid-cols-3">
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">Plaintiffs</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.plaintiffs}
+									placeholder="Comma separated"
+								/>
+							</label>
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">Defendants</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.defendants}
+									placeholder="Comma separated"
+								/>
+							</label>
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">Outcome</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.outcome}
+									placeholder="Granted, dismissed, pending..."
+								/>
+							</label>
+							<label class="form-control w-full md:col-span-2">
+								<span class="label-text mb-1 text-sm font-semibold">Courts involved</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.courts}
+									placeholder="Comma separated if multiple courts"
+								/>
+							</label>
+						</div>
+					</details>
+
+					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
+						<summary class="cursor-pointer text-base font-bold">
+							Legal classification
+							<span class="ml-2 text-sm font-normal text-base-content/60"
+								>DSA articles, tags, legal basis</span
+							>
+						</summary>
+						<div class="mt-4 grid gap-3 md:grid-cols-3">
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">DSA articles</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.dsa_articles}
+									placeholder="Comma separated"
+								/>
+							</label>
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">Categories</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.categories}
+									placeholder="Comma separated"
+								/>
+							</label>
+							<label class="form-control w-full md:col-span-2">
+								<span class="label-text mb-1 text-sm font-semibold">Themes</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.themes}
+									placeholder="Comma separated"
+								/>
+							</label>
+							<label class="form-control w-full">
+								<span class="label-text mb-1 text-sm font-semibold">Case scope</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.case_scope}
+									placeholder="private enforcement"
+								/>
+							</label>
+							<label class="form-control w-full md:col-span-2">
+								<span class="label-text mb-1 text-sm font-semibold">Legal areas</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.legal_areas}
+									placeholder="DSA, GDPR, consumer protection..."
+								/>
+							</label>
+							<label class="form-control w-full md:col-span-3">
+								<span class="label-text mb-1 text-sm font-semibold">Legal basis / grounds</span>
+								<textarea
+									class="textarea-bordered textarea min-h-20 w-full"
+									bind:value={form.legal_basis}
+									placeholder="Comma separated legal grounds, including non-DSA claims"
+								></textarea>
+							</label>
+							<label class="form-control w-full md:col-span-3">
+								<span class="label-text mb-1 text-sm font-semibold">Keywords</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.keywords}
+									placeholder="Comma separated"
+								/>
+							</label>
+						</div>
+					</details>
+
+					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
+						<summary class="cursor-pointer text-base font-bold">
+							Procedure & timeline
+							<span class="ml-2 text-sm font-normal text-base-content/60"
+								>Events and chronology</span
+							>
+						</summary>
+						<div class="mt-4 grid gap-3 md:grid-cols-3">
+							<label class="form-control w-full md:col-span-3">
+								<span class="label-text mb-1 text-sm font-semibold">Procedural events</span>
+								<textarea
+									class="textarea-bordered textarea min-h-24 w-full font-mono text-sm"
+									bind:value={form.procedural_events}
+									placeholder="YYYY-MM-DD | Event label | Short description"
+								></textarea>
+							</label>
+							<label class="form-control w-full md:col-span-3">
+								<span class="label-text mb-1 text-sm font-semibold">Timeline</span>
+								<textarea
+									class="textarea-bordered textarea min-h-20 w-full"
+									bind:value={form.timeline}
+									placeholder="Key procedural events, dates, or court references"
+								></textarea>
+							</label>
+						</div>
+					</details>
+
+					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
+						<summary class="cursor-pointer text-base font-bold">
+							Sources & documents
+							<span class="ml-2 text-sm font-normal text-base-content/60"
+								>Files, links, source notes</span
+							>
+						</summary>
+						<div class="mt-4 grid gap-3 md:grid-cols-3">
+							<label class="form-control w-full md:col-span-3">
+								<span class="label-text mb-1 text-sm font-semibold">Primary sources</span>
+								<textarea
+									class="textarea-bordered textarea min-h-20 w-full"
+									bind:value={form.primary_sources}
+									placeholder="One primary source per line"
+								></textarea>
+							</label>
+							<div class="form-control w-full md:col-span-3">
+								<span class="label-text mb-1 text-sm font-semibold">Uploaded documents</span>
+								<input
+									id="case-documents-input"
+									bind:this={documentInput}
+									class="sr-only"
+									type="file"
+									multiple
+									accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.html,.jpg,.jpeg,.png,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,text/html,image/jpeg,image/png,image/webp"
+									onchange={selectDocuments}
+								/>
+								<label
+									for="case-documents-input"
+									class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-base-300 bg-base-200/50 px-5 py-6 text-center transition hover:border-primary hover:bg-primary/5"
+								>
+									<span class="mb-3 rounded-full bg-primary/15 p-3 text-primary">
+										<IconUpload class="h-6 w-6" />
+									</span>
+									<span class="font-semibold">Choose documents</span>
+									<span class="mt-1 text-sm text-base-content/60">
+										PDFs, Office files, text, HTML, or images
+									</span>
+								</label>
+								<p class="mt-1 text-xs text-base-content/60">
+									Uploaded files are public when this case is public. Use links or notes for
+									internal-only material.
+								</p>
+								{#if selectedDocuments.length}
+									<div class="mt-3 grid gap-2 sm:grid-cols-2">
+										{#each selectedDocuments as file, index (`${file.name}-${file.size}-${file.lastModified}`)}
+											<div
+												class="flex items-center gap-3 rounded-xl border border-base-300 bg-base-100 p-3 shadow-sm"
 											>
-												<IconX class="h-4 w-4" />
-											</button>
-										</div>
-									{/each}
-								</div>
-							{/if}
-							{#if existingDocuments.length}
-								<div class="mt-3 rounded-lg border border-base-300 p-3 text-sm">
-									<div class="font-semibold">Current public files</div>
-									<ul class="mt-2 list-disc space-y-1 pl-5">
-										{#each existingDocuments as filename (filename)}
-											<li>
-												<!-- eslint-disable svelte/no-navigation-without-resolve -->
-												<a
-													class="link"
-													href={documentUrl(filename)}
-													target="_blank"
-													rel="noreferrer"
+												<span class="rounded-lg bg-primary/10 p-2 text-primary">
+													<IconFileText class="h-5 w-5" />
+												</span>
+												<div class="min-w-0 flex-1">
+													<div class="truncate text-sm font-medium">{file.name}</div>
+													<div class="text-xs text-base-content/60">
+														{formatFileSize(file.size)}
+													</div>
+												</div>
+												<button
+													type="button"
+													class="btn btn-circle text-base-content/60 btn-ghost btn-xs hover:text-error"
+													aria-label={`Remove ${file.name}`}
+													onclick={() => removeSelectedDocument(index)}
 												>
-													{filename}
-												</a>
-												<!-- eslint-enable svelte/no-navigation-without-resolve -->
-											</li>
+													<IconX class="h-4 w-4" />
+												</button>
+											</div>
 										{/each}
-									</ul>
-								</div>
-							{/if}
+									</div>
+								{/if}
+								{#if existingDocuments.length}
+									<div class="mt-3 rounded-lg border border-base-300 p-3 text-sm">
+										<div class="font-semibold">Current public files</div>
+										<ul class="mt-2 list-disc space-y-1 pl-5">
+											{#each existingDocuments as filename (filename)}
+												<li>
+													<!-- eslint-disable svelte/no-navigation-without-resolve -->
+													<a
+														class="link"
+														href={documentUrl(filename)}
+														target="_blank"
+														rel="noreferrer"
+													>
+														{filename}
+													</a>
+													<!-- eslint-enable svelte/no-navigation-without-resolve -->
+												</li>
+											{/each}
+										</ul>
+									</div>
+								{/if}
+							</div>
+							<label class="form-control w-full md:col-span-3">
+								<span class="label-text mb-1 text-sm font-semibold">Secondary sources</span>
+								<textarea
+									class="textarea-bordered textarea min-h-20 w-full"
+									bind:value={form.secondary_sources}
+									placeholder="One secondary source per line"
+								></textarea>
+							</label>
+							<label class="form-control w-full md:col-span-3">
+								<span class="label-text mb-1 text-sm font-semibold">Source limitations</span>
+								<textarea
+									class="textarea-bordered textarea min-h-20 w-full"
+									bind:value={form.source_limitations}
+									placeholder="Notes on missing documents, copyright, confidentiality, or source reliability"
+								></textarea>
+							</label>
 						</div>
-						<label class="form-control w-full md:col-span-3">
-							<span class="label-text mb-1 text-sm font-semibold">Secondary sources</span>
-							<textarea
-								class="textarea-bordered textarea min-h-20 w-full"
-								bind:value={form.secondary_sources}
-								placeholder="One secondary source per line"
-							></textarea>
-						</label>
-						<label class="form-control w-full md:col-span-3">
-							<span class="label-text mb-1 text-sm font-semibold">Source limitations</span>
-							<textarea
-								class="textarea-bordered textarea min-h-20 w-full"
-								bind:value={form.source_limitations}
-								placeholder="Notes on missing documents, copyright, confidentiality, or source reliability"
-							></textarea>
-						</label>
-					</div>
-				</details>
+					</details>
 
-				<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
-					<summary class="cursor-pointer text-base font-bold">
-						Editorial
-						<span class="ml-2 text-sm font-normal text-base-content/60"
-							>Internal notes and public summary</span
+					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
+						<summary class="cursor-pointer text-base font-bold">
+							Editorial
+							<span class="ml-2 text-sm font-normal text-base-content/60"
+								>Internal notes and public summary</span
+							>
+						</summary>
+						<div class="mt-4 grid gap-3 md:grid-cols-3">
+							<label class="form-control w-full md:col-span-3">
+								<span class="label-text mb-1 text-sm font-semibold">Internal editorial notes</span>
+								<textarea
+									class="textarea-bordered textarea min-h-20 w-full"
+									bind:value={form.editorial_notes}
+									placeholder="Internal notes for reviewers; not intended for public display"
+								></textarea>
+							</label>
+							<div class="form-control w-full md:col-span-3">
+								<span class="label-text mb-1 text-sm font-semibold">Editorial summary</span>
+								<CaseSummaryEditor bind:value={form.summary} />
+							</div>
+						</div>
+					</details>
+				</div>
+
+				<div
+					class="sticky bottom-0 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-base-300 bg-base-100/95 px-4 py-3 shadow-sm backdrop-blur"
+				>
+					<div class="text-sm text-base-content/60">
+						{#if missingRequiredFields().length}
+							Required: {missingRequiredFields().join(', ')}
+						{:else}
+							Ready to save.
+						{/if}
+					</div>
+					<div class="flex gap-2">
+						<button class="btn btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
+							>Cancel</button
 						>
-					</summary>
-					<div class="mt-4 grid gap-3 md:grid-cols-3">
-						<label class="form-control w-full md:col-span-3">
-							<span class="label-text mb-1 text-sm font-semibold">Internal editorial notes</span>
-							<textarea
-								class="textarea-bordered textarea min-h-20 w-full"
-								bind:value={form.editorial_notes}
-								placeholder="Internal notes for reviewers; not intended for public display"
-							></textarea>
-						</label>
-						<div class="form-control w-full md:col-span-3">
-							<span class="label-text mb-1 text-sm font-semibold">Editorial summary</span>
-							<CaseSummaryEditor bind:value={form.summary} />
-						</div>
+						<button class="btn btn-primary" type="submit" disabled={saving}>
+							{saving ? 'Saving...' : isEditing ? 'Update case' : 'Create case'}
+						</button>
 					</div>
-				</details>
-			</div>
-
-			<div
-				class="sticky bottom-0 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-base-300 bg-base-100/95 px-4 py-3 shadow-sm backdrop-blur"
-			>
-				<div class="text-sm text-base-content/60">
-					{#if missingRequiredFields().length}
-						Required: {missingRequiredFields().join(', ')}
-					{:else}
-						Ready to save.
-					{/if}
 				</div>
-				<div class="flex gap-2">
-					<button class="btn btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
-						>Cancel</button
-					>
-					<button class="btn btn-primary" type="submit" disabled={saving}>
-						{saving ? 'Saving...' : isEditing ? 'Update case' : 'Create case'}
-					</button>
-				</div>
-			</div>
-		</form>
+			</form>
+			{#if caseId && authStore.isAdmin}
+				<CaseCommentsPanel {caseId} {selectedCommentId} />
+			{/if}
+		</div>
 	{/if}
 </section>
 

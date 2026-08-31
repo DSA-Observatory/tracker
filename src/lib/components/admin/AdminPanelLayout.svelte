@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { authStore, pb } from '$lib/database';
+	import { onMount } from 'svelte';
 
 	let { children } = $props();
+	let openCommentCount = $state(0);
 
 	const panels = [
 		{
@@ -14,27 +17,69 @@
 			title: 'Suggested cases',
 			description: 'Review submitted case leads',
 			path: '/admin/submissions'
+		},
+		{
+			title: 'Comments',
+			description: 'Review open case comments',
+			path: '/admin/comments'
 		}
 	] as const;
 
 	function isActive(path: (typeof panels)[number]['path']) {
 		return page.url.pathname === resolve(path);
 	}
+
+	async function loadOpenCommentCount() {
+		if (!authStore.isAdmin) return;
+		try {
+			const result = await pb
+				.collection('case_comments')
+				.getList(1, 1, { filter: 'resolved = false', fields: 'id' });
+			openCommentCount = result.totalItems;
+		} catch (err) {
+			console.error('Error loading open comment count:', err);
+		}
+	}
+
+	onMount(() => {
+		loadOpenCommentCount();
+		if (!authStore.isAdmin) return;
+
+		pb.collection('case_comments')
+			.subscribe('*', loadOpenCommentCount)
+			.catch((err) => {
+				console.error('Error subscribing to comment count:', err);
+			});
+
+		return () => {
+			pb.collection('case_comments').unsubscribe('*');
+		};
+	});
 </script>
 
-<main class="mx-auto grid w-full max-w-7xl gap-6 px-4 pb-16 sm:px-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:px-8">
+<main
+	class="mx-auto grid w-full max-w-7xl gap-6 px-4 pb-16 sm:px-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:px-8"
+>
 	<aside class="lg:sticky lg:top-24 lg:self-start">
 		<div class="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
 			<p class="px-2 text-xs font-semibold tracking-[0.24em] text-slate-400 uppercase">Admin</p>
 			<nav class="mt-4 grid gap-2" aria-label="Admin panels">
-				{#each panels as panel}
+				{#each panels as panel (panel.path)}
 					<a
 						href={resolve(panel.path)}
 						class={isActive(panel.path)
 							? 'rounded-2xl bg-slate-950 px-4 py-3 text-white shadow-sm'
 							: 'rounded-2xl px-4 py-3 text-slate-700 transition hover:bg-slate-100'}
 					>
-						<span class="block font-semibold">{panel.title}</span>
+						<span class="flex items-center justify-between gap-3 font-semibold">
+							{panel.title}
+							{#if panel.path === '/admin/comments'}
+								<span
+									class={isActive(panel.path) ? 'badge badge-sm' : 'badge badge-sm badge-neutral'}
+									>{openCommentCount}</span
+								>
+							{/if}
+						</span>
 						<span
 							class={isActive(panel.path)
 								? 'mt-1 block text-sm text-white/70'
