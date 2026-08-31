@@ -1,1 +1,0 @@
-import{N as u,x as o,ak as _,y as t,J as g,C as p,F as i,T as l,I as d,B as m}from"./CdLNlD47.js";function E(n,r){let s=null,y=t;var a;if(t){s=m;for(var e=g(document.head);e!==null&&(e.nodeType!==p||e.data!==n);)e=i(e);if(e===null)l(!1);else{var f=i(e);e.remove(),d(f)}}t||(a=document.head.appendChild(u()));try{o(()=>r(a),_)}finally{y&&(l(!0),d(s))}}export{E as h};
