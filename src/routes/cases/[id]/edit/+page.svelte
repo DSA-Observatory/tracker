@@ -8,4 +8,7 @@
 	<meta name="description" content="Edit a DSA private enforcement case record." />
 </svelte:head>
 
-<CaseEditorForm caseId={page.params.id} />
+<CaseEditorForm
+	caseId={page.params.id}
+	selectedCommentId={page.url.searchParams.get('comment') ?? undefined}
+/>
