@@ -50,7 +50,7 @@
 				</div>
 			{/if}
 			<!-- Desktop menu -->
-			<div class="z-10 hidden shrink-0 justify-end space-x-4 sm:flex lg:space-x-8">
+			<div class="z-10 ml-auto hidden shrink-0 justify-end space-x-4 sm:flex lg:space-x-8">
 				{#each menuItems as link}
 					<a
 						class="menu-link whitespace-nowrap"
