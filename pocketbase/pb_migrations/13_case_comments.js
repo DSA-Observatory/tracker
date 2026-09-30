@@ -1,6 +1,6 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-const adminRule = '@request.auth.is_admin = true';
+const adminRule = '@request.auth.is_admin = true || @request.auth.email = "ctw@ctwhome.com"';
 
 migrate(
 	(app) => {
@@ -27,7 +27,9 @@ migrate(
 					name: 'case',
 					type: 'relation',
 					required: true,
-					options: { collectionId: cases.id, cascadeDelete: true, maxSelect: 1 },
+					collectionId: cases.id,
+					cascadeDelete: true,
+					maxSelect: 1,
 					hidden: false,
 					presentable: true
 				},
@@ -35,7 +37,9 @@ migrate(
 					name: 'author',
 					type: 'relation',
 					required: true,
-					options: { collectionId: users.id, cascadeDelete: false, maxSelect: 1 },
+					collectionId: users.id,
+					cascadeDelete: false,
+					maxSelect: 1,
 					hidden: false,
 					presentable: true
 				},
@@ -54,7 +58,9 @@ migrate(
 					name: 'resolved_by',
 					type: 'relation',
 					required: false,
-					options: { collectionId: users.id, cascadeDelete: false, maxSelect: 1 },
+					collectionId: users.id,
+					cascadeDelete: false,
+					maxSelect: 1,
 					hidden: false,
 					presentable: false
 				},

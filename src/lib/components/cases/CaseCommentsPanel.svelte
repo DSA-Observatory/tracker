@@ -6,13 +6,20 @@
 	import IconMessageSquare from '~icons/lucide/message-square';
 	import IconSend from '~icons/lucide/send';
 
-	let { caseId, selectedCommentId }: { caseId: string; selectedCommentId?: string } = $props();
+	let {
+		caseId,
+		submissionId,
+		selectedCommentId
+	}: { caseId?: string; submissionId?: string; selectedCommentId?: string } = $props();
 	let comments = $state<CaseCommentRecord[]>([]);
 	let content = $state('');
 	let selectedId = $state(selectedCommentId ?? '');
 	let loading = $state(true);
 	let saving = $state(false);
 	let error = $state('');
+	let loadGeneration = 0;
+	const targetField = $derived(submissionId ? 'submission' : 'case');
+	const targetId = $derived(submissionId ?? caseId ?? '');
 
 	function authorName(comment: CaseCommentRecord) {
 		const author = comment.expand?.author;
@@ -26,25 +33,42 @@
 		}).format(new Date(value));
 	}
 
-	async function loadComments() {
+	async function loadComments(field = targetField, id = targetId) {
+		const generation = ++loadGeneration;
 		if (!authStore.isAdmin) {
 			loading = false;
 			return;
 		}
 
 		try {
-			comments = await pb.collection('case_comments').getFullList<CaseCommentRecord>({
-				filter: pb.filter('case = {:caseId}', { caseId }),
+			const loaded = await pb.collection('case_comments').getFullList<CaseCommentRecord>({
+				filter: pb.filter(`${field} = {:targetId}`, { targetId: id }),
 				sort: 'created',
 				expand: 'author,resolved_by'
 			});
+			if (generation !== loadGeneration || field !== targetField || id !== targetId) return;
+			comments = loaded;
 		} catch (err) {
+			if (generation !== loadGeneration || field !== targetField || id !== targetId) return;
 			console.error('Error loading case comments:', err);
 			error = 'Could not load comments.';
 		} finally {
-			loading = false;
+			if (generation === loadGeneration && field === targetField && id === targetId)
+				loading = false;
 		}
 	}
+
+	$effect(() => {
+		const field = targetField;
+		const id = targetId;
+		if (!id || !authStore.isAdmin) return;
+		selectedId = selectedCommentId ?? '';
+		content = '';
+		error = '';
+		comments = [];
+		loading = true;
+		loadComments(field, id);
+	});
 
 	async function addComment() {
 		const message = content.trim();
@@ -54,7 +78,7 @@
 		error = '';
 		try {
 			const comment = await pb.collection('case_comments').create<CaseCommentRecord>({
-				case: caseId,
+				[targetField]: targetId,
 				author: authStore.user.id,
 				content: message,
 				resolved: false
@@ -91,11 +115,10 @@
 	}
 
 	onMount(() => {
-		loadComments();
 		if (!authStore.isAdmin) return;
 
 		pb.collection('case_comments')
-			.subscribe('*', loadComments)
+			.subscribe('*', () => loadComments())
 			.catch((err) => {
 				console.error('Error subscribing to case comments:', err);
 			});
@@ -167,9 +190,9 @@
 			}}
 		>
 			{#if error}<p class="mb-2 text-sm text-error">{error}</p>{/if}
-			<label class="sr-only" for="case-comment">Write a comment</label>
+			<label class="sr-only" for={`${targetField}-comment`}>Write a comment</label>
 			<textarea
-				id="case-comment"
+				id={`${targetField}-comment`}
 				class="textarea-bordered textarea min-h-24 w-full"
 				bind:value={content}
 				maxlength="4000"

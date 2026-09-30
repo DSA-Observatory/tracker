@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import CasesTable from '$lib/components/CasesTable.svelte';
+
+	const mapStartsCollapsed = $derived(page.url.searchParams.get('map') !== 'expanded');
 </script>
 
 <svelte:head>
@@ -19,7 +22,7 @@
 </svelte:head>
 
 <main
-	class="-mt-4 min-h-[calc(100dvh-4rem)] overflow-visible bg-slate-50/80 sm:-mt-10 md:h-[calc(100dvh-4rem)] md:overflow-hidden"
+	class="-mt-4 min-h-[calc(100dvh-4rem)] overflow-visible bg-base-200/60 sm:-mt-10 md:h-[calc(100dvh-4rem)] md:overflow-hidden"
 >
-	<CasesTable />
+	<CasesTable showMap={true} {mapStartsCollapsed} homeIntro={true} cardVariant="landing" />
 </main>

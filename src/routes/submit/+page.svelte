@@ -54,7 +54,7 @@
 				summary: summary.trim(),
 				submitter_name: submitterName.trim(),
 				submitter_email: submitterEmail.trim(),
-				status: 'new'
+				status: 'pending'
 			});
 
 			title = '';

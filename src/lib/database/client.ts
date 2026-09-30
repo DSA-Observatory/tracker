@@ -1,7 +1,7 @@
 import PocketBase from 'pocketbase';
 import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
 
-export const pb = new PocketBase(PUBLIC_POCKETBASE_URL || 'http://localhost:46218');
+export const pb = new PocketBase(PUBLIC_POCKETBASE_URL || 'http://localhost:64011');
 pb.autoCancellation(false);
 
 // Types for the todos collection
@@ -73,7 +73,13 @@ export interface CaseRecord {
 	updated: string;
 }
 
-export type CaseSubmissionStatus = 'new' | 'review' | 'accepted' | 'rejected' | 'archived';
+export type CaseSubmissionStatus =
+	| 'new'
+	| 'pending'
+	| 'review'
+	| 'accepted'
+	| 'rejected'
+	| 'archived';
 
 export interface CaseSubmissionRecord {
 	id: string;
@@ -109,6 +115,13 @@ export interface CaseSubmissionRecord {
 	submitter_email?: string;
 	status: CaseSubmissionStatus;
 	editorial_notes?: string;
+	resulting_case?: string;
+	decided_by?: string;
+	decided_at?: string;
+	expand?: {
+		resulting_case?: CaseRecord;
+		decided_by?: { id: string; email: string; name?: string; username?: string };
+	};
 	created: string;
 	updated: string;
 }

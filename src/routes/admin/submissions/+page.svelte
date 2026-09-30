@@ -2,19 +2,23 @@
 	import { resolve } from '$app/paths';
 	import AdminPanelLayout from '$lib/components/admin/AdminPanelLayout.svelte';
 	import { onMount } from 'svelte';
-	import {
-		authStore,
-		pb,
-		type CaseSubmissionRecord,
-		type CaseSubmissionStatus
-	} from '$lib/database';
+	import { authStore, pb, type CaseSubmissionRecord } from '$lib/database';
+	import type { CaseCommentRecord } from '$lib/comments';
 
 	let submissions = $state<CaseSubmissionRecord[]>([]);
 	let loading = $state(true);
 	let error = $state('');
-	let savingId = $state('');
+	let comments = $state<CaseCommentRecord[]>([]);
+	let statusFilter = $state<'pending' | 'accepted' | 'rejected'>('pending');
 
-	const canReview = $derived(authStore.isAuthenticated);
+	const canReview = $derived(authStore.isAdmin);
+	const filteredSubmissions = $derived(
+		submissions.filter((submission) =>
+			statusFilter === 'pending'
+				? ['new', 'pending', 'review'].includes(submission.status)
+				: submission.status === statusFilter
+		)
+	);
 
 	function formatDate(value?: string) {
 		return value
@@ -48,7 +52,16 @@
 	}
 
 	function sourceLinks(submission: CaseSubmissionRecord) {
-		return [...list(submission.document_links), submission.case_url].filter(Boolean) as string[];
+		return [...list(submission.document_links), submission.case_url].filter(
+			(value): value is string => {
+				if (!value) return false;
+				try {
+					return ['http:', 'https:'].includes(new URL(value).protocol);
+				} catch {
+					return false;
+				}
+			}
+		);
 	}
 
 	async function loadSubmissions() {
@@ -61,9 +74,16 @@
 		error = '';
 
 		try {
-			submissions = await pb.collection('case_submissions').getFullList<CaseSubmissionRecord>({
-				sort: '-created'
-			});
+			[submissions, comments] = await Promise.all([
+				pb.collection('case_submissions').getFullList<CaseSubmissionRecord>({
+					sort: '-created',
+					expand: 'resulting_case,decided_by'
+				}),
+				pb.collection('case_comments').getFullList<CaseCommentRecord>({
+					filter: "submission != ''",
+					fields: 'id,submission,resolved'
+				})
+			]);
 		} catch (err) {
 			console.error('Error loading submissions:', err);
 			error = 'Could not load case submissions.';
@@ -76,10 +96,7 @@
 		return [...items].sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());
 	}
 
-	function applyRealtimeSubmission(event: {
-		action: string;
-		record: CaseSubmissionRecord;
-	}) {
+	function applyRealtimeSubmission(event: { action: string; record: CaseSubmissionRecord }) {
 		if (event.action === 'create') {
 			submissions = sortSubmissions([event.record, ...submissions]);
 		} else if (event.action === 'update') {
@@ -91,38 +108,9 @@
 		}
 	}
 
-	async function updateStatus(submission: CaseSubmissionRecord, status: CaseSubmissionStatus) {
-		savingId = submission.id;
-		error = '';
-
-		try {
-			const updated = await pb
-				.collection('case_submissions')
-				.update<CaseSubmissionRecord>(submission.id, { status });
-			submissions = submissions.map((item) => (item.id === updated.id ? updated : item));
-		} catch (err) {
-			console.error('Error updating submission:', err);
-			error = 'Could not update this submission.';
-		} finally {
-			savingId = '';
-		}
-	}
-
-	async function deleteSubmission(submission: CaseSubmissionRecord) {
-		if (!confirm(`Permanently delete "${submission.title}"?`)) return;
-
-		savingId = submission.id;
-		error = '';
-
-		try {
-			await pb.collection('case_submissions').delete(submission.id);
-			submissions = submissions.filter((item) => item.id !== submission.id);
-		} catch (err) {
-			console.error('Error deleting submission:', err);
-			error = 'Could not delete this submission.';
-		} finally {
-			savingId = '';
-		}
+	function commentCounts(submissionId: string) {
+		const matching = comments.filter((comment) => comment.submission === submissionId);
+		return { total: matching.length, open: matching.filter((comment) => !comment.resolved).length };
 	}
 
 	onMount(() => {
@@ -130,12 +118,20 @@
 
 		if (!canReview) return;
 
-		pb.collection('case_submissions').subscribe('*', applyRealtimeSubmission).catch((err) => {
-			console.error('Error subscribing to case submissions:', err);
-		});
+		pb.collection('case_submissions')
+			.subscribe('*', applyRealtimeSubmission)
+			.catch((err) => {
+				console.error('Error subscribing to case submissions:', err);
+			});
+		pb.collection('case_comments')
+			.subscribe('*', loadSubmissions)
+			.catch((err) => {
+				console.error('Error subscribing to suggestion comments:', err);
+			});
 
 		return () => {
 			pb.collection('case_submissions').unsubscribe('*');
+			pb.collection('case_comments').unsubscribe('*');
 		};
 	});
 </script>
@@ -164,7 +160,7 @@
 
 		{#if !canReview}
 			<div class="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-900">
-				Sign in to review submissions.
+				This page is only available to administrators.
 			</div>
 		{:else if error}
 			<div class="mt-8 rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">{error}</div>
@@ -175,120 +171,136 @@
 				No submissions yet.
 			</div>
 		{:else}
-			<div class="mt-8 space-y-2.5">
-					{#each submissions as submission}
-						{@const links = sourceLinks(submission)}
-						{@const parties = partyText(submission)}
-					<article
-						class="group rounded-sm border border-slate-200 bg-white p-4 shadow-xs shadow-slate-200/40 transition duration-200 hover:border-slate-300"
+			<div class="mt-6 flex flex-wrap gap-2" aria-label="Filter suggested cases by status">
+				{#each ['pending', 'accepted', 'rejected'] as filter}
+					<button
+						class={statusFilter === filter ? 'btn btn-sm btn-neutral' : 'btn btn-outline btn-sm'}
+						type="button"
+						onclick={() => (statusFilter = filter as typeof statusFilter)}
 					>
-						<div class="flex h-full flex-col gap-4">
-							<div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-								<div class="min-w-0 flex-1">
-									<div class="mb-2 flex flex-wrap items-center gap-2">
-									<span
-										class="rounded-sm border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs font-medium text-slate-600 capitalize"
-										>{submission.status}</span
-									>
-									<span class="text-xs text-slate-400"
-										>Submitted {formatDate(submission.created)}</span
-									>
-								</div>
-								<a
-									class="line-clamp-2 text-lg leading-tight font-semibold tracking-tight text-slate-950 hover:text-slate-700 hover:underline"
-									href={resolve('/admin/submissions/[id]', { id: submission.id })}
-								>
-									{submission.title}
-								</a>
-								<div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
-								<span>{submission.jurisdiction || 'Jurisdiction not listed'}</span>
-									<span class="text-slate-300" aria-hidden="true">/</span>
-									<span>{submission.court || 'Court not listed'}</span>
-									{#if submission.ecli}
-										<span class="text-slate-300" aria-hidden="true">/</span>
-										<span class="font-mono text-xs text-slate-500">{submission.ecli}</span>
-									{/if}
-								</div>
-							</div>
-							<div class="flex shrink-0 flex-wrap gap-2 opacity-100 transition lg:opacity-0 lg:group-focus-within:opacity-100 lg:group-hover:opacity-100">
-								<a class="btn btn-outline btn-sm" href={resolve('/admin/submissions/[id]', { id: submission.id })}>
-									Review
-								</a>
-								<button
-									class="btn btn-error btn-outline btn-sm"
-									type="button"
-									disabled={savingId === submission.id}
-									onclick={() => deleteSubmission(submission)}
-								>
-									Delete
-								</button>
-							</div>
-						</div>
-
-						<div
-							class="grid gap-3 text-sm lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,0.9fr)]"
-						>
-							<section class="min-w-0 rounded-sm border border-slate-100 bg-slate-50/40 p-3">
-								<div class="text-[0.72rem] font-medium text-slate-400">Suggestion status</div>
-								<div class="mt-2 flex flex-wrap gap-1.5">
-									{#each ['review', 'accepted', 'rejected', 'archived'] as status}
-										<button
-											class={submission.status === status
-												? 'rounded-sm border border-slate-950 bg-slate-950 px-1.5 py-0.5 text-[0.82rem] leading-5 font-medium text-white'
-												: 'rounded-sm border border-slate-200 bg-white px-1.5 py-0.5 text-[0.82rem] leading-5 font-medium text-slate-700 hover:bg-slate-50'}
-											type="button"
-											disabled={savingId === submission.id || submission.status === status}
-											onclick={() => updateStatus(submission, status as CaseSubmissionStatus)}
-										>
-											{status}
-										</button>
-									{/each}
-								</div>
-							</section>
-
-							<section class="min-w-0 rounded-sm border border-slate-100 bg-white p-3">
-								<div class="flex items-center justify-between gap-2">
-									<div class="text-[0.72rem] font-medium text-slate-400">Sources</div>
-									{#if links.length}
-										<a
-											class="text-xs font-medium text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
-											href={links[0]}
-											target="_blank"
-											rel="noreferrer">Open{links.length > 1 ? ` +${links.length - 1}` : ''}</a
-										>
-									{/if}
-								</div>
-								<p class="mt-2 line-clamp-1 text-[0.95rem] text-slate-900">
-									{links.length ? sourceLabel(links[0]) : 'No source recorded'}
-								</p>
-							</section>
-
-							<section class="min-w-0 rounded-sm border border-slate-100 bg-white p-3">
-								<div class="text-[0.72rem] font-medium text-slate-400">Context</div>
-								<div class="mt-2 space-y-1.5 text-[0.95rem] text-slate-900">
-									{#if parties}
-										<p class="line-clamp-1">
-											<span class="text-xs font-normal text-slate-400">Parties</span>
-											<span class="text-slate-200"> / </span>
-											<span>{parties}</span>
-										</p>
-									{/if}
-									{#if submission.summary}
-										<p class="line-clamp-2">
-											<span class="text-xs font-normal text-slate-400">Reason</span>
-											<span class="text-slate-200"> / </span>
-											<span>{stripHtml(submission.summary)}</span>
-										</p>
-									{:else if !parties}
-										<p class="text-slate-500">No contextual metadata</p>
-									{/if}
-								</div>
-							</section>
-						</div>
-					</div>
-					</article>
+						{filter}
+					</button>
 				{/each}
 			</div>
+			{#if !filteredSubmissions.length}
+				<div class="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-5 text-slate-500">
+					No {statusFilter} submissions.
+				</div>
+			{:else}
+				<div class="mt-8 space-y-2.5">
+					{#each filteredSubmissions as submission}
+						{@const links = sourceLinks(submission)}
+						{@const parties = partyText(submission)}
+						{@const commentCount = commentCounts(submission.id)}
+						<article
+							class="group rounded-sm border border-slate-200 bg-white p-4 shadow-xs shadow-slate-200/40 transition duration-200 hover:border-slate-300"
+						>
+							<div class="flex h-full flex-col gap-4">
+								<div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+									<div class="min-w-0 flex-1">
+										<div class="mb-2 flex flex-wrap items-center gap-2">
+											<span
+												class="rounded-sm border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs font-medium text-slate-600 capitalize"
+												>{submission.status}</span
+											>
+											<span class="text-xs text-slate-400"
+												>Submitted {formatDate(submission.created)}</span
+											>
+										</div>
+										<a
+											class="line-clamp-2 text-lg leading-tight font-semibold tracking-tight text-slate-950 hover:text-slate-700 hover:underline"
+											href={resolve('/admin/submissions/[id]', { id: submission.id })}
+										>
+											{submission.title}
+										</a>
+										<div
+											class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500"
+										>
+											<span>{submission.jurisdiction || 'Jurisdiction not listed'}</span>
+											<span class="text-slate-300" aria-hidden="true">/</span>
+											<span>{submission.court || 'Court not listed'}</span>
+											{#if submission.ecli}
+												<span class="text-slate-300" aria-hidden="true">/</span>
+												<span class="font-mono text-xs text-slate-500">{submission.ecli}</span>
+											{/if}
+										</div>
+									</div>
+									<div
+										class="flex shrink-0 flex-wrap gap-2 opacity-100 transition lg:opacity-0 lg:group-focus-within:opacity-100 lg:group-hover:opacity-100"
+									>
+										<a
+											class="btn btn-outline btn-sm"
+											href={resolve('/admin/submissions/[id]', { id: submission.id })}
+										>
+											Review
+										</a>
+										{#if submission.resulting_case}
+											<a
+												class="btn btn-sm btn-primary"
+												href={resolve('/cases/[id]/edit', { id: submission.resulting_case })}
+												>Open draft</a
+											>
+										{/if}
+									</div>
+								</div>
+
+								<div
+									class="grid gap-3 text-sm lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,0.9fr)]"
+								>
+									<section class="min-w-0 rounded-sm border border-slate-100 bg-slate-50/40 p-3">
+										<div class="text-[0.72rem] font-medium text-slate-400">Suggestion status</div>
+										<p class="mt-2 text-[0.95rem] text-slate-900 capitalize">{submission.status}</p>
+										<p class="mt-1 text-xs text-slate-500">
+											{commentCount.total} comment{commentCount.total === 1 ? '' : 's'}
+											{#if commentCount.open}
+												/ {commentCount.open} unresolved{/if}
+										</p>
+									</section>
+
+									<section class="min-w-0 rounded-sm border border-slate-100 bg-white p-3">
+										<div class="flex items-center justify-between gap-2">
+											<div class="text-[0.72rem] font-medium text-slate-400">Sources</div>
+											{#if links.length}
+												<a
+													class="text-xs font-medium text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
+													href={links[0]}
+													target="_blank"
+													rel="noreferrer">Open{links.length > 1 ? ` +${links.length - 1}` : ''}</a
+												>
+											{/if}
+										</div>
+										<p class="mt-2 line-clamp-1 text-[0.95rem] text-slate-900">
+											{links.length ? sourceLabel(links[0]) : 'No source recorded'}
+										</p>
+									</section>
+
+									<section class="min-w-0 rounded-sm border border-slate-100 bg-white p-3">
+										<div class="text-[0.72rem] font-medium text-slate-400">Context</div>
+										<div class="mt-2 space-y-1.5 text-[0.95rem] text-slate-900">
+											{#if parties}
+												<p class="line-clamp-1">
+													<span class="text-xs font-normal text-slate-400">Parties</span>
+													<span class="text-slate-200"> / </span>
+													<span>{parties}</span>
+												</p>
+											{/if}
+											{#if submission.summary}
+												<p class="line-clamp-2">
+													<span class="text-xs font-normal text-slate-400">Reason</span>
+													<span class="text-slate-200"> / </span>
+													<span>{stripHtml(submission.summary)}</span>
+												</p>
+											{:else if !parties}
+												<p class="text-slate-500">No contextual metadata</p>
+											{/if}
+										</div>
+									</section>
+								</div>
+							</div>
+						</article>
+					{/each}
+				</div>
+			{/if}
 		{/if}
 	</section>
 </AdminPanelLayout>

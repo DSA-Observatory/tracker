@@ -7,7 +7,7 @@ const pocketbaseUrl =
 	process.env.POCKETBASE_PROD_URL ||
 	process.env.POCKETBASE_URL ||
 	process.env.PUBLIC_POCKETBASE_URL ||
-	'http://localhost:46218';
+	'http://localhost:64011';
 const adminEmail = process.env.POCKETBASE_SUPERUSER_EMAIL || process.env.POCKETBASE_ADMIN_EMAIL;
 const adminPassword =
 	process.env.POCKETBASE_SUPERUSER_PASSWORD || process.env.POCKETBASE_ADMIN_PASSWORD;
@@ -16,15 +16,18 @@ if (!adminEmail || !adminPassword) {
 	throw new Error('POCKETBASE_SUPERUSER_EMAIL and POCKETBASE_SUPERUSER_PASSWORD are required.');
 }
 
+const adminRule = '(@request.auth.email = "ctw@ctwhome.com" || @request.auth.is_admin = true)';
+const authenticatedRule = "@request.auth.id != ''";
+
 const collection = {
 	name: 'cases',
 	type: 'base',
 	system: false,
-	listRule: "published = true || @request.auth.id != ''",
-	viewRule: "published = true || @request.auth.id != ''",
-	createRule: "@request.auth.id != ''",
-	updateRule: "@request.auth.id != ''",
-	deleteRule: "@request.auth.id != ''",
+	listRule: `published = true || ${adminRule}`,
+	viewRule: `published = true || ${adminRule}`,
+	createRule: `${adminRule} || (${authenticatedRule} && @request.body.published != true)`,
+	updateRule: `${adminRule} || (${authenticatedRule} && @request.body.published:changed = false)`,
+	deleteRule: authenticatedRule,
 	fields: [
 		{
 			name: 'case_id',
@@ -81,7 +84,7 @@ const collection = {
 				'image/webp'
 			],
 			thumbs: [],
-			protected: false
+			protected: true
 		},
 		{ name: 'document_links', type: 'json', required: false, maxSize: 2000000 },
 		{ name: 'citations_to', type: 'json', required: false, maxSize: 2000000 },

@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { authStore, pb, type CaseRecord, type CaseStatus } from '$lib/database';
+	import {
+		authStore,
+		pb,
+		type CaseRecord,
+		type CaseStatus,
+		type CaseSubmissionRecord
+	} from '$lib/database';
 	import IconArrowLeft from '~icons/lucide/arrow-left';
 	import IconDownload from '~icons/lucide/download';
 	import IconFileText from '~icons/lucide/file-text';
@@ -27,6 +33,8 @@
 	let attemptedSubmit = $state(false);
 	let form = $state<CaseForm>(emptyCaseForm());
 	let currentRecord = $state<CaseRecord>();
+	let originatingSubmission = $state<CaseSubmissionRecord>();
+	let fileToken = $state('');
 	let existingDocuments = $state<string[]>([]);
 	let selectedDocuments = $state<File[]>([]);
 	let documentInput = $state<HTMLInputElement>();
@@ -75,6 +83,15 @@
 		try {
 			const record = await pb.collection('cases').getOne<CaseRecord>(id);
 			currentRecord = record;
+			if (authStore.isAdmin && record.documents?.length) fileToken = await pb.files.getToken();
+			if (authStore.isAdmin) {
+				const origins = await pb
+					.collection('case_submissions')
+					.getList<CaseSubmissionRecord>(1, 1, {
+						filter: pb.filter('resulting_case = {:id}', { id })
+					});
+				originatingSubmission = origins.items[0];
+			}
 			existingDocuments = record.documents ?? [];
 			form = {
 				case_id: record.case_id,
@@ -118,7 +135,10 @@
 	}
 
 	function documentUrl(filename: string) {
-		return currentRecord ? pb.files.getURL(currentRecord, filename) : '#';
+		if (!currentRecord) return '#';
+		return fileToken
+			? pb.files.getURL(currentRecord, filename, { token: fileToken })
+			: pb.files.getURL(currentRecord, filename);
 	}
 
 	function selectDocuments(event: Event) {
@@ -420,7 +440,7 @@
 			editorial_notes: form.editorial_notes.trim(),
 			keywords: splitCaseFormList(form.keywords),
 			dsa_articles: splitCaseFormList(form.dsa_articles),
-			published: form.published || form.status === 'published'
+			published: form.published
 		};
 
 		try {
@@ -471,6 +491,22 @@
 			</p>
 			<h1 class="text-3xl font-black">{isEditing ? 'Edit case' : 'Create case'}</h1>
 		</div>
+		{#if authStore.isAdmin}
+			<div class="join" role="group" aria-label="Publication status">
+				<button
+					class={`btn join-item btn-sm ${form.published ? 'btn-ghost' : 'btn-primary'}`}
+					type="button"
+					aria-pressed={!form.published}
+					onclick={() => (form.published = false)}>Draft</button
+				>
+				<button
+					class={`btn join-item btn-sm ${form.published ? 'btn-primary' : 'btn-ghost'}`}
+					type="button"
+					aria-pressed={form.published}
+					onclick={() => (form.published = true)}>Published</button
+				>
+			</div>
+		{/if}
 		<div class="flex flex-wrap items-center gap-2">
 			{#if canWrite && !isEditing}
 				<button class="btn gap-2 btn-outline btn-sm" type="button" onclick={downloadCsvTemplate}
@@ -518,6 +554,16 @@
 			>
 				{#if error}
 					<div class="mb-4 alert alert-error">{error}</div>
+				{/if}
+				{#if originatingSubmission}
+					<div class="mb-4 rounded-lg border border-info/30 bg-info/10 p-3 text-sm">
+						Created from
+						<a
+							class="font-semibold underline"
+							href={resolve('/admin/submissions/[id]', { id: originatingSubmission.id })}
+							>suggestion {originatingSubmission.title}</a
+						>.
+					</div>
 				{/if}
 
 				<div
@@ -600,16 +646,6 @@
 										<option value={option}>{option}</option>
 									{/each}
 								</select>
-							</label>
-							<label class="form-control w-full">
-								<span class="label-text mb-1 text-sm font-semibold">Publication</span>
-								<span class="publication-toggle">
-									<input class="peer sr-only" type="checkbox" bind:checked={form.published} />
-									<span class="publication-toggle-track" aria-hidden="true">
-										<span class="publication-toggle-thumb"></span>
-									</span>
-									<span class="publication-toggle-text">Published</span>
-								</span>
 							</label>
 						</div>
 					</details>
@@ -936,56 +972,5 @@
 		border-color: var(--color-primary);
 		outline: 2px solid color-mix(in oklab, var(--color-primary) 22%, transparent);
 		outline-offset: 1px;
-	}
-
-	.publication-toggle {
-		display: flex;
-		min-height: 2.75rem;
-		cursor: pointer;
-		align-items: center;
-		gap: 0.75rem;
-		border: 1px solid color-mix(in oklab, currentColor 24%, transparent);
-		border-radius: 0.75rem;
-		background: var(--color-base-100);
-		padding: 0.25rem 0.875rem;
-		box-shadow: 0 1px 2px color-mix(in oklab, black 8%, transparent);
-	}
-
-	.publication-toggle:focus-within {
-		border-color: var(--color-primary);
-		outline: 2px solid color-mix(in oklab, var(--color-primary) 22%, transparent);
-		outline-offset: 1px;
-	}
-
-	.publication-toggle-track {
-		display: flex;
-		height: 1.35rem;
-		width: 2.35rem;
-		align-items: center;
-		border-radius: 999px;
-		background: color-mix(in oklab, currentColor 16%, transparent);
-		padding: 0.15rem;
-		transition: background-color 120ms ease;
-	}
-
-	.publication-toggle-thumb {
-		height: 1.05rem;
-		width: 1.05rem;
-		border-radius: 999px;
-		background: var(--color-base-100);
-		box-shadow: 0 1px 2px color-mix(in oklab, black 24%, transparent);
-		transition: transform 120ms ease;
-	}
-
-	.publication-toggle .peer:checked + .publication-toggle-track {
-		background: var(--color-primary);
-	}
-
-	.publication-toggle .peer:checked + .publication-toggle-track .publication-toggle-thumb {
-		transform: translateX(1rem);
-	}
-
-	.publication-toggle-text {
-		font-weight: 600;
 	}
 </style>

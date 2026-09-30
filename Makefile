@@ -8,7 +8,7 @@ dev:
 dev-web:
 	$(COMPOSE) up -d pocketbase
 	@set -a; [ ! -f .env ] || . ./.env; set +a; \
-		bun install && bun run dev -- --host 0.0.0.0 --port "$${FRONTEND_PORT:-46217}"
+		bun install && bun run dev -- --host 0.0.0.0 --port "$${FRONTEND_PORT:-64010}"
 
 down:
 	$(COMPOSE) down

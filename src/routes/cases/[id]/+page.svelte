@@ -9,6 +9,7 @@
 	let relatedCases = $state<CaseRecord[]>([]);
 	let loading = $state(true);
 	let error = $state('');
+	let fileToken = $state('');
 
 	const canWrite = $derived(authStore.isAuthenticated);
 	const sourceLinks = $derived(buildSourceLinks(record));
@@ -66,7 +67,10 @@
 	}
 
 	function documentUrl(filename: string) {
-		return record ? pb.files.getURL(record, filename) : '#';
+		if (!record) return '#';
+		return fileToken
+			? pb.files.getURL(record, filename, { token: fileToken })
+			: pb.files.getURL(record, filename);
 	}
 
 	function linkedTextParts(value?: string) {
@@ -120,7 +124,8 @@
 			const id = page.params.id;
 			if (!id) throw new Error('Missing case id.');
 			record = await pb.collection('cases').getOne<CaseRecord>(id);
-			if (!record.published && !authStore.isAuthenticated) {
+			if (authStore.isAdmin && record.documents?.length) fileToken = await pb.files.getToken();
+			if (!record.published && !authStore.isAdmin) {
 				error = 'This case is not published.';
 				record = undefined;
 				return;
@@ -135,7 +140,7 @@
 				relatedCases = (
 					await pb.collection('cases').getFullList<CaseRecord>({ sort: '-decision_date,-created' })
 				)
-					.filter((item) => item.id !== record?.id && (item.published || authStore.isAuthenticated))
+					.filter((item) => item.id !== record?.id && (item.published || authStore.isAdmin))
 					.filter((item) =>
 						[...list(item.dsa_articles), ...list(item.legal_areas), ...list(item.themes)].some(
 							(tag) => legalTags.includes(tag)

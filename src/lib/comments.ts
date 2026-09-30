@@ -6,7 +6,8 @@ export interface CommentCaseRecord {
 
 export interface CaseCommentRecord {
 	id: string;
-	case: string;
+	case?: string;
+	submission?: string;
 	content: string;
 	author: string;
 	resolved: boolean;
@@ -33,6 +34,7 @@ export function groupOpenComments(comments: CaseCommentRecord[]) {
 		const caseRecord = comment.expand?.case;
 		if (!caseRecord) continue;
 
+		if (!comment.case) continue;
 		const group = groups.get(comment.case) ?? { caseRecord, comments: [] };
 		group.comments.push(comment);
 		groups.set(comment.case, group);

@@ -34,7 +34,7 @@
 		try {
 			const result = await pb
 				.collection('case_comments')
-				.getList(1, 1, { filter: 'resolved = false', fields: 'id' });
+				.getList(1, 1, { filter: "resolved = false && case != ''", fields: 'id' });
 			openCommentCount = result.totalItems;
 		} catch (err) {
 			console.error('Error loading open comment count:', err);

@@ -27,7 +27,7 @@
 		error = '';
 		try {
 			comments = await pb.collection('case_comments').getFullList<CaseCommentRecord>({
-				filter: 'resolved = false',
+				filter: "resolved = false && case != ''",
 				sort: '-created',
 				expand: 'case,author'
 			});
@@ -114,7 +114,9 @@
 							{#each group.comments as comment (comment.id)}
 								<a
 									class="block py-3 text-slate-700 transition hover:text-slate-950"
-									href={resolve(`/cases/${group.caseRecord.id}/edit?comment=${encodeURIComponent(comment.id)}`)}
+									href={resolve(
+										`/cases/${group.caseRecord.id}/edit?comment=${encodeURIComponent(comment.id)}`
+									)}
 								>
 									<p class="line-clamp-2 text-sm">{comment.content}</p>
 									<time class="mt-1 block text-xs text-slate-400" datetime={comment.created}

@@ -475,7 +475,7 @@ def main():
     args = parser.parse_args()
 
     load_env(args.env)
-    base_url = (args.target_url or os.environ.get("POCKETBASE_TARGET_URL") or os.environ.get("POCKETBASE_PROD_URL") or os.environ.get("PUBLIC_POCKETBASE_URL") or "http://localhost:8095").rstrip("/")
+    base_url = (args.target_url or os.environ.get("POCKETBASE_TARGET_URL") or os.environ.get("POCKETBASE_PROD_URL") or os.environ.get("PUBLIC_POCKETBASE_URL") or "http://localhost:64011").rstrip("/")
     source_path = Path(args.xlsx)
     payloads = parse_cases(source_path, args.sheet)
     errors, warnings = validate_payloads(payloads)
