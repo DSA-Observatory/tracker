@@ -105,6 +105,41 @@ The intended ingestion model is async and editorially reviewed.
 
 Suggested keyword examples include `Digital Services Act`, `DSA`, and `Verordening digitale diensten`.
 
+### Review-only XLSX replacement planning
+
+For the applied replacement's editorial follow-up, publication review and recovery notes, see [Data next actions](docs/data-next-actions.md).
+
+`scripts/plan-cases-replacement.py` reads the DSA sheet, production JSON snapshots, and a fully reviewed row-mapping CSV to produce private review artifacts. It has no network, authentication, PocketBase write, apply, or delete functionality. Use a private output directory outside the repository; the command creates `normalized-cases.json`, `migration-plan.json`, and `migration-review.csv` with directory/file modes `0700`/`0600` and refuses to overwrite existing outputs.
+
+```sh
+python3 scripts/plan-cases-replacement.py /path/to/cases.xlsx \
+  --cases /private/path/production-cases.json \
+  --comments /private/path/production-case_comments.json \
+  --matches /private/path/workbook-reconciliation.csv \
+  --comment-audit /private/path/comment-alignment.csv \
+  --out-dir /private/path/prepared-plan
+```
+
+Every mapping remains an approval-required proposal; candidate matches are blocking and unresolved. Blank workbook replacement fields are explicit clearing proposals. Unmapped production records and their comments must be retained or hidden, never deleted. Before any separately implemented application step, export and compare fresh snapshot hashes, take a complete backup, and require a rollback-capable transaction. Do not use the old replacement importer for this reviewed migration: its title-derived IDs and stale-record deletion can break record identity and cascade comment history.
+
+### Approved replacement application
+
+`scripts/apply-cases-replacement.py` is a narrowly scoped companion for an explicitly approved plan. It is dry-run by default, accepts only verified planner artifacts and source hashes, writes its private batch/rollback artifacts outside the repository, and never writes `case_comments` or deletes records. `--apply` additionally requires an exact HTTPS target confirmation, a fresh production snapshot match, a verified server backup, and one PocketBase batch transaction; it restores the prior batch setting afterward.
+
+```sh
+python3 scripts/apply-cases-replacement.py \
+  --normalized /private/path/prepared-plan/normalized-cases.json \
+  --plan /private/path/prepared-plan/migration-plan.json \
+  --xlsx /private/path/cases.xlsx \
+  --cases /private/path/production-cases.json \
+  --comments /private/path/production-case_comments.json \
+  --matches /private/path/workbook-reconciliation.csv \
+  --comment-audit /private/path/comment-alignment.csv \
+  --out-dir /private/path/application-dry-run
+```
+
+Do not use `--apply` until a reviewer has checked the dry-run artifacts and provided the target confirmation. On an ambiguous batch error, do not retry: inspect the private receipt and reconcile the deterministic record IDs first.
+
 ## Open Product Decisions
 
 - Should the tracker publish one entry per judicial decision, or bundle multiple decisions under one case/dispute page?
