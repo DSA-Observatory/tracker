@@ -7,6 +7,7 @@
 		type StyleSpecification
 	} from 'maplibre-gl';
 	import { resolve } from '$app/paths';
+	import { PUBLIC_CARTO_API_KEY } from '$env/static/public';
 	import { onMount, tick, untrack } from 'svelte';
 	import { pb, type CaseRecord } from '$lib/database';
 
@@ -50,10 +51,7 @@
 			'carto-voyager': {
 				type: 'raster',
 				tiles: [
-					'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-					'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-					'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-					'https://d.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
+					`https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png${PUBLIC_CARTO_API_KEY ? `?key=${encodeURIComponent(PUBLIC_CARTO_API_KEY)}` : ''}`
 				],
 				tileSize: 256,
 				attribution: '&copy; OpenStreetMap contributors &copy; CARTO'

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Case suggestion & review workflow</title>
+<style>
+*{box-sizing:border-box}body{margin:0;width:1920px;height:1080px;background:#080808;font-family:Arial,Helvetica,sans-serif;color:#10131b;overflow:hidden}.title{position:absolute;left:62px;top:42px;margin:0;color:#ffca05;font-size:52px;font-weight:800;letter-spacing:-1.5px}.subtitle{position:absolute;left:65px;top:112px;color:#c4c4c4;font-size:25px}.board{position:absolute;left:40px;top:174px;width:1840px;height:850px;background:#fff;border-radius:30px;padding:44px 48px}.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:46px}.step{position:relative}.eyebrow{display:flex;align-items:center;gap:14px;margin-bottom:12px;font-size:18px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#6a6e78}.number{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#ffca05;color:#121212;letter-spacing:0;font-size:18px}.step h2{font-size:35px;letter-spacing:-.8px;margin:0 0 22px;font-weight:800}.arrow{position:absolute;top:34px;right:-36px;color:#111;font-size:42px;font-weight:400}.screen{height:414px;border:1px solid #dfe3e8;border-radius:14px;overflow:hidden;background:#fafafa;box-shadow:0 10px 30px #14213d0c}.screen img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}.step p{margin:23px 0 0;font-size:23px;line-height:1.45;color:#454b56}.step p strong{color:#141922;font-weight:700}.result{position:absolute;left:48px;right:48px;bottom:79px;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;border-radius:14px;background:#fff6cd;gap:30px}.result strong{font-size:27px;letter-spacing:-.4px}.result span{font-size:23px;color:#4c4425}.note{position:absolute;left:49px;bottom:30px;color:#767b85;font-size:17px}.accepted{display:inline-block;padding:5px 10px;border-radius:7px;background:#e7f5ee;color:#08784f;font-size:18px;font-weight:700;vertical-align:middle;margin-left:9px}
+</style>
+</head>
+<body>
+<h1 class="title">Case suggestion &amp; review workflow</h1>
+<div class="subtitle">From community lead to a private, editable draft</div>
+<main class="board">
+<div class="steps">
+<section class="step">
+<div class="eyebrow"><span class="number">1</span>Community submission</div>
+<h2>Suggest a case</h2><div class="arrow">→</div>
+<div class="screen"><img src="01-suggest.png" alt="Implemented public suggestion form"></div>
+<p><strong>Anyone can suggest a case.</strong><br>Submit the source, case details<br>and a short explanation.</p>
+</section>
+<section class="step">
+<div class="eyebrow"><span class="number">2</span>Private admin queue</div>
+<h2>Review &amp; decide</h2><div class="arrow">→</div>
+<div class="screen"><img src="02-review.png" alt="Implemented admin review page"></div>
+<p><strong>Only designated admins review.</strong><br>Accept to create a draft,<br>or reject the suggestion.</p>
+</section>
+<section class="step">
+<div class="eyebrow"><span class="number">3</span>Accepted suggestion</div>
+<h2>Create a private draft</h2>
+<div class="screen"><img src="03-draft.png" alt="Implemented case editor with Draft selected"></div>
+<p><strong>Case details and sources retained.</strong><br>Edit the draft, then make<br>a separate publication decision.</p>
+</section>
+</div>
+<div class="result"><strong>Human review before publication.</strong><span>No automatic publishing · No duplicate drafts on retry</span></div>
+<div class="note">Example data · Screenshots from the implemented application</div>
+</main>
+</body>
+</html>

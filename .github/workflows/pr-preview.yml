@@ -36,6 +36,7 @@ jobs:
         env:
           BASE_PATH: ${{ format('/{0}/pr-preview/pr-{1}', github.event.repository.name, github.event.pull_request.number) }}
           PUBLIC_POCKETBASE_URL: ${{ vars.PUBLIC_POCKETBASE_URL || 'https://casetracker.ctwhome.com' }}
+          PUBLIC_CARTO_API_KEY: ${{ secrets.PUBLIC_CARTO_API_KEY }}
         run: bun run build
 
       - name: Prepare preview artifact
