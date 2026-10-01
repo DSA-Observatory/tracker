@@ -6,6 +6,7 @@
 
 	let { children } = $props();
 	let openCommentCount = $state(0);
+	let draftCaseCount = $state(0);
 
 	const panels = [
 		{
@@ -19,40 +20,57 @@
 			path: '/admin/submissions'
 		},
 		{
+			title: 'Draft cases',
+			description: 'Review unpublished case records',
+			path: '/admin/drafts'
+		},
+		{
 			title: 'Comments',
 			description: 'Review open case comments',
 			path: '/admin/comments'
 		}
 	] as const;
 
-	function isActive(path: (typeof panels)[number]['path']) {
-		return page.url.pathname === resolve(path);
+	function isActive(panel: (typeof panels)[number]) {
+		return page.url.pathname === resolve(panel.path);
 	}
 
-	async function loadOpenCommentCount() {
+	async function loadQueueCounts() {
 		if (!authStore.isAdmin) return;
 		try {
-			const result = await pb
-				.collection('case_comments')
-				.getList(1, 1, { filter: "resolved = false && case != ''", fields: 'id' });
-			openCommentCount = result.totalItems;
+			const [comments, drafts] = await Promise.all([
+				pb
+					.collection('case_comments')
+					.getList(1, 1, { filter: "resolved = false && case != ''", fields: 'id' }),
+				pb
+					.collection('cases')
+					.getList(1, 1, { filter: "published = false && status != 'archived'", fields: 'id' })
+			]);
+			openCommentCount = comments.totalItems;
+			draftCaseCount = drafts.totalItems;
 		} catch (err) {
-			console.error('Error loading open comment count:', err);
+			console.error('Error loading admin queue counts:', err);
 		}
 	}
 
 	onMount(() => {
-		loadOpenCommentCount();
+		loadQueueCounts();
 		if (!authStore.isAdmin) return;
 
 		pb.collection('case_comments')
-			.subscribe('*', loadOpenCommentCount)
+			.subscribe('*', loadQueueCounts)
 			.catch((err) => {
 				console.error('Error subscribing to comment count:', err);
+			});
+		pb.collection('cases')
+			.subscribe('*', loadQueueCounts)
+			.catch((err) => {
+				console.error('Error subscribing to draft case count:', err);
 			});
 
 		return () => {
 			pb.collection('case_comments').unsubscribe('*');
+			pb.collection('cases').unsubscribe('*');
 		};
 	});
 </script>
@@ -67,21 +85,25 @@
 				{#each panels as panel (panel.path)}
 					<a
 						href={resolve(panel.path)}
-						class={isActive(panel.path)
+						class={isActive(panel)
 							? 'rounded-2xl bg-slate-950 px-4 py-3 text-white shadow-sm'
 							: 'rounded-2xl px-4 py-3 text-slate-700 transition hover:bg-slate-100'}
 					>
 						<span class="flex items-center justify-between gap-3 font-semibold">
 							{panel.title}
+							{#if panel.title === 'Draft cases'}
+								<span class={isActive(panel) ? 'badge badge-sm' : 'badge badge-sm badge-neutral'}
+									>{draftCaseCount}</span
+								>
+							{/if}
 							{#if panel.path === '/admin/comments'}
-								<span
-									class={isActive(panel.path) ? 'badge badge-sm' : 'badge badge-sm badge-neutral'}
+								<span class={isActive(panel) ? 'badge badge-sm' : 'badge badge-sm badge-neutral'}
 									>{openCommentCount}</span
 								>
 							{/if}
 						</span>
 						<span
-							class={isActive(panel.path)
+							class={isActive(panel)
 								? 'mt-1 block text-sm text-white/70'
 								: 'mt-1 block text-sm text-slate-500'}
 						>

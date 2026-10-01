@@ -41,12 +41,18 @@
 		showMap = false,
 		mapStartsCollapsed = false,
 		homeIntro = false,
-		cardVariant = 'default'
+		cardVariant = 'default',
+		publicationFilter,
+		heading = 'Cases',
+		description = 'Search and filter DSA private enforcement records.'
 	} = $props<{
 		showMap?: boolean;
 		mapStartsCollapsed?: boolean;
 		homeIntro?: boolean;
 		cardVariant?: 'default' | 'landing';
+		publicationFilter?: 'draft';
+		heading?: string;
+		description?: string;
 	}>();
 
 	const searchScopes: { value: SearchScope; label: string }[] = [
@@ -569,7 +575,9 @@
 
 		try {
 			cases = await pb.collection('cases').getFullList<CaseRecord>({
-				sort: '-decision_date,-created'
+				sort: '-decision_date,-created',
+				filter:
+					publicationFilter === 'draft' ? "published = false && status != 'archived'" : undefined
 			});
 		} catch (err) {
 			console.error('Error loading cases:', err);
@@ -718,10 +726,8 @@
 				</div>
 			{:else}
 				<div class="sr-only md:not-sr-only md:mb-3 md:min-w-0">
-					<h1 class="text-xl font-semibold tracking-tight text-slate-950 md:text-2xl">Cases</h1>
-					<p class="mt-1 text-sm text-slate-500">
-						Search and filter DSA private enforcement records.
-					</p>
+					<h1 class="text-xl font-semibold tracking-tight text-slate-950 md:text-2xl">{heading}</h1>
+					<p class="mt-1 text-sm text-slate-500">{description}</p>
 				</div>
 			{/if}
 			<div

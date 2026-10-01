@@ -29,11 +29,15 @@ Admin maintenance uses the application:
 - Use **Create case** to add an entry and `/admin/comments` to review outstanding comments.
 - Do not delete a case to hide a problem: deletion can also remove its attached comments.
 
-The database restrictions are already live. The matching frontend/security changes are committed locally but still need an authorised push/deployment; this document update does not perform either. After deployment, confirm that ordinary users no longer see case-management controls.
+The database restrictions are live. The matching frontend/security changes are included in the 1 October deployment release. Ordinary users must not see case-management controls.
 
 ## Gabi's requested website changes
 
-Implemented locally, awaiting final checks and deployment:
+The suggestion workflow has also been hardened: public suggestions enter the private admin queue; acceptance creates a linked unpublished draft, and publication remains a separate admin action. Migration 17 restricts suggestion/comment APIs to explicit admin roles, and the decision endpoint no longer accepts an email-only identity. Source links survive acceptance, repeat acceptance does not duplicate a case, and rejection creates no case. Verified against a disposable local PocketBase database with 18 workflow/permission checks and regression tests. The backend hook and equivalent migration 16/17 access rules were applied to production on 1 October; live non-mutating probes verified the private queue and decision endpoint without accepting any existing suggestion.
+
+Local verification used numerically ordered copies of the existing migrations. A fresh database with the repository's unpadded migration filenames fails because PocketBase sorts them lexicographically (migration 11 runs before migration 2). This pre-existing fresh-install setup issue remains separate from the suggestion workflow; do not replay old migrations against production to work around it.
+
+Included in the frontend deployment release:
 
 - Removed themes from case tags, filters, the editor and related-case matching. Historical theme data is retained; missing themes no longer require research or block publication. Categories and DSA article classification remain.
 - Added separate Title and URL inputs for primary and secondary sources, with add/remove controls and HTTP(S) URL validation. Case detail pages display clickable source titles (or the URL when no title is supplied). Existing source text and links are preserved when unchanged; legacy text-only sources remain visible rather than acquiring invented links.
@@ -112,6 +116,8 @@ Sixteen entries remain unpublished:
 Publish each remaining entry when its specific blocker is resolved. Do not reinstate archived predecessors or transfer their comments without confirming identity.
 
 ## Recovery and verification
+
+The 1 October full-workflow backend deployment was preceded by a fresh full backup, `dsa-full-workflow-20261001t164557z.zip`, downloaded and ZIP-integrity checked, plus record/schema snapshots and an archive of the previous hooks. The deployed hook hash and API rule read-back were verified. All 97 cases, 20 comments, three suggestions and six users remained unchanged, with 63 public cases. Private backup, rule rollback payloads, previous hooks and verification evidence are in `~/Library/Application Support/DSA Case Tracker/deployments/2026-10-01-full-workflow/`. Restore only the reviewed rule payloads/previous hook for a deployment rollback; restoring the full database backup can erase intervening editorial work and requires separate approval.
 
 The production changes were committed in one PocketBase batch transaction. A full server backup was created first: `dsa-replacement-20260930t200634z.zip`. Batch API settings were restored afterward.
 

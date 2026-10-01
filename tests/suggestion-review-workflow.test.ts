@@ -2,8 +2,12 @@ import { expect, test } from 'bun:test';
 import { readFile } from 'node:fs/promises';
 
 test('suggestion review is admin-only, transactional, and creates one private draft', async () => {
-	const migration = await readFile(
+	const workflowMigration = await readFile(
 		new URL('../pocketbase/pb_migrations/15_suggestion_review_workflow.js', import.meta.url),
+		'utf8'
+	);
+	const accessMigration = await readFile(
+		new URL('../pocketbase/pb_migrations/17_admin_only_suggestion_review.js', import.meta.url),
 		'utf8'
 	);
 	const hook = await readFile(
@@ -11,15 +15,14 @@ test('suggestion review is admin-only, transactional, and creates one private dr
 		'utf8'
 	);
 
-	expect(migration).toContain('@request.auth.is_admin = true');
-	expect(migration).toContain('@request.auth.email = "ctw@ctwhome.com"');
-	expect(migration).toContain("name: 'resulting_case'");
-	expect(migration).toContain("name: 'decided_by'");
-	expect(migration).toContain("name: 'decided_at'");
-	expect(migration).toContain("name: 'submission'");
-	expect(migration).toContain("name: 'submitted_by'");
-	expect(migration).toContain('submissions.updateRule = null');
-	expect(migration).toContain('submissions.deleteRule = null');
+	expect(workflowMigration).toContain("name: 'resulting_case'");
+	expect(workflowMigration).toContain("name: 'decided_by'");
+	expect(workflowMigration).toContain("name: 'decided_at'");
+	expect(workflowMigration).toContain("name: 'submission'");
+	expect(workflowMigration).toContain("name: 'submitted_by'");
+	expect(accessMigration).toContain("@request.auth.id != '' && @request.auth.is_admin = true");
+	expect(accessMigration).toContain('submissions.updateRule = null');
+	expect(accessMigration).toContain('submissions.deleteRule = null');
 
 	expect(hook).toContain("'/api/admin/submissions/{id}/decision'");
 	expect(hook).toContain('e.app.runInTransaction');
@@ -28,7 +31,8 @@ test('suggestion review is admin-only, transactional, and creates one private dr
 	expect(hook).toContain("caseRecord.set('published', false)");
 	expect(hook).toContain("submission.set('resulting_case', caseRecord.id)");
 	expect(hook).toContain("submission.set('decided_by', e.auth.id)");
-	expect(hook).toContain("findFirstRecordByFilter('cases', 'submitted_by = {:submission}'");
+	expect(hook).toContain('findRecordsByFilter(');
+	expect(hook).toContain("'submitted_by = {:submission}'");
 	expect(hook).toContain("if (currentStatus === 'accepted' && resultingCaseId)");
 	expect(hook).toContain("if (currentStatus === 'rejected' && decision === 'rejected')");
 });

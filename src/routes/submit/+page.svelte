@@ -158,7 +158,7 @@
 				<input class="input-bordered input w-full" bind:value={court} />
 			</label>
 			<label class="form-control">
-				<span class="label-text mb-1 font-semibold">Decision date</span>
+				<span class="label-text mb-1 font-semibold">Judgment/decision date</span>
 				<input class="input-bordered input w-full" bind:value={decisionDate} type="date" />
 			</label>
 			<label class="form-control">

@@ -84,7 +84,7 @@
 	}
 
 	async function decide(decision: 'accepted' | 'rejected') {
-		if (!submission) return;
+		if (!submission || !canReview || !canDecide || saving) return;
 		const generation = loadGeneration;
 		const submissionId = submission.id;
 
@@ -97,13 +97,9 @@
 				{ method: 'PATCH', body: { decision } }
 			);
 			if (generation !== loadGeneration || page.params.id !== submissionId) return;
-			const updated = await pb
-				.collection('case_submissions')
-				.getOne<CaseSubmissionRecord>(result.submission.id, {
-					expand: 'resulting_case,decided_by'
-				});
-			if (generation !== loadGeneration || page.params.id !== submissionId) return;
-			submission = updated;
+			// The committed response is authoritative; a failed follow-up read must not
+			// make a successful acceptance look like a failed decision.
+			submission = result.submission;
 		} catch (err) {
 			console.error('Error deciding submission:', err);
 			error = 'Could not record this decision.';
@@ -252,7 +248,7 @@
 						{#if canDecide}
 							<div class="mt-4 flex flex-wrap gap-2">
 								<button
-									class="btn btn-sm btn-success"
+									class="btn border-emerald-800 bg-emerald-700 text-white btn-sm hover:border-emerald-900 hover:bg-emerald-800 focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
 									type="button"
 									disabled={saving}
 									onclick={() => decide('accepted')}>Accept and create draft</button

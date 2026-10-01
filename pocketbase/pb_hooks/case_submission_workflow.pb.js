@@ -39,10 +39,7 @@ routerAdd(
 	'PATCH',
 	'/api/admin/submissions/{id}/decision',
 	(e) => {
-		if (
-			!e.auth ||
-			(e.auth.getString('email').toLowerCase() !== 'ctw@ctwhome.com' && !e.auth.getBool('is_admin'))
-		) {
+		if (!e.auth || e.auth.collection().name !== 'users' || !e.auth.getBool('is_admin')) {
 			throw e.forbiddenError('Admin access required.', null);
 		}
 
@@ -77,11 +74,10 @@ routerAdd(
 			}
 
 			if (decision === 'accepted') {
-				try {
-					caseRecord = txApp.findFirstRecordByFilter('cases', 'submitted_by = {:submission}', {
-						submission: submission.id
-					});
-				} catch (error) {
+				caseRecord = txApp.findRecordsByFilter('cases', 'submitted_by = {:submission}', '', 1, 0, {
+					submission: submission.id
+				})[0];
+				if (!caseRecord) {
 					const cases = txApp.findCollectionByNameOrId('cases');
 					caseRecord = new Record(cases);
 					caseRecord.set('case_id', `suggestion-${submission.id}`);
@@ -92,7 +88,10 @@ routerAdd(
 					caseRecord.set('plaintiffs', submission.get('plaintiffs'));
 					caseRecord.set('defendants', submission.get('defendants'));
 					caseRecord.set('dsa_articles', submission.get('dsa_articles'));
-					caseRecord.set('document_links', submission.get('document_links'));
+					const sourceLinks = submission.getStringSlice('document_links');
+					const caseUrl = submission.getString('case_url');
+					if (caseUrl && !sourceLinks.includes(caseUrl)) sourceLinks.push(caseUrl);
+					caseRecord.set('document_links', sourceLinks);
 					caseRecord.set(
 						'summary',
 						submission
