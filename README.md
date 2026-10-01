@@ -172,6 +172,10 @@ Do not use `--apply` until a reviewer has checked the dry-run artifacts and prov
 
 ## Development
 
+### Case access
+
+Published cases are public. Only accounts with `is_admin = true` can read unpublished or archived cases, or create, edit, publish and delete cases. Signing in alone does not grant editorial access. The application and PocketBase rules enforce the admin role; public registration and profile updates cannot grant it. Uploaded case files are protected by the case view rule. Admins should unpublish problematic cases rather than delete records with comment history.
+
 ### Prerequisites
 
 - Docker and Docker Compose.
@@ -187,6 +191,18 @@ Default services:
 
 - PocketBase: `http://localhost:64011`
 - Frontend: `http://localhost:64010`
+
+Use `make dev-web` to run Vite locally with local PocketBase. To run the local frontend against production PocketBase instead, set `POCKETBASE_PROD_URL` to its HTTPS URL in `.env` and run:
+
+```sh
+make dev-prod
+```
+
+This does not start local PocketBase or deploy anything. **App writes affect production data.**
+
+Account verification requires `pocketbase/pb_hooks/admin_users.pb.js` on the PocketBase server, not only the frontend. Deploy it to the server's persistent hooks volume and restart only the matching PocketBase service after checking for pending migrations. Take fresh snapshots, a full verified backup, and a copy of existing hooks first; rollback restores the previous hook and restarts that service. Deploying a hook does not authorize deploying pending schema migrations.
+
+The verification hook was deployed on 1 October 2026 without changing records or schema. Private snapshots, the verified backup, previous hooks, and verification receipt are in `~/Library/Application Support/DSA Case Tracker/deployments/2026-10-01-admin-verification/`. An unauthenticated request returns 401; an explicit admin with invalid boolean input returns 400; valid input targeting a nonexistent account returns 404. No account was verified as part of deployment.
 
 ### Environment Variables
 

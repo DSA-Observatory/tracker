@@ -10,5 +10,5 @@ export function isAdminEmail(email?: string | null) {
 }
 
 export function isAdminUser(user?: AdminUser | null) {
-	return !!user && (user.is_admin === true || isAdminEmail(user.email));
+	return user?.is_admin === true;
 }

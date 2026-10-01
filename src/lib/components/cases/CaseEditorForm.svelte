@@ -69,7 +69,7 @@
 		'timeline'
 	] satisfies (keyof CaseForm)[];
 
-	const canWrite = $derived(authStore.isAuthenticated && pb.authStore.isValid);
+	const canWrite = $derived(authStore.isAdmin && pb.authStore.isValid);
 	const isEditing = $derived(Boolean(caseId));
 
 	$effect(() => {
@@ -535,7 +535,7 @@
 	{/if}
 
 	{#if !canWrite}
-		<div class="alert alert-warning">Log in with editor privileges to create or edit cases.</div>
+		<div class="alert alert-warning">Administrator access is required to create or edit cases.</div>
 	{:else if loading}
 		<div class="border border-base-300 bg-base-100 p-6 shadow-sm">Loading case...</div>
 	{:else}

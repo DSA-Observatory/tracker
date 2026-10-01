@@ -16,18 +16,17 @@ if (!adminEmail || !adminPassword) {
 	throw new Error('POCKETBASE_SUPERUSER_EMAIL and POCKETBASE_SUPERUSER_PASSWORD are required.');
 }
 
-const adminRule = '(@request.auth.email = "ctw@ctwhome.com" || @request.auth.is_admin = true)';
-const authenticatedRule = "@request.auth.id != ''";
+const adminRule = "@request.auth.id != '' && @request.auth.is_admin = true";
 
 const collection = {
 	name: 'cases',
 	type: 'base',
 	system: false,
-	listRule: `published = true || ${adminRule}`,
-	viewRule: `published = true || ${adminRule}`,
-	createRule: `${adminRule} || (${authenticatedRule} && @request.body.published != true)`,
-	updateRule: `${adminRule} || (${authenticatedRule} && @request.body.published:changed = false)`,
-	deleteRule: authenticatedRule,
+	listRule: `(published = true && status != 'archived') || (${adminRule})`,
+	viewRule: `(published = true && status != 'archived') || (${adminRule})`,
+	createRule: adminRule,
+	updateRule: adminRule,
+	deleteRule: adminRule,
 	fields: [
 		{
 			name: 'case_id',
@@ -107,7 +106,7 @@ const collection = {
 async function authenticate(pb: PocketBase) {
 	try {
 		await pb.collection('_superusers').authWithPassword(adminEmail!, adminPassword!);
-	} catch (err) {
+	} catch {
 		await pb.admins.authWithPassword(adminEmail!, adminPassword!);
 	}
 }
@@ -120,7 +119,7 @@ async function main() {
 		await pb.collection('cases').getList(1, 1);
 		console.log('Cases collection already exists. No changes applied.');
 		return;
-	} catch (err) {
+	} catch {
 		// The collection is missing or not publicly readable; authenticate before managing schema.
 	}
 
@@ -130,7 +129,7 @@ async function main() {
 		await pb.collections.getOne('cases');
 		console.log('Cases collection already exists. No changes applied.');
 		return;
-	} catch (err) {
+	} catch {
 		// Missing collection; create it below.
 	}
 

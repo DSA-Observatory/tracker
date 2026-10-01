@@ -166,7 +166,12 @@
 			users = users.map((item) => (item.id === user.id ? updated : item));
 			success = `Updated ${updated.email}.`;
 		} catch (err) {
-			error = err instanceof Error ? err.message : `Could not update ${user.email}.`;
+			error =
+				err instanceof Error && 'status' in err && err.status === 404
+					? 'Verification is unavailable: the admin verification endpoint was not found on PocketBase. The backend hook must be installed before accounts can be verified here.'
+					: err instanceof Error
+						? err.message
+						: `Could not update ${user.email}.`;
 		} finally {
 			savingUserId = '';
 		}
@@ -289,85 +294,130 @@
 			{#if isLoading}
 				<div class="mt-8 rounded-3xl bg-base-200/70 p-6">Loading users...</div>
 			{:else}
-				<div class="mt-8 overflow-x-auto rounded-3xl border border-base-300/70">
-					<table class="table">
-						<thead>
-							<tr>
-								<th>User</th>
-								<th>Status</th>
-								<th>Role</th>
-								<th>Created</th>
-								<th class="text-right">Actions</th>
-							</tr>
-						</thead>
-						<tbody>
-							{#each users as user (user.id)}
-								<tr>
-									<td class="min-w-72">
-										<div class="flex items-center gap-3">
-											<div
-												class="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary text-sm font-black text-primary-content"
-											>
-												{user.email.charAt(0).toUpperCase()}
-											</div>
-											<div class="min-w-0">
-												<input
-													class="input-bordered input input-sm w-full max-w-xs"
-													value={user.name || ''}
-													placeholder="Name"
-													disabled={savingUserId === user.id}
-													onchange={(event) =>
-														updateUser(user, { name: event.currentTarget.value })}
-												/>
-												<p class="mt-1 text-sm break-all text-base-content/70">{user.email}</p>
-												{#if isAdminUser(user)}
-													<span class="mt-2 badge badge-primary">Admin</span>
-												{/if}
-											</div>
-										</div>
-									</td>
-									<td>
-										<label class="label w-fit cursor-pointer gap-3">
-											<input
-												type="checkbox"
-												class="toggle toggle-primary"
-												checked={user.verified}
-												disabled={savingUserId === user.id}
-												onchange={(event) => updateUserVerified(user, event.currentTarget.checked)}
-											/>
-											<span>{user.verified ? 'Verified' : 'Not verified'}</span>
-										</label>
-									</td>
-									<td>
-										<label class="label w-fit cursor-pointer gap-3">
-											<input
-												type="checkbox"
-												class="toggle toggle-primary"
-												checked={isAdminUser(user)}
-												disabled={savingUserId === user.id || isAdminEmail(user.email)}
-												onchange={(event) =>
-													updateUser(user, { is_admin: event.currentTarget.checked })}
-											/>
-											<span>{isAdminUser(user) ? 'Admin' : 'User'}</span>
-										</label>
-									</td>
-									<td class="whitespace-nowrap text-base-content/70">{formatDate(user.created)}</td>
-									<td class="text-right">
-										<button
-											class="btn btn-sm btn-error"
-											type="button"
-											disabled={savingUserId === user.id || isAdminEmail(user.email)}
-											onclick={() => deleteUser(user)}
+				<div class="user-list mt-8 rounded-3xl border border-base-300/70">
+					<div
+						class="flex items-center justify-between gap-3 border-b border-base-300/60 px-5 py-4"
+					>
+						<h2 class="text-sm font-semibold">
+							Team members <span
+								class="ml-2 rounded-full bg-base-200 px-2 py-0.5 text-xs text-base-content/60"
+								>{users.length}</span
+							>
+						</h2>
+						<span class="text-xs text-base-content/50">Names are saved on change</span>
+					</div>
+					<ul class="divide-y divide-base-300/60">
+						{#each users as user (user.id)}
+							<li class="user-row p-5">
+								<div class="flex min-w-0 items-start gap-3">
+									<div
+										class="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary text-sm font-black text-primary-content"
+									>
+										{user.email.charAt(0).toUpperCase()}
+									</div>
+									<div class="min-w-0 flex-1">
+										<input
+											class="input input-sm w-full min-w-0 border-transparent bg-transparent px-0 font-semibold hover:border-base-300 focus:border-base-300 focus:px-2"
+											aria-label={`Name for ${user.email}`}
+											value={user.name || ''}
+											placeholder="Name"
+											disabled={savingUserId === user.id}
+											onchange={(event) => updateUser(user, { name: event.currentTarget.value })}
+										/>
+										<p class="mt-1 text-sm break-all text-base-content/70">{user.email}</p>
+										<p class="mt-2 text-xs text-base-content/45">
+											Joined {formatDate(user.created)}
+										</p>
+									</div>
+								</div>
+								<div class="user-controls">
+									<label
+										class="flex cursor-pointer items-center justify-between gap-3 rounded-xl bg-base-200/50 px-3 py-2.5 text-sm"
+									>
+										<span class="flex flex-col gap-0.5"
+											><span class="text-xs text-base-content/50">Email status</span><span
+												class={user.verified ? 'font-medium' : 'font-medium text-warning'}
+												>{user.verified ? 'Verified' : 'Unverified'}</span
+											></span
 										>
-											Delete
-										</button>
-									</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
+										<input
+											type="checkbox"
+											class="toggle shrink-0 toggle-primary toggle-sm"
+											aria-label={`Verify ${user.email}`}
+											checked={user.verified}
+											disabled={savingUserId === user.id}
+											onchange={async (event) => {
+												const input = event.currentTarget;
+												await updateUserVerified(user, input.checked);
+												input.checked =
+													users.find((item) => item.id === user.id)?.verified ?? user.verified;
+											}}
+										/>
+									</label>
+									<label
+										class="flex cursor-pointer items-center justify-between gap-3 rounded-xl bg-base-200/50 px-3 py-2.5 text-sm"
+									>
+										<span class="flex flex-col gap-0.5"
+											><span class="text-xs text-base-content/50">Access</span><span
+												class="font-medium">{isAdminUser(user) ? 'Admin' : 'User'}</span
+											></span
+										>
+										<input
+											type="checkbox"
+											class="toggle shrink-0 toggle-primary toggle-sm"
+											aria-label={`Admin access for ${user.email}`}
+											checked={isAdminUser(user)}
+											disabled={savingUserId === user.id || isAdminEmail(user.email)}
+											onchange={(event) =>
+												updateUser(user, { is_admin: event.currentTarget.checked })}
+										/>
+									</label>
+								</div>
+								<div class="flex justify-end">
+									<button
+										class="btn text-error btn-ghost btn-sm hover:bg-error/10"
+										aria-label={`Delete ${user.email}`}
+										type="button"
+										disabled={savingUserId === user.id || isAdminEmail(user.email)}
+										onclick={() => deleteUser(user)}
+									>
+										Delete
+									</button>
+								</div>
+							</li>
+						{:else}
+							<li class="p-6 text-sm text-base-content/60">No team members yet.</li>
+						{/each}
+					</ul>
 				</div>
 			{/if}
 		{/if}
 	</section>
 </AdminPanelLayout>
+
+<style>
+	.user-list {
+		container-type: inline-size;
+	}
+	.user-row {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 1rem;
+	}
+	.user-controls {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.75rem;
+	}
+	@container (min-width: 680px) {
+		.user-row {
+			grid-template-columns: minmax(0, 1fr) 300px 64px;
+			align-items: center;
+		}
+	}
+	@container (max-width: 340px) {
+		.user-controls {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+</style>

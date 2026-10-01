@@ -28,6 +28,13 @@ export default defineConfig(
 		}
 	},
 	{
+		files: ['pocketbase/pb_hooks/*.js', 'pocketbase/pb_migrations/*.js'],
+		rules: {
+			// PocketBase runs these scripts outside ESM; editor types use reference directives.
+			'@typescript-eslint/triple-slash-reference': 'off'
+		}
+	},
+	{
 		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 		languageOptions: {
 			parserOptions: {

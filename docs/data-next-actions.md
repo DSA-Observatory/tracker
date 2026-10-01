@@ -1,6 +1,6 @@
 # Data review after the DSA replacement
 
-Applied to production on 30 September 2026. This is the editorial follow-up list, not permission to rerun the migration or publish drafts automatically.
+Applied to production on 30 September 2026. Publication updated on 1 October 2026: entries without identified blockers should be public, and authorised editors can unpublish them if a problem is found. This follow-up list is not permission to rerun the migration or publish entries with unresolved blockers.
 
 ## What was applied
 
@@ -10,11 +10,11 @@ Applied to production on 30 September 2026. This is the editorial follow-up list
 | Confirmed records updated with their existing IDs            |    44 |
 | New or provisional records imported unpublished for review   |    35 |
 | Historical records retained privately with status `archived` |    18 |
-| Active records currently published                           |    42 |
-| Active records currently unpublished                         |    37 |
+| Active records currently published                           |    63 |
+| Active records currently unpublished                         |    16 |
 | Partner comments preserved without changes                   |    20 |
 
-The 35 imported drafts comprise 28 separate/new decisions and seven entries whose proposed match to an old record is uncertain. The other two unpublished records are TikTok and Prof. R. v YouTube; their prior visibility was preserved. No records or comments were deleted. No comments were automatically resolved. Confirmed records retained their existing summaries, timelines, dates, uploaded files and publication state.
+The 35 entries initially imported as drafts comprise 28 separate/new decisions and seven entries whose proposed match to an old record is uncertain. On 1 October, 21 separate/new entries without identified blockers were published. Seven uncertain matches, seven other imported entries with specific blockers, and the two previously unpublished cases (TikTok and Prof. R. v YouTube) remain unpublished. No records or comments were deleted. No comments were automatically resolved. Confirmed records retained their existing summaries, timelines, dates, uploaded files and publication state.
 
 ## 1. Resolve the seven uncertain identities
 
@@ -68,11 +68,23 @@ Owner: project/editorial lead. The 18 archived records remain available to autho
 - Treat the old omnibus “Other decisions” record as research notes, not one judicial decision. Some of its underlying decisions now have separate entries.
 - Do not publish the workbook's interviewee, contact, meeting or notes sheets as case data. Only the DSA sheet was imported.
 
-## 5. Publish after review
+## 5. Resolve the remaining publication blockers
 
 Owner: authorised editor.
 
-Review the 37 unpublished entries individually. Publish only when identity, sources, classification, summary and scope are acceptable. Confirm that archived predecessors are not shown publicly, related decisions are distinguishable, and source links work in the case page. The migration preserved prior publication state; it did not approve new decisions for publication.
+The policy is to publish imported entries without identified problems, rather than hold every import for a full editorial review. Missing themes, an empty summary or use of a non-ECLI court reference do not alone block publication. The 21 entries published on 1 October have an identified decision, a primary-source link, classification and legal basis, with no unresolved identity or scope flag. This is not a claim that every underlying ruling or link has been independently certified. Authorised editors can unpublish an entry later if an issue is discovered.
+
+Sixteen entries remain unpublished:
+
+- Seven uncertain identities in section 1.
+- Row 17 (DRI first-instance decision) and row 26 (Brzoska first-instance decision): missing primary-source links.
+- Row 23 (Massaschade & Consument v Snap): missing primary source, reference, category and legal basis.
+- Row 24 (SOMI v Snap): a primary writ is linked, but a case/filing reference still needs confirmation.
+- Rows 76 and 77 (Bhblasted and Farina): missing categories.
+- Row 88 (RCC): unresolved party-based title and scope.
+- TikTok and Prof. R. v YouTube: prior unpublished state retained; resolve their existing editorial review separately.
+
+Publish each remaining entry when its specific blocker is resolved. Do not reinstate archived predecessors or transfer their comments without confirming identity.
 
 ## Recovery and verification
 
@@ -85,6 +97,10 @@ A downloaded, ZIP-integrity-checked backup, original snapshots, source workbook,
 Keep that directory private: the full backup contains database/authentication data. Do not attach it to issues or commit it. The application receipt and `verification.json` are in its `production-application/` subdirectory.
 
 Post-application verification confirmed every submitted payload, preserved fields, all 20 comments and their case associations/resolution states, 79 active entries, 18 archived entries, 42 published entries, 37 unpublished entries, and restored batch settings. The initial verification used an incorrect fixed publication count; it was corrected to derive the count from the original records, and verification was rerun read-only without repeating the migration.
+
+The 1 October publication update used a separate atomic batch changing only `published` on 21 entries. Before it, a new server backup was verified: `dsa-publication-20261001t134731z.zip`. Read-back confirmed 63 public entries, 16 unpublished active entries, 18 archived histories, unchanged content and all 20 comments unchanged. Batch settings were restored. Private before/after snapshots, selection reasons, publication receipt and visibility-only rollback proposals are in `~/Library/Application Support/DSA Case Tracker/migrations/2026-10-01-publication/`.
+
+Case access was restricted on 1 October: only explicit admin accounts can manage cases or read unpublished/archived records. Ordinary signed-in users see the same published cases as anonymous visitors. Users cannot grant themselves admin status through registration or profile updates, and uploaded case files are protected. Live permission checks used temporary validation records, which were removed afterward; all 97 existing cases and 20 comments were unchanged. Private schema snapshots, backup metadata and verification evidence are in `~/Library/Application Support/DSA Case Tracker/migrations/2026-10-01-admin-permissions/`.
 
 The rollback file is a recovery proposal, not an automatic operation. It restores original records and hides newly created entries rather than deleting them. Before any recovery, export current data and review intervening edits. Restoring the full server backup would also revert unrelated changes made after the backup and requires explicit approval.
 

@@ -11,7 +11,7 @@
 	let error = $state('');
 	let fileToken = $state('');
 
-	const canWrite = $derived(authStore.isAuthenticated);
+	const canWrite = $derived(authStore.isAdmin);
 	const sourceLinks = $derived(buildSourceLinks(record));
 	const documentFiles = $derived(record?.documents ?? []);
 	const proceduralEvents = $derived(normalizeProceduralEvents(record));

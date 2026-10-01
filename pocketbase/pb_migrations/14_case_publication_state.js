@@ -4,27 +4,9 @@ const adminRule = '(@request.auth.email = "ctw@ctwhome.com" || @request.auth.is_
 const authenticatedRule = "@request.auth.id != ''";
 const publishedReadRule = `published = true || ${adminRule}`;
 
-function publishExistingCases(app) {
-	let offset = 0;
-	const batchSize = 200;
-
-	while (true) {
-		const records = app.findRecordsByFilter('cases', "id != ''", '', batchSize, offset);
-		if (!records.length) break;
-
-		for (const record of records) {
-			record.set('published', true);
-			app.save(record);
-		}
-
-		offset += records.length;
-	}
-}
-
 migrate(
 	(app) => {
-		publishExistingCases(app);
-
+		// Never change editorial publication decisions during a schema migration.
 		const cases = app.findCollectionByNameOrId('cases');
 		cases.listRule = publishedReadRule;
 		cases.viewRule = publishedReadRule;

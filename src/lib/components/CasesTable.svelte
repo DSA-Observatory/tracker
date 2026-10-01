@@ -89,7 +89,7 @@
 
 	const rowOverscan = 8;
 
-	const canWrite = $derived(authStore.isAuthenticated);
+	const canWrite = $derived(authStore.isAdmin);
 	const statusFilterOptions = $derived(buildOptions('statuses', statusOptions));
 	const availableCountries = $derived(
 		uniqueSorted(cases.map((record) => normalizeJurisdiction(record.jurisdiction)))
