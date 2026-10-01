@@ -36,6 +36,11 @@
 
 	let loading = $state(Boolean(caseId));
 	let saving = $state(false);
+	let changingVisibility = $state(false);
+	let visibilityMessage = $state('');
+	let visibilityError = $state('');
+	let visibilityUncertain = $state(false);
+	let saveMessage = $state('');
 	let error = $state('');
 	let attemptedSubmit = $state(false);
 	let form = $state<CaseForm>(emptyCaseForm());
@@ -404,7 +409,36 @@
 		return `"${value.replace(/"/g, '""')}"`;
 	}
 
+	async function changeVisibility() {
+		if (!caseId || !canWrite || saving || changingVisibility || visibilityUncertain) return;
+		changingVisibility = true;
+		visibilityMessage = '';
+		visibilityError = '';
+		try {
+			const record = await pb.collection('cases').update<CaseRecord>(caseId, {
+				published: !form.published
+			});
+			form.published = record.published === true;
+			currentRecord = record;
+			visibilityMessage = form.published ? 'Visibility saved · Public' : 'Visibility saved · Private';
+		} catch {
+			try {
+				const record = await pb.collection('cases').getOne<CaseRecord>(caseId);
+				form.published = record.published === true;
+				currentRecord = record;
+				visibilityError = 'The change could not be confirmed. Current visibility is shown; try again if needed.';
+			} catch {
+				visibilityUncertain = true;
+				visibilityError = 'We could not confirm visibility. Reload this case before changing it again.';
+			}
+		} finally {
+			changingVisibility = false;
+		}
+	}
+
 	async function saveCase() {
+		if (saving || changingVisibility) return;
+		saveMessage = '';
 		attemptedSubmit = true;
 		const missingFields = missingRequiredFields();
 		if (missingFields.length) {
@@ -453,31 +487,40 @@
 			editorial_notes: form.editorial_notes.trim(),
 			keywords: splitCaseFormList(form.keywords),
 			dsa_articles: splitCaseFormList(form.dsa_articles),
-			published: form.published
+			...(!caseId ? { published: false } : {})
 		};
 
 		try {
+			let savedRecord: CaseRecord;
 			if (caseId) {
 				if (selectedDocuments.length) {
 					const body = new FormData();
 					appendPayload(body, payload);
 					selectedDocuments.forEach((file) => body.append('documents+', file));
-					await pb.collection('cases').update<CaseRecord>(caseId, body);
+					savedRecord = await pb.collection('cases').update<CaseRecord>(caseId, body);
 				} else {
-					await pb.collection('cases').update<CaseRecord>(caseId, payload);
+					savedRecord = await pb.collection('cases').update<CaseRecord>(caseId, payload);
 				}
 			} else {
 				if (selectedDocuments.length) {
 					const body = new FormData();
 					appendPayload(body, payload);
 					selectedDocuments.forEach((file) => body.append('documents', file));
-					await pb.collection('cases').create<CaseRecord>(body);
+					savedRecord = await pb.collection('cases').create<CaseRecord>(body);
 				} else {
-					await pb.collection('cases').create<CaseRecord>(payload);
+					savedRecord = await pb.collection('cases').create<CaseRecord>(payload);
 				}
 			}
 
-			await goto(resolve('/cases'));
+			currentRecord = savedRecord;
+			form.published = savedRecord.published === true;
+			visibilityUncertain = false;
+			visibilityError = '';
+			existingDocuments = savedRecord.documents ?? [];
+			selectedDocuments = [];
+			if (documentInput) documentInput.value = '';
+			saveMessage = form.published ? 'Saved · Public' : 'Saved · Still private';
+			if (!caseId) await goto(resolve('/cases/[id]/edit', { id: savedRecord.id }));
 		} catch (err) {
 			console.error('Error saving case:', err);
 			error = saveErrorMessage(err);
@@ -497,30 +540,37 @@
 			onchange={importCsv}
 		/>
 	{/if}
-	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+	<div class={isEditing && authStore.isAdmin
+		? 'mb-6 grid items-center gap-3 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-6'
+		: 'mb-6 flex flex-wrap items-center justify-between gap-3'}>
+		<div class="flex min-w-0 flex-wrap items-center justify-between gap-3">
 		<div>
 			<p class="text-xs font-semibold tracking-[0.2em] text-base-content/50 uppercase">
 				Case editor
 			</p>
 			<h1 class="text-3xl font-black">{isEditing ? 'Edit case' : 'Create case'}</h1>
 		</div>
-		{#if authStore.isAdmin}
-			<div class="join" role="group" aria-label="Publication status">
-				<button
-					class={`btn join-item btn-sm ${form.published ? 'btn-ghost' : 'btn-primary'}`}
-					type="button"
-					aria-pressed={!form.published}
-					onclick={() => (form.published = false)}>Draft</button
-				>
-				<button
-					class={`btn join-item btn-sm ${form.published ? 'btn-primary' : 'btn-ghost'}`}
-					type="button"
-					aria-pressed={form.published}
-					onclick={() => (form.published = true)}>Published</button
-				>
-			</div>
-		{/if}
-		<div class="flex flex-wrap items-center gap-2">
+			{#if canWrite && !loading}
+				<div class="w-60 max-w-full rounded-xl border border-base-300 bg-base-100 px-4 py-2 shadow-sm">
+					<div class="flex items-center justify-between gap-5">
+						<div>
+							<p class="text-[11px] font-semibold text-base-content/50">Visibility</p>
+							<p id="case-visibility-description" class={form.published ? 'text-sm font-bold text-emerald-800' : 'text-sm font-bold text-red-700'}>
+								{visibilityUncertain ? 'Unconfirmed' : form.published ? 'Public · Everyone' : 'Draft'}
+							</p>
+						</div>
+						<input type="checkbox" role="switch" class="toggle toggle-success" checked={form.published}
+							aria-label="Public on website" aria-describedby="case-visibility-description"
+							title={caseId ? 'Save website visibility immediately' : 'Create this case privately first'}
+							disabled={!caseId || saving || changingVisibility || visibilityUncertain}
+							onchange={(event) => { event.currentTarget.checked = form.published; changeVisibility(); }} />
+					</div>
+					<p class="sr-only" role="status">{changingVisibility ? 'Saving visibility…' : visibilityMessage}</p>
+					{#if visibilityError}<p class="mt-1 max-w-xs text-xs text-red-700" role="alert">{visibilityError}</p>{/if}
+				</div>
+			{/if}
+		</div>
+		<div class="flex flex-wrap items-center justify-end gap-2">
 			{#if canWrite && !isEditing}
 				<button class="btn gap-2 btn-outline btn-sm" type="button" onclick={downloadCsvTemplate}
 					><IconDownload class="size-4" /> Download CSV template</button
@@ -579,11 +629,9 @@
 					</div>
 				{/if}
 
-				<div
-					class="mb-4 rounded-lg border border-base-300 bg-base-100 p-3 text-sm text-base-content/70 shadow-sm"
-				>
+				<p class="mb-4 text-sm text-base-content/70">
 					Fill the essentials first. Open the sections below only when that metadata is relevant.
-				</div>
+				</p>
 
 				<div class="space-y-3">
 					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm" open>
@@ -653,7 +701,7 @@
 								/>
 							</label>
 							<label class="form-control w-full">
-								<span class="label-text mb-1 text-sm font-semibold">Status</span>
+								<span class="label-text mb-1 text-sm font-semibold">Case status (not visibility)</span>
 								<select class="select-bordered select w-full select-sm" bind:value={form.status}>
 									{#each statusOptions as option (option)}
 										<option value={option}>{option}</option>
@@ -909,14 +957,10 @@
 							>
 						</summary>
 						<div class="mt-4 grid gap-3 md:grid-cols-3">
-							<label class="form-control w-full md:col-span-3">
+							<div class="form-control w-full md:col-span-3">
 								<span class="label-text mb-1 text-sm font-semibold">Internal editorial notes</span>
-								<textarea
-									class="textarea-bordered textarea min-h-20 w-full"
-									bind:value={form.editorial_notes}
-									placeholder="Internal notes for reviewers; not intended for public display"
-								></textarea>
-							</label>
+								<CaseSummaryEditor label="Internal editorial notes" bind:value={form.editorial_notes} />
+							</div>
 							<div class="form-control w-full md:col-span-3">
 								<span class="label-text mb-1 text-sm font-semibold">Editorial summary</span>
 								<CaseSummaryEditor bind:value={form.summary} />
@@ -932,15 +976,15 @@
 						{#if missingRequiredFields().length}
 							Required: {missingRequiredFields().join(', ')}
 						{:else}
-							Ready to save.
+							<span role="status">{saveMessage || 'Ready to save.'}</span>
 						{/if}
 					</div>
 					<div class="flex gap-2">
 						<button class="btn btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
 							>Cancel</button
 						>
-						<button class="btn btn-primary" type="submit" disabled={saving}>
-							{saving ? 'Saving...' : isEditing ? 'Update case' : 'Create case'}
+						<button class="btn btn-primary" type="submit" disabled={saving || changingVisibility}>
+							{saving ? 'Saving...' : isEditing ? 'Save changes' : 'Create private case'}
 						</button>
 					</div>
 				</div>

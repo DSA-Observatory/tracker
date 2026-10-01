@@ -14,7 +14,7 @@
 	import IconUnderline from '~icons/lucide/underline';
 	import IconUndo from '~icons/lucide/undo-2';
 
-	let { value = $bindable('') }: { value: string } = $props();
+	let { value = $bindable(''), label = 'Editorial summary' }: { value: string; label?: string } = $props();
 
 	let editorElement: HTMLDivElement;
 	let editor = $state<Editor | null>(null);
@@ -34,6 +34,9 @@
 	onMount(() => {
 		editor = new Editor({
 			element: editorElement,
+			editorProps: {
+				attributes: { role: 'textbox', 'aria-label': label, 'aria-multiline': 'true' }
+			},
 			extensions: [
 				StarterKit.configure({
 					link: {
@@ -232,9 +235,8 @@
 	}
 
 	.toolbar button.active {
-		background: #f9c400;
-		border-color: #111827;
-		box-shadow: inset 0 0 0 1px #111827;
+		background: #e5e7eb;
+		border-color: #cbd5e1;
 		color: #111827;
 	}
 
