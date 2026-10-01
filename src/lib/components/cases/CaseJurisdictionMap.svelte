@@ -256,6 +256,7 @@
 			removeMap();
 			return;
 		}
+		if (!mapContainer) return;
 
 		untrack(() => {
 			tick().then(() => {

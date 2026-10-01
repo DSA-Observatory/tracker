@@ -674,13 +674,14 @@
 
 <section
 	id="cases"
+	class:cases-animated={homeIntro}
 	class="mx-auto flex w-full max-w-[1680px] flex-col px-4 pt-1 pb-4 sm:px-6 md:h-full md:min-h-0 md:overflow-hidden md:pt-3 lg:px-8"
 >
 	<div class="z-30 mb-3 flex-none space-y-2 md:mb-4 md:space-y-3">
 		<div>
 			{#if homeIntro}
 				<div
-					class="mb-3 overflow-hidden rounded-2xl border border-slate-200 bg-base-200/60 shadow-sm shadow-slate-200/60"
+					class="cases-entry cases-intro mb-3 overflow-hidden rounded-2xl border border-slate-200 bg-base-200/60 shadow-sm shadow-slate-200/60"
 				>
 					<div class="relative flex flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-5">
 						<div class="min-w-0">
@@ -731,7 +732,7 @@
 				</div>
 			{/if}
 			<div
-				class="rounded-lg border border-slate-200 bg-base-200/60 p-2 shadow-sm shadow-slate-200/60 backdrop-blur md:hidden"
+				class="cases-entry cases-toolbar rounded-lg border border-slate-200 bg-base-200/60 p-2 shadow-sm shadow-slate-200/60 backdrop-blur md:hidden"
 			>
 				<Search
 					bind:value={search}
@@ -810,7 +811,7 @@
 				</div>
 			</div>
 
-			<div class="hidden md:block">
+			<div class="cases-entry cases-toolbar hidden md:block">
 				<Search
 					bind:value={search}
 					bind:searchScope
@@ -903,11 +904,11 @@
 			: 'min-w-0 md:min-h-0 md:flex-1'}
 	>
 		{#if filterLayout === 'left'}
-			<aside class="hidden min-h-0 min-w-0 overflow-hidden lg:block">
+			<aside class="cases-entry cases-filters hidden min-h-0 min-w-0 overflow-hidden lg:block">
 				<CaseFilterPanel sidebar={true} {...filterPanelProps} />
 			</aside>
 		{/if}
-		<div class="min-w-0 md:h-full md:min-h-0 md:overflow-hidden">
+		<div class="cases-entry cases-results min-w-0 md:h-full md:min-h-0 md:overflow-hidden">
 			{#if viewMode !== 'table'}
 				<div
 					bind:this={tableScroller}
@@ -959,6 +960,21 @@
 		</div>
 	</div>
 </section>
+
+<style>
+	@media (prefers-reduced-motion: no-preference) {
+		.cases-animated .cases-entry {
+			animation: cases-enter .75s cubic-bezier(.16, 1, .3, 1) backwards;
+		}
+		.cases-animated .cases-toolbar { animation-delay: .1s; }
+		.cases-animated .cases-filters { animation-delay: .18s; }
+		.cases-animated .cases-results { animation-delay: .25s; }
+	}
+	@keyframes cases-enter {
+		from { opacity: 0; transform: translateY(16px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+</style>
 
 {#if mobileFiltersOpen}
 	<div

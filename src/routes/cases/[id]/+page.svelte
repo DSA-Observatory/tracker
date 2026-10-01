@@ -17,6 +17,20 @@
 	const documentFiles = $derived(record?.documents ?? []);
 	const proceduralEvents = $derived(normalizeProceduralEvents(record));
 
+	function reveal(node: HTMLElement, delay = 0) {
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		node.style.setProperty('--entry-delay', `${delay}ms`);
+		node.classList.add('case-entry');
+		const observer = new IntersectionObserver(([entry]) => {
+			if (entry.isIntersecting) {
+				node.classList.add('case-entered');
+				observer.disconnect();
+			}
+		}, { threshold: 0.08 });
+		observer.observe(node);
+		return { destroy: () => observer.disconnect() };
+	}
+
 	function stripHtml(value?: string) {
 		return (value ?? '')
 			.replace(/<[^>]+>/g, ' ')
@@ -160,7 +174,7 @@
 
 <!-- eslint-disable svelte/no-at-html-tags, svelte/no-navigation-without-resolve -->
 <main class="mx-auto max-w-7xl bg-base-200/60 px-4 pb-16 sm:px-6 lg:px-8">
-	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+	<div use:reveal class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<button class="btn btn-ghost btn-sm" type="button" onclick={() => goto(resolve('/cases'))}>
 			Back to cases
 		</button>
@@ -176,7 +190,7 @@
 	{:else if error}
 		<div class="rounded-xl border border-red-200 bg-red-50 p-8 text-red-700">{error}</div>
 	{:else if record}
-		<section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+		<section use:reveal class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
 			<div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
 				<div class="max-w-4xl">
 					<p class="text-xs font-semibold tracking-[0.24em] text-slate-400 uppercase">
@@ -213,14 +227,14 @@
 
 		<div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
 			<div class="min-w-0 space-y-6">
-				<section class="rounded-xl border border-slate-200 bg-white p-6">
+				<section use:reveal={100} class="rounded-xl border border-slate-200 bg-white p-6">
 					<h2 class="text-xl font-black">Summary</h2>
 					{#if record.summary}<div class="prose mt-4 max-w-none text-slate-700">
 							{@html linkifyHtml(record.summary)}
 						</div>{:else}<p class="mt-4 text-slate-500">No summary has been added yet.</p>{/if}
 				</section>
 
-				<section class="rounded-xl border border-slate-200 bg-white p-6">
+				<section use:reveal={160} class="rounded-xl border border-slate-200 bg-white p-6">
 					<h2 class="text-xl font-black">Procedural Timeline</h2>
 					{#if proceduralEvents.length}
 						<ol class="mt-4 space-y-3">
@@ -250,7 +264,7 @@
 					{/if}
 				</section>
 
-				<section class="rounded-xl border border-slate-200 bg-white p-6">
+				<section use:reveal={100} class="rounded-xl border border-slate-200 bg-white p-6">
 					<h2 class="text-xl font-black">Documents & References</h2>
 					{#if documentFiles.length || sourceLinks.length || list(record.primary_sources).length || list(record.secondary_sources).length}
 						{#if documentFiles.length}
@@ -305,7 +319,7 @@
 				</section>
 
 				{#if record.commentary}
-					<section class="rounded-xl border border-slate-200 bg-white p-6">
+					<section use:reveal={100} class="rounded-xl border border-slate-200 bg-white p-6">
 						<h2 class="text-xl font-black">Commentary & Context</h2>
 						<div class="prose mt-4 max-w-none text-slate-700">
 							{@html linkifyHtml(record.commentary)}
@@ -315,7 +329,7 @@
 			</div>
 
 			<aside class="space-y-6">
-				<section class="rounded-xl border border-slate-200 bg-white p-5">
+				<section use:reveal={180} class="rounded-xl border border-slate-200 bg-white p-5">
 					<h2 class="font-black">At a glance</h2>
 					<dl class="mt-4 space-y-3 text-sm">
 						{#each [['Jurisdiction', record.jurisdiction], ['Court', list(record.courts).join(', ') || record.court], ['Filing date', formatDate(record.filing_date)], ['Judgment/decision date', formatDate(record.decision_date)], ['Plaintiffs', list(record.plaintiffs).join(', ')], ['Defendants', list(record.defendants).join(', ')]] as item (item[0])}
@@ -329,7 +343,7 @@
 					</dl>
 				</section>
 
-				<section class="rounded-xl border border-slate-200 bg-white p-5">
+				<section use:reveal={240} class="rounded-xl border border-slate-200 bg-white p-5">
 					<h2 class="font-black">Legal classification</h2>
 					<div class="mt-4 flex flex-wrap gap-2">
 						{#each [...list(record.dsa_articles), ...list(record.legal_areas), ...list(record.legal_basis), ...list(record.categories)] as tag, index (`${tag}-${index}`)}
@@ -341,7 +355,7 @@
 				</section>
 
 				{#if relatedCases.length}
-					<section class="rounded-xl border border-slate-200 bg-white p-5">
+					<section use:reveal={180} class="rounded-xl border border-slate-200 bg-white p-5">
 						<h2 class="font-black">Related cases</h2>
 						<div class="mt-4 space-y-3">
 							{#each relatedCases as related (related.id)}
@@ -362,4 +376,18 @@
 		</div>
 	{/if}
 </main>
+
+<style>
+	@media (prefers-reduced-motion: no-preference) {
+		:global(.case-entry) { opacity: 0; transform: translateY(20px); }
+		:global(.case-entry.case-entered) {
+			animation: case-enter .75s var(--entry-delay, 0ms) cubic-bezier(.16, 1, .3, 1) both;
+		}
+		:global(.case-entry:focus-within) { opacity: 1; transform: none; animation: none; }
+	}
+	@keyframes case-enter {
+		from { opacity: 0; transform: translateY(20px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+</style>
 <!-- eslint-enable svelte/no-at-html-tags, svelte/no-navigation-without-resolve -->

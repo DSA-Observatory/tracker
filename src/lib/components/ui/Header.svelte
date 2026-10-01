@@ -11,7 +11,6 @@
 	}
 
 	let { showSearch = true }: Props = $props();
-	let activeCategory = $state('');
 </script>
 
 <nav class="bien-nav mb-4 sm:mb-10">
@@ -50,12 +49,10 @@
 				</div>
 			{/if}
 			<!-- Desktop menu -->
-			<div class="z-10 ml-auto hidden shrink-0 justify-end space-x-4 sm:flex lg:space-x-8">
-				{#each menuItems as link}
+			<div class="z-10 ml-auto hidden shrink-0 items-center justify-end gap-4 sm:flex lg:gap-8">
+				{#each menuItems.filter((link) => link.title !== 'Submit') as link}
 					<a
 						class="menu-link whitespace-nowrap"
-						onclick={() => (activeCategory = link.title)}
-						class:active={activeCategory === link.title}
 						href={resolve(link.path)}
 					>
 						{link.displayTitle}
@@ -63,20 +60,20 @@
 				{/each}
 			</div>
 
-			<Login />
+			<div class="ml-auto sm:ml-2 lg:ml-5">
+				<Login />
+			</div>
+			<a
+				class="btn btn-md btn-primary ml-2 hidden whitespace-nowrap sm:inline-flex lg:ml-5"
+				href={resolve('/submit')}
+			>
+				Suggest a Case
+			</a>
 		</header>
 	</div>
 </nav>
 
 <style>
-	.menu-link {
-		/* @apply hover:text-secondary font-medium transition; */
-	}
-
-	.menu-link.active {
-		@apply text-[var(--color-primary)];
-	}
-
 	.logo-mark {
 		box-shadow:
 			inset 0 1px 0 rgb(255 255 255 / 0.38),

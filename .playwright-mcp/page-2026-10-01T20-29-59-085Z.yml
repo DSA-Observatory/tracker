@@ -1,0 +1,63 @@
+- generic [ref=e2]:
+  - navigation [ref=e3]:
+    - generic [ref=e5]:
+      - link "Case tracker home" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [aria-hidden] [ref=e7]: DSA
+        - generic [ref=e8]: Case Tracker
+      - textbox "Search cases" [ref=e15]
+      - generic [ref=e16]:
+        - link "Cases" [ref=e17] [cursor=pointer]:
+          - /url: /cases
+        - link "Map" [ref=e18] [cursor=pointer]:
+          - /url: /map
+        - link "About" [ref=e19] [cursor=pointer]:
+          - /url: /about
+      - generic [ref=e23]:
+        - button "Login" [ref=e24] [cursor=pointer]
+        - checkbox "Close" [ref=e25]
+      - link "Suggest a Case" [ref=e26] [cursor=pointer]:
+        - /url: /submit
+  - main [ref=e27]:
+    - generic [ref=e28]:
+      - region "Published DSA cases by European jurisdiction" [ref=e30]:
+        - generic [aria-hidden] [ref=e33]:
+          - generic [ref=e34]: Published cases
+          - generic [ref=e35]: Europe · live index
+      - generic:
+        - generic [ref=e36]:
+          - paragraph [ref=e37]: The DSA Case Law Tracker
+          - heading "Digital rights. Real cases. Across Europe." [level=1] [ref=e38]: Digital rights.Real cases.Across Europe.
+          - paragraph [ref=e39]: Explore private enforcement of the Digital Services Act. An open resource for a changing legal landscape.
+          - generic [ref=e40]:
+            - link "Explore the cases" [ref=e41] [cursor=pointer]:
+              - /url: /cases
+              - text: Explore the cases
+              - generic [aria-hidden] [ref=e42]: ↗
+            - link "About the project" [ref=e43] [cursor=pointer]:
+              - /url: /about
+              - text: About the project →
+        - generic:
+          - generic: IViR · University of Amsterdam · DSA Observatory
+          - link "Explore the jurisdiction map ↗" [ref=e44] [cursor=pointer]:
+            - /url: /map
+    - generic [ref=e46]:
+      - article [ref=e47]:
+        - heading "Structured case pages" [level=2] [ref=e48]
+        - paragraph [ref=e49]: Each entry combines core metadata, editorial context, source links, and related references.
+      - article [ref=e50]:
+        - heading "Searchable public resource" [level=2] [ref=e51]
+        - paragraph [ref=e52]: The tracker is designed to support browsing by jurisdiction, category, status, and DSA article.
+      - article [ref=e53]:
+        - heading "Built for growth" [level=2] [ref=e54]
+        - paragraph [ref=e55]: The tracker connects editorial case work with durable research infrastructure for the DSA community.
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - paragraph [ref=e59]: Audience
+        - paragraph [ref=e60]: Researchers, civil society, policymakers, litigation funders, legal professionals, and journalists.
+      - generic [ref=e61]:
+        - paragraph [ref=e62]: Sources
+        - paragraph [ref=e63]: Rechtspraak.nl, CURIA, national case law databases, public documents, expert tips, and community submissions.
+      - generic [ref=e64]:
+        - paragraph [ref=e65]: Inspiration
+        - paragraph [ref=e66]: Climate Case Chart, Tech Justice Law Project, DSA Observatory, WILMap, and other public legal trackers.

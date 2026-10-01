@@ -4,6 +4,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import LoginForm from './LoginForm.svelte';
+	let loginOpen = $state(false);
 
 	function handleLogout() {
 		authStore.logout();
@@ -101,8 +102,12 @@
 	{:else}
 		<div>
 			<div>
-				<label for="login-modal" class="modal-button btn btn-md btn-primary">Login</label>
-				<input id="login-modal" type="checkbox" class="modal-toggle" />
+				<button
+					type="button"
+					class="cursor-pointer whitespace-nowrap"
+					onclick={() => (loginOpen = true)}
+				>Login</button>
+				<input id="login-modal" type="checkbox" class="modal-toggle" bind:checked={loginOpen} />
 				<div class="modal h-screen">
 					<div class="modal-box">
 						<LoginForm />

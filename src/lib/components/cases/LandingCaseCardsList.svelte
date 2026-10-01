@@ -38,6 +38,19 @@
 		sourceLabel: (url: string) => string;
 	} = $props();
 
+	let entryPlayed = false;
+	function enterCards(node: HTMLElement) {
+		if (entryPlayed || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		entryPlayed = true;
+		const animations = Array.from(node.children).slice(0, 6).map((card, index) =>
+			card.animate(
+				[{ opacity: 0, transform: 'translateY(20px)' }, { opacity: 1, transform: 'translateY(0)' }],
+				{ duration: 650, delay: index * 75, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'backwards' }
+			)
+		);
+		return { destroy: () => animations.forEach((animation) => animation.cancel()) };
+	}
+
 	function sourcePreview(value: string) {
 		return (
 			value
@@ -64,7 +77,7 @@
 	{#if topSpacerHeight > 0}
 		<div aria-hidden="true" style={`height: ${topSpacerHeight}px;`}></div>
 	{/if}
-	<div class="space-y-3">
+	<div use:enterCards class="space-y-3">
 		{#each virtualRows as record (record.id)}
 			{@const categories = getCategories(record)}
 			{@const tags = legalTags(record, categories)}

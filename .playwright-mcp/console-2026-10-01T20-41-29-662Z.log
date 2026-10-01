@@ -1,0 +1,138 @@
+[   28571ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/8/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28571ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/8/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28571ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/8/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28572ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/7/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28572ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/7/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28572ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/7/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28575ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/8/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28575ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/8/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28575ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/8/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28576ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/9/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28576ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/9/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28576ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/9/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28576ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/10/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28576ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/10/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28576ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/10/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28576ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/6/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28576ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/6/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28576ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/6/5.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28576ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/8/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28576ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/8/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28576ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/8/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28576ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/9/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28576ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/9/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28577ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/9/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28577ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/7/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28577ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/7/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28577ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/7/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28577ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/7/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28577ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/7/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28577ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/7/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28577ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/9/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28577ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/9/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28577ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/9/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28577ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/10/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28577ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/10/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28578ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/10/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28578ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/6/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28578ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/6/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28578ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/6/6.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28578ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/6/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28578ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/6/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28578ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/6/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28578ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/4/10/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28578ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/4/10/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28578ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/4/10/4.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28585ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/3/3/2.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28585ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/3/3/2.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28585ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/3/3/2.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28585ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/3/4/2.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28585ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/3/4/2.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28585ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/3/4/2.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28621ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/2/1/1.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28621ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/2/1/1.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28622ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/2/1/1.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28622ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/2/2/1.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28622ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/2/2/1.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28622ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/2/2/1.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28622ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/3/5/2.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28622ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/3/5/2.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28622ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/3/5/2.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28622ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/3/5/3.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28622ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/3/5/3.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28622ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/3/5/3.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28623ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/3/3/3.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28623ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/3/3/3.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28623ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/3/3/3.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
+[   28624ms] [ERROR] Access to fetch at 'https://basemaps.cartocdn.com/rastertiles/voyager/3/4/3.png?key=cb1_46km_1_829900312703c8f8a62f86cb' from origin 'http://localhost:64010' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://localhost:64010/map:0
+[   28624ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://basemaps.cartocdn.com/rastertiles/voyager/3/4/3.png?key=cb1_46km_1_829900312703c8f8a62f86cb:0
+[   28624ms] [ERROR] pt: AJAXError: Failed to fetch (0): https://basemaps.cartocdn.com/rastertiles/voyager/3/4/3.png?key=cb1_46km_1_829900312703c8f8a62f86cb
+    at http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:411:27
+    at Generator.throw (<anonymous>)
+    at a2 (http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:42:28) @ http://localhost:64010/node_modules/.vite/deps/maplibre-gl.js?v=4435776f:500
