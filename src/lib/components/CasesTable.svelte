@@ -70,7 +70,6 @@
 			: []
 	);
 	let categories = $state<string[]>([]);
-	let themes = $state<string[]>([]);
 	let articles = $state<string[]>([]);
 	let courts = $state<string[]>([]);
 	let parties = $state<string[]>([]);
@@ -101,8 +100,6 @@
 		)
 	);
 	const categoryFilterOptions = $derived(buildOptions('categories', availableCategories));
-	const availableThemes = $derived(uniqueSorted(cases.flatMap((record) => getThemes(record))));
-	const themeFilterOptions = $derived(buildOptions('themes', availableThemes));
 	const articleFilterOptions = $derived(
 		buildOptions('articles', uniqueSorted(cases.flatMap((record) => record.dsa_articles ?? [])))
 	);
@@ -147,7 +144,6 @@
 		statuses,
 		countries,
 		categories,
-		themes,
 		articles,
 		courts,
 		parties,
@@ -178,7 +174,6 @@
 		statusFilterOptions,
 		countryFilterOptions,
 		categoryFilterOptions,
-		themeFilterOptions,
 		articleFilterOptions,
 		courtFilterOptions,
 		partyFilterOptions,
@@ -186,7 +181,6 @@
 		statuses,
 		countries,
 		categories,
-		themes,
 		articles,
 		courts,
 		parties,
@@ -338,12 +332,6 @@
 		return (record.keywords ?? []).filter((keyword) => categoryOptions.includes(keyword));
 	}
 
-	function getThemes(record: CaseRecord) {
-		const themes = listOrFallback(record.themes);
-		if (themes.length) return themes;
-		return (record.keywords ?? []).filter((keyword) => !categoryOptions.includes(keyword));
-	}
-
 	function getSummarySection(record: CaseRecord, heading: string) {
 		const pattern = new RegExp(`<h3>\\s*${heading}\\s*<\\/h3>\\s*<p>(.*?)<\\/p>`, 'is');
 		const match = record.summary?.match(pattern);
@@ -436,7 +424,6 @@
 			...(record.legal_areas ?? []),
 			...(record.legal_basis ?? []),
 			...getCategories(record),
-			...getThemes(record),
 			...(record.keywords ?? [])
 		];
 		const sourceValues = [
@@ -470,7 +457,6 @@
 			(ignoredGroup === 'countries' ||
 				matchesAny(countries, [normalizeJurisdiction(record.jurisdiction)])) &&
 			(ignoredGroup === 'categories' || matchesAny(categories, getCategories(record))) &&
-			(ignoredGroup === 'themes' || matchesAny(themes, getThemes(record))) &&
 			(ignoredGroup === 'articles' || matchesAny(articles, record.dsa_articles ?? [])) &&
 			(ignoredGroup === 'courts' || matchesAny(courts, [record.court])) &&
 			(ignoredGroup === 'parties' || matchesAny(parties, getPartyValues(record))) &&
@@ -484,7 +470,6 @@
 			if (group === 'statuses') return record.status === option;
 			if (group === 'countries') return matchesJurisdiction(record, option);
 			if (group === 'categories') return getCategories(record).includes(option);
-			if (group === 'themes') return getThemes(record).includes(option);
 			if (group === 'articles') return (record.dsa_articles ?? []).includes(option);
 			if (group === 'courts') return record.court === option;
 			if (group === 'parties') return getPartyValues(record).includes(option);
@@ -508,7 +493,6 @@
 		if (group === 'statuses') return statuses;
 		if (group === 'countries') return countries;
 		if (group === 'categories') return categories;
-		if (group === 'themes') return themes;
 		if (group === 'articles') return articles;
 		if (group === 'courts') return courts;
 		if (group === 'parties') return parties;
@@ -524,7 +508,6 @@
 		if (group === 'statuses') statuses = next;
 		if (group === 'countries') countries = next;
 		if (group === 'categories') categories = next;
-		if (group === 'themes') themes = next;
 		if (group === 'articles') articles = next;
 		if (group === 'courts') courts = next;
 		if (group === 'parties') parties = next;
@@ -537,7 +520,6 @@
 			'statuses',
 			'countries',
 			'categories',
-			'themes',
 			'articles',
 			'courts',
 			'parties',
@@ -559,7 +541,6 @@
 		statuses = [];
 		countries = [];
 		categories = [];
-		themes = [];
 		articles = [];
 		courts = [];
 		parties = [];
@@ -933,7 +914,6 @@
 							{getPartyValues}
 							{countryLabel}
 							{getCategories}
-							{getThemes}
 							{getPrimarySourcesList}
 							{getSecondarySourcesList}
 							{sourceLinks}
@@ -945,7 +925,6 @@
 							{getPartyValues}
 							{countryLabel}
 							{getCategories}
-							{getThemes}
 							{getTimeline}
 							{getPrimarySourcesList}
 							{getSecondarySourcesList}
@@ -964,7 +943,6 @@
 						{...resultProps}
 						{countryFlag}
 						{getCategories}
-						{getThemes}
 						{getTimeline}
 						{sourceLinks}
 						{sourceLabel}

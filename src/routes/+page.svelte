@@ -10,7 +10,7 @@
 		{
 			title: 'Searchable public resource',
 			description:
-				'The tracker is designed to support browsing by jurisdiction, legal theme, status, and DSA article.'
+				'The tracker is designed to support browsing by jurisdiction, category, status, and DSA article.'
 		},
 		{
 			title: 'Built for growth',

@@ -15,7 +15,6 @@
 		getPartyValues,
 		countryLabel,
 		getCategories,
-		getThemes,
 		getTimeline,
 		getPrimarySourcesList,
 		getSecondarySourcesList,
@@ -34,7 +33,6 @@
 		getPartyValues: (record: CaseRecord) => string[];
 		countryLabel: (country: string) => string;
 		getCategories: (record: CaseRecord) => string[];
-		getThemes: (record: CaseRecord) => string[];
 		getTimeline: (record: CaseRecord) => string;
 		getPrimarySourcesList: (record: CaseRecord) => string[];
 		getSecondarySourcesList: (record: CaseRecord) => string[];
@@ -67,7 +65,6 @@
 	<div class="space-y-2.5">
 		{#each virtualRows as record (record.id)}
 			{@const categories = getCategories(record)}
-			{@const themes = getThemes(record)}
 			{@const primarySources = getPrimarySourcesList(record)}
 			{@const secondarySources = getSecondarySourcesList(record)}
 			{@const links = sourceLinks(record)}
@@ -166,11 +163,6 @@
 									<span class="text-xs font-normal text-slate-400">Category</span>
 									<span class="text-slate-200"> / </span>
 									<span>{categories.length ? categories.join(', ') : 'Not classified'}</span>
-								</p>
-								<p class="line-clamp-1 text-[0.95rem] text-slate-900">
-									<span class="text-xs font-normal text-slate-400">Theme</span>
-									<span class="text-slate-200"> / </span>
-									<span>{themes.length ? themes.join(', ') : 'Not classified'}</span>
 								</p>
 							</div>
 						</section>

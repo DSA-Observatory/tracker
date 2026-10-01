@@ -15,7 +15,6 @@
 		getPartyValues,
 		countryLabel,
 		getCategories,
-		getThemes,
 		getPrimarySourcesList,
 		getSecondarySourcesList,
 		sourceLinks,
@@ -33,7 +32,6 @@
 		getPartyValues: (record: CaseRecord) => string[];
 		countryLabel: (country: string) => string;
 		getCategories: (record: CaseRecord) => string[];
-		getThemes: (record: CaseRecord) => string[];
 		getPrimarySourcesList: (record: CaseRecord) => string[];
 		getSecondarySourcesList: (record: CaseRecord) => string[];
 		sourceLinks: (record: CaseRecord) => string[];
@@ -49,8 +47,8 @@
 		);
 	}
 
-	function legalTags(record: CaseRecord, categories: string[], themes: string[]) {
-		return [...categories, ...themes, ...(record.dsa_articles ?? [])].filter(Boolean).slice(0, 7);
+	function legalTags(record: CaseRecord, categories: string[]) {
+		return [...categories, ...(record.dsa_articles ?? [])].filter(Boolean).slice(0, 7);
 	}
 </script>
 
@@ -69,8 +67,7 @@
 	<div class="space-y-3">
 		{#each virtualRows as record (record.id)}
 			{@const categories = getCategories(record)}
-			{@const themes = getThemes(record)}
-			{@const tags = legalTags(record, categories, themes)}
+			{@const tags = legalTags(record, categories)}
 			{@const primarySources = getPrimarySourcesList(record)}
 			{@const secondarySources = getSecondarySourcesList(record)}
 			{@const links = sourceLinks(record)}
@@ -153,14 +150,11 @@
 										{tag}
 									</span>
 								{/each}
-								{#if categories.length + themes.length + (record.dsa_articles?.length ?? 0) > tags.length}
+								{#if categories.length + (record.dsa_articles?.length ?? 0) > tags.length}
 									<span
 										class="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-500"
 									>
-										+{categories.length +
-											themes.length +
-											(record.dsa_articles?.length ?? 0) -
-											tags.length}
+										+{categories.length + (record.dsa_articles?.length ?? 0) - tags.length}
 									</span>
 								{/if}
 							</div>

@@ -90,8 +90,7 @@
 				...(record.plaintiffs ?? []),
 				...(record.defendants ?? []),
 				...(record.dsa_articles ?? []),
-				...(record.categories ?? []),
-				...(record.themes ?? [])
+				...(record.categories ?? [])
 			]
 				.filter(Boolean)
 				.join(' ')

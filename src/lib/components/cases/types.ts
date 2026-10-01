@@ -4,7 +4,6 @@ export type FilterGroup =
 	| 'statuses'
 	| 'countries'
 	| 'categories'
-	| 'themes'
 	| 'articles'
 	| 'courts'
 	| 'parties'
@@ -48,7 +47,6 @@ export type CaseForm = {
 	summary: string;
 	timeline: string;
 	categories: string;
-	themes: string;
 	primary_sources: string;
 	secondary_sources: string;
 	source_limitations: string;
@@ -88,7 +86,6 @@ export const emptyCaseForm = (): CaseForm => ({
 	summary: '',
 	timeline: '',
 	categories: '',
-	themes: '',
 	primary_sources: '',
 	secondary_sources: '',
 	source_limitations: '',

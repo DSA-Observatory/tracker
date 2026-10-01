@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
 	import { authStore, pb, type CaseRecord } from '$lib/database';
+	import CaseSourceList from '$lib/components/cases/CaseSourceList.svelte';
 
 	let record = $state<CaseRecord>();
 	let relatedCases = $state<CaseRecord[]>([]);
@@ -73,23 +74,6 @@
 			: pb.files.getURL(record, filename);
 	}
 
-	function linkedTextParts(value?: string) {
-		const parts: { text: string; href?: string }[] = [];
-		let lastIndex = 0;
-
-		for (const match of (value ?? '').matchAll(/https?:\/\/[^\s)]+/g)) {
-			const rawUrl = match[0];
-			const href = rawUrl.replace(/[.,;]+$/, '');
-			const index = match.index ?? 0;
-			if (index > lastIndex) parts.push({ text: (value ?? '').slice(lastIndex, index) });
-			parts.push({ text: shortUrlLabel(href), href });
-			lastIndex = index + href.length;
-		}
-
-		if (lastIndex < (value ?? '').length) parts.push({ text: (value ?? '').slice(lastIndex) });
-		return parts;
-	}
-
 	function linkifyHtml(value?: string) {
 		const linkifyText = (text: string) =>
 			text.replace(/https?:\/\/[^\s<")]+/g, (rawUrl) => {
@@ -102,6 +86,20 @@
 			.split(/(<[^>]+>)/g)
 			.map((part) => (part.startsWith('<') ? part : linkifyText(part)))
 			.join('');
+	}
+
+	function linkedTextParts(value?: string) {
+		const parts: { text: string; href?: string }[] = [];
+		let lastIndex = 0;
+		for (const match of (value ?? '').matchAll(/https?:\/\/[^\s)]+/g)) {
+			const href = match[0].replace(/[.,;]+$/, '');
+			const index = match.index ?? 0;
+			if (index > lastIndex) parts.push({ text: (value ?? '').slice(lastIndex, index) });
+			parts.push({ text: shortUrlLabel(href), href });
+			lastIndex = index + href.length;
+		}
+		if (lastIndex < (value ?? '').length) parts.push({ text: (value ?? '').slice(lastIndex) });
+		return parts;
 	}
 
 	function normalizeProceduralEvents(item?: CaseRecord) {
@@ -131,19 +129,15 @@
 				return;
 			}
 
-			const legalTags = [
-				...list(record.dsa_articles),
-				...list(record.legal_areas),
-				...list(record.themes)
-			];
+			const legalTags = [...list(record.dsa_articles), ...list(record.legal_areas)];
 			if (legalTags.length) {
 				relatedCases = (
 					await pb.collection('cases').getFullList<CaseRecord>({ sort: '-decision_date,-created' })
 				)
 					.filter((item) => item.id !== record?.id && (item.published || authStore.isAdmin))
 					.filter((item) =>
-						[...list(item.dsa_articles), ...list(item.legal_areas), ...list(item.themes)].some(
-							(tag) => legalTags.includes(tag)
+						[...list(item.dsa_articles), ...list(item.legal_areas)].some((tag) =>
+							legalTags.includes(tag)
 						)
 					)
 					.slice(0, 4);
@@ -218,7 +212,7 @@
 		</section>
 
 		<div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-			<div class="space-y-6">
+			<div class="min-w-0 space-y-6">
 				<section class="rounded-xl border border-slate-200 bg-white p-6">
 					<h2 class="text-xl font-black">Summary</h2>
 					{#if record.summary}<div class="prose mt-4 max-w-none text-slate-700">
@@ -278,40 +272,14 @@
 								</ul>
 							</div>
 						{/if}
-						<div class="mt-4 grid gap-4 md:grid-cols-2">
+						<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div>
 								<h3 class="font-semibold">Primary sources</h3>
-								<ul class="mt-2 space-y-2 text-sm text-slate-600">
-									{#each list(record.primary_sources) as source, sourceIndex (`${source}-${sourceIndex}`)}<li
-										>
-											{#each linkedTextParts(source) as part, partIndex (`${part.text}-${partIndex}`)}
-												{#if part.href}<a
-														class="underline decoration-slate-300 underline-offset-2 hover:text-slate-950"
-														href={part.href}
-														target="_blank"
-														rel="noreferrer">{part.text}</a
-													>{:else}{part.text}{/if}
-											{/each}
-										</li>{/each}
-									{#if !list(record.primary_sources).length}<li>None recorded</li>{/if}
-								</ul>
+								<div class="mt-2"><CaseSourceList sources={record.primary_sources} /></div>
 							</div>
 							<div>
 								<h3 class="font-semibold">Secondary sources</h3>
-								<ul class="mt-2 space-y-2 text-sm text-slate-600">
-									{#each list(record.secondary_sources) as source, sourceIndex (`${source}-${sourceIndex}`)}<li
-										>
-											{#each linkedTextParts(source) as part, partIndex (`${part.text}-${partIndex}`)}
-												{#if part.href}<a
-														class="underline decoration-slate-300 underline-offset-2 hover:text-slate-950"
-														href={part.href}
-														target="_blank"
-														rel="noreferrer">{part.text}</a
-													>{:else}{part.text}{/if}
-											{/each}
-										</li>{/each}
-									{#if !list(record.secondary_sources).length}<li>None recorded</li>{/if}
-								</ul>
+								<div class="mt-2"><CaseSourceList sources={record.secondary_sources} /></div>
 							</div>
 						</div>
 						{#if sourceLinks.length}
@@ -350,7 +318,7 @@
 				<section class="rounded-xl border border-slate-200 bg-white p-5">
 					<h2 class="font-black">At a glance</h2>
 					<dl class="mt-4 space-y-3 text-sm">
-						{#each [['Jurisdiction', record.jurisdiction], ['Court', list(record.courts).join(', ') || record.court], ['Filing date', formatDate(record.filing_date)], ['Decision date', formatDate(record.decision_date)], ['Plaintiffs', list(record.plaintiffs).join(', ')], ['Defendants', list(record.defendants).join(', ')]] as item (item[0])}
+						{#each [['Jurisdiction', record.jurisdiction], ['Court', list(record.courts).join(', ') || record.court], ['Filing date', formatDate(record.filing_date)], ['Judgment/decision date', formatDate(record.decision_date)], ['Plaintiffs', list(record.plaintiffs).join(', ')], ['Defendants', list(record.defendants).join(', ')]] as item (item[0])}
 							{#if item[1]}
 								<div>
 									<dt class="text-slate-400">{item[0]}</dt>
@@ -364,7 +332,7 @@
 				<section class="rounded-xl border border-slate-200 bg-white p-5">
 					<h2 class="font-black">Legal classification</h2>
 					<div class="mt-4 flex flex-wrap gap-2">
-						{#each [...list(record.dsa_articles), ...list(record.legal_areas), ...list(record.legal_basis), ...list(record.categories), ...list(record.themes)] as tag, index (`${tag}-${index}`)}
+						{#each [...list(record.dsa_articles), ...list(record.legal_areas), ...list(record.legal_basis), ...list(record.categories)] as tag, index (`${tag}-${index}`)}
 							<span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
 								>{tag}</span
 							>

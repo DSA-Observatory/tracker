@@ -14,7 +14,6 @@
 		onDelete,
 		countryFlag,
 		getCategories,
-		getThemes,
 		getTimeline,
 		sourceLinks,
 		sourceLabel,
@@ -31,7 +30,6 @@
 		onDelete: (record: CaseRecord) => void;
 		countryFlag: (country: string) => string;
 		getCategories: (record: CaseRecord) => string[];
-		getThemes: (record: CaseRecord) => string[];
 		getTimeline: (record: CaseRecord) => string;
 		sourceLinks: (record: CaseRecord) => string[];
 		sourceLabel: (url: string) => string;
@@ -127,7 +125,7 @@
 					</td>
 					<td class="min-w-56 border-b border-slate-100 px-4 py-3 align-top">
 						<div class="flex flex-wrap gap-1">
-							{#each [...(record.dsa_articles ?? []), ...getCategories(record), ...getThemes(record)].slice(0, 5) as tag}
+							{#each [...(record.dsa_articles ?? []), ...getCategories(record)].slice(0, 5) as tag}
 								<span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600"
 									>{tag}</span
 								>

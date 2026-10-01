@@ -15,6 +15,13 @@
 	import IconX from '~icons/lucide/x';
 	import CaseSummaryEditor from './CaseSummaryEditor.svelte';
 	import CaseCommentsPanel from './CaseCommentsPanel.svelte';
+	import CaseSourceEditor from './CaseSourceEditor.svelte';
+	import {
+		parseSources,
+		serializeSources,
+		validateSources,
+		type SourceEntry
+	} from '$lib/case-sources';
 	import {
 		emptyCaseForm,
 		joinCaseFormList,
@@ -32,6 +39,8 @@
 	let error = $state('');
 	let attemptedSubmit = $state(false);
 	let form = $state<CaseForm>(emptyCaseForm());
+	let primarySources = $state<SourceEntry[]>([]);
+	let secondarySources = $state<SourceEntry[]>([]);
 	let currentRecord = $state<CaseRecord>();
 	let originatingSubmission = $state<CaseSubmissionRecord>();
 	let fileToken = $state('');
@@ -59,7 +68,6 @@
 		'legal_basis',
 		'case_scope',
 		'categories',
-		'themes',
 		'keywords',
 		'primary_sources',
 		'secondary_sources',
@@ -83,6 +91,8 @@
 		try {
 			const record = await pb.collection('cases').getOne<CaseRecord>(id);
 			currentRecord = record;
+			primarySources = parseSources(record.primary_sources);
+			secondarySources = parseSources(record.secondary_sources);
 			if (authStore.isAdmin && record.documents?.length) fileToken = await pb.files.getToken();
 			if (authStore.isAdmin) {
 				const origins = await pb
@@ -117,7 +127,6 @@
 				summary: record.summary ?? '',
 				timeline: record.timeline ?? '',
 				categories: joinCaseFormList(record.categories),
-				themes: joinCaseFormList(record.themes),
 				primary_sources: joinCaseFormLines(record.primary_sources),
 				secondary_sources: joinCaseFormLines(record.secondary_sources),
 				source_limitations: record.source_limitations ?? '',
@@ -344,7 +353,6 @@
 			'legal_areas',
 			'legal_basis',
 			'categories',
-			'themes',
 			'keywords'
 		].includes(field);
 	}
@@ -409,6 +417,12 @@
 		}
 
 		saving = true;
+		const sourceError = validateSources(primarySources) || validateSources(secondarySources);
+		if (sourceError) {
+			error = sourceError;
+			saving = false;
+			return;
+		}
 		error = '';
 
 		const payload = {
@@ -433,9 +447,8 @@
 			summary: form.summary.trim(),
 			timeline: form.timeline.trim(),
 			categories: splitCaseFormList(form.categories),
-			themes: splitCaseFormList(form.themes),
-			primary_sources: splitCaseFormLines(form.primary_sources),
-			secondary_sources: splitCaseFormLines(form.secondary_sources),
+			primary_sources: serializeSources(primarySources),
+			secondary_sources: serializeSources(secondarySources),
 			source_limitations: form.source_limitations.trim(),
 			editorial_notes: form.editorial_notes.trim(),
 			keywords: splitCaseFormList(form.keywords),
@@ -632,7 +645,7 @@
 								/>
 							</label>
 							<label class="form-control w-full">
-								<span class="label-text mb-1 text-sm font-semibold">Decision date</span>
+								<span class="label-text mb-1 text-sm font-semibold">Judgment/decision date</span>
 								<input
 									class="input-bordered input input-sm w-full"
 									bind:value={form.decision_date}
@@ -717,14 +730,6 @@
 									placeholder="Comma separated"
 								/>
 							</label>
-							<label class="form-control w-full md:col-span-2">
-								<span class="label-text mb-1 text-sm font-semibold">Themes</span>
-								<input
-									class="input-bordered input input-sm w-full"
-									bind:value={form.themes}
-									placeholder="Comma separated"
-								/>
-							</label>
 							<label class="form-control w-full">
 								<span class="label-text mb-1 text-sm font-semibold">Case scope</span>
 								<input
@@ -795,14 +800,13 @@
 							>
 						</summary>
 						<div class="mt-4 grid gap-3 md:grid-cols-3">
-							<label class="form-control w-full md:col-span-3">
-								<span class="label-text mb-1 text-sm font-semibold">Primary sources</span>
-								<textarea
-									class="textarea-bordered textarea min-h-20 w-full"
-									bind:value={form.primary_sources}
-									placeholder="One primary source per line"
-								></textarea>
-							</label>
+							<div class="md:col-span-3">
+								<CaseSourceEditor
+									label="Primary sources"
+									bind:entries={primarySources}
+									disabled={saving}
+								/>
+							</div>
 							<div class="form-control w-full md:col-span-3">
 								<span class="label-text mb-1 text-sm font-semibold">Uploaded documents</span>
 								<input
@@ -879,14 +883,13 @@
 									</div>
 								{/if}
 							</div>
-							<label class="form-control w-full md:col-span-3">
-								<span class="label-text mb-1 text-sm font-semibold">Secondary sources</span>
-								<textarea
-									class="textarea-bordered textarea min-h-20 w-full"
-									bind:value={form.secondary_sources}
-									placeholder="One secondary source per line"
-								></textarea>
-							</label>
+							<div class="md:col-span-3">
+								<CaseSourceEditor
+									label="Secondary sources"
+									bind:entries={secondarySources}
+									disabled={saving}
+								/>
+							</div>
 							<label class="form-control w-full md:col-span-3">
 								<span class="label-text mb-1 text-sm font-semibold">Source limitations</span>
 								<textarea

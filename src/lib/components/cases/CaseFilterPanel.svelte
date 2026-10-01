@@ -11,7 +11,6 @@
 		statusFilterOptions,
 		countryFilterOptions,
 		categoryFilterOptions,
-		themeFilterOptions,
 		articleFilterOptions,
 		courtFilterOptions,
 		partyFilterOptions,
@@ -19,7 +18,6 @@
 		statuses,
 		countries,
 		categories,
-		themes,
 		articles,
 		courts,
 		parties,
@@ -35,7 +33,6 @@
 		statusFilterOptions: FilterOption[];
 		countryFilterOptions: FilterOption[];
 		categoryFilterOptions: FilterOption[];
-		themeFilterOptions: FilterOption[];
 		articleFilterOptions: FilterOption[];
 		courtFilterOptions: FilterOption[];
 		partyFilterOptions: FilterOption[];
@@ -43,7 +40,6 @@
 		statuses: string[];
 		countries: string[];
 		categories: string[];
-		themes: string[];
 		articles: string[];
 		courts: string[];
 		parties: string[];
@@ -107,14 +103,6 @@
 			selected={categories}
 			placeholder="Search categories"
 			onToggle={(value) => onToggle('categories', value)}
-		/>
-		<FilterMenu
-			label="Theme"
-			variant={sidebar ? 'collapsible' : 'dropdown'}
-			options={themeFilterOptions}
-			selected={themes}
-			placeholder="Search themes"
-			onToggle={(value) => onToggle('themes', value)}
 		/>
 		<FilterMenu
 			label="DSA provisions"
