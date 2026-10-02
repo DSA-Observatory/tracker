@@ -1,1 +1,0 @@
-import{f as p,a as t}from"./FF7EC2dT.js";import{i as r,n as e,r as s}from"./jUpvwK6d.js";import{s as l}from"./CafUnctH.js";var c=p('<main class="container mx-auto max-w-3xl px-4 py-8 sm:py-12"><div class="prose prose-lg max-w-none"><!></div></main>');function x(i,m){var a=c(),o=r(a),n=r(o);l(n,()=>m.children??e),s(o),s(a),t(i,a)}export{x as P};

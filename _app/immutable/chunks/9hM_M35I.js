@@ -1,0 +1,1 @@
+const a=new Set;function n(e){if(a.has(e))return!1;a.add(e);try{const t=`entry-animation:${e}`;if(sessionStorage.getItem(t))return!1;sessionStorage.setItem(t,"played")}catch{}return!window.matchMedia("(prefers-reduced-motion: reduce)").matches}export{n as c};
