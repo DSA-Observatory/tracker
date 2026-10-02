@@ -1,18 +1,8 @@
 <script lang="ts">
 	import { authStore } from '$lib/database';
-	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { page } from '$app/state';
 	import LoginForm from './LoginForm.svelte';
 	let loginOpen = $state(false);
-
-	function handleLogout() {
-		authStore.logout();
-
-		if (page.url.pathname === resolve('/profile')) {
-			goto(resolve('/'));
-		}
-	}
 </script>
 
 <div>
@@ -76,26 +66,6 @@
 						</a>
 					</li>
 				{/if}
-				<div class="divider my-0"></div>
-				<li>
-					<button type="button" class="flex items-center gap-2 text-error" onclick={handleLogout}>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="size-5"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-							/>
-						</svg>
-						Logout
-					</button>
-				</li>
 			</ul>
 		</div>
 		<!-- Not logged in-->

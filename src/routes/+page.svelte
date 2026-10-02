@@ -114,7 +114,7 @@
 	.hero-about { font-size: .85rem; font-weight: 600; }
 	.hero-about:hover { text-decoration: underline; }
 	.hero-about span { margin-left: .5rem; }
-	.hero-atlas { position: absolute; width: min(64vw, 1050px); height: 100%; right: -2%; top: -8rem; }
+	.hero-atlas { position: absolute; width: min(64vw, 1050px); height: 100%; right: max(-2%, calc((100% - 1440px) / 2 - 12rem)); top: -8rem; }
 	.hero-map-link { display: inline-block; margin-top: 1.25rem; font-size: .8rem; color: color-mix(in oklab, var(--color-base-content) 65%, transparent); }
 	.hero-map-link:hover { text-decoration: underline; }
 	.hero-footnote { display: flex; justify-content: space-between; gap: 1rem; margin-top: 6rem; padding-top: 1.25rem; font-size: .68rem; letter-spacing: .035em; color: color-mix(in oklab, var(--color-base-content) 55%, transparent); }

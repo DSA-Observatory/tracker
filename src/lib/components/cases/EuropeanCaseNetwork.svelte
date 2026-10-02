@@ -184,6 +184,7 @@
 		opacity: 0.38;
 		mask-image:
 			linear-gradient(to bottom, transparent, rgb(0 0 0 / 20%) 20%, black 52%, black 90%, transparent),
+			linear-gradient(to right, black 65%, rgb(0 0 0 / 70%) 80%, transparent 100%),
 			radial-gradient(ellipse at 53% 68%, black 40%, rgb(0 0 0 / 65%) 65%, transparent 85%);
 		mask-composite: intersect;
 	}

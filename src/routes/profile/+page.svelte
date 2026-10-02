@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { goto } from '$app/navigation';
 	import { authStore } from '$lib/database';
+
+	function handleLogout() {
+		authStore.logout();
+		goto(resolve('/'));
+	}
 
 	function formatDate(value?: string) {
 		if (!value) return 'Unknown';
@@ -59,6 +65,9 @@
 						</div>
 					</div>
 				</div>
+			</div>
+			<div class="mt-8 border-t border-base-300/60 pt-6">
+				<button type="button" class="btn btn-outline btn-error" onclick={handleLogout}>Logout</button>
 			</div>
 		{:else}
 			<div class="mt-8 rounded-3xl bg-base-200/70 p-6">
