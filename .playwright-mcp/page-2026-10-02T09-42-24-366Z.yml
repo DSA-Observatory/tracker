@@ -1,0 +1,490 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - generic [ref=e6]:
+        - link "Case tracker home" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - generic [aria-hidden] [ref=e8]: DSA
+          - generic [ref=e9]: Case Tracker
+        - textbox "Search cases" [ref=e16]
+        - generic [ref=e17]:
+          - link "Cases" [ref=e18] [cursor=pointer]:
+            - /url: /cases
+          - link "Map" [ref=e19] [cursor=pointer]:
+            - /url: /map
+          - link "About" [ref=e20] [cursor=pointer]:
+            - /url: /about
+        - generic [ref=e24]:
+          - button "Login" [ref=e25] [cursor=pointer]
+          - checkbox "Close" [ref=e26]
+        - link "Suggest a Case" [ref=e27] [cursor=pointer]:
+          - /url: /submit
+    - main [ref=e155]:
+      - generic [ref=e156]:
+        - generic [ref=e158]:
+          - generic [ref=e160]:
+            - generic [ref=e161]:
+              - paragraph [ref=e162]: DSA Case Law Tracker
+              - heading "Private enforcement cases" [level=1] [ref=e163]
+              - paragraph [ref=e164]: Search, filter, map, and compare DSA litigation across jurisdictions.
+            - generic [ref=e165]:
+              - generic [ref=e166]: 63 cases
+              - button "8 countries" [ref=e167]
+          - generic [ref=e173]:
+            - generic [ref=e174]:
+              - generic [aria-hidden] [ref=e175]: Search
+              - textbox "Search cases" [ref=e176]:
+                - /placeholder: Search cases, parties, articles, sources
+            - generic [ref=e177]:
+              - generic [ref=e178]: Search in
+              - combobox "Search scope" [ref=e179]:
+                - option "All fields" [selected]
+                - option "Case details"
+                - option "Parties"
+                - option "Legal tags"
+                - option "Sources"
+                - option "Timeline"
+                - option "Primary sources"
+                - option "Secondary sources"
+            - generic [ref=e180]:
+              - group "Visualization preferences" [ref=e181]:
+                - 'generic "View: Cards" [ref=e182] [cursor=pointer]':
+                  - text: "View: Cards"
+                  - generic [aria-hidden] [ref=e183]: ▼
+              - group [ref=e184]:
+                - generic "Export" [ref=e185] [cursor=pointer]:
+                  - text: Export
+                  - generic [aria-hidden] [ref=e186]: ▼
+        - generic [ref=e187]:
+          - complementary [ref=e188]:
+            - generic [ref=e189]:
+              - generic [ref=e191]:
+                - paragraph [ref=e192]: Filters
+                - paragraph [ref=e193]: Showing 63 of 63 cases
+              - generic [ref=e194]:
+                - button "Status 3" [ref=e196]:
+                  - generic [ref=e197]: Status
+                  - generic [ref=e198]: "3"
+                - button "Country 8" [ref=e203]:
+                  - generic [ref=e204]: Country
+                  - generic [ref=e205]: "8"
+                - button "Category 2" [ref=e210]:
+                  - generic [ref=e211]: Category
+                  - generic [ref=e212]: "2"
+                - button "DSA provisions 32" [ref=e217]:
+                  - generic [ref=e218]: DSA provisions
+                  - generic [ref=e219]: "32"
+                - button "Court 28" [ref=e224]:
+                  - generic [ref=e225]: Court
+                  - generic [ref=e226]: "28"
+                - button "Parties 114" [ref=e231]:
+                  - generic [ref=e232]: Parties
+                  - generic [ref=e233]: "114"
+                - button "Decision year 5" [ref=e238]:
+                  - generic [ref=e239]: Decision year
+                  - generic [ref=e240]: "5"
+          - generic [ref=e246]:
+            - article [ref=e247]:
+              - 'link "View case: [Z] Inc. v Groupe Canal+ and Société d’Édition de Canal Plus" [ref=e248] [cursor=pointer]':
+                - /url: /cases/uttz150bv46p1rh
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "[Z] Inc. v Groupe Canal+ and Société d’Édition de Canal Plus" [level=2]
+                  - generic:
+                    - generic: 🇫🇷 France
+                    - generic [aria-hidden]: /
+                    - generic: Cour d'appel de Paris
+                  - generic:
+                    - generic: Intermediary Liability
+                    - generic: Article 3 DSA
+                    - generic: Article 8 DSA
+                    - generic: Article 9 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / [Z] Inc., Groupe Canal+ and Société d’Édition de Canal Plus
+                    - paragraph: Source / https://www.courdecassation.fr/decision/6a0ae3f5cdc6046d470fadce
+            - article [ref=e249]:
+              - 'link "View case: [Claimant] v Back Market" [ref=e250] [cursor=pointer]':
+                - /url: /cases/vixspfo8xvvdy1h
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "[Claimant] v Back Market" [level=2]
+                  - generic:
+                    - generic: 🇫🇷 France
+                    - generic [aria-hidden]: /
+                    - generic: Tribunal judiciaire de Paris
+                  - generic:
+                    - generic: Due Diligence
+                    - generic: Article 8 DSA
+                    - generic: Article 30 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / [Claimant], Back Market
+                    - paragraph: Source / https://www.courdecassation.fr/decision/69fb891acdc6046d47d5d0d0
+            - article [ref=e251]:
+              - 'link "View case: Cisco Systems Inc., Cisco OpenDNS LLC, Cloudflare Inc., Google LLC and Google Ireland Limited v Groupe Canal+ and Société d’Édition de Canal Plus" [ref=e252] [cursor=pointer]':
+                - /url: /cases/ct20mha6pxvmya1
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "Cisco Systems Inc., Cisco OpenDNS LLC, Cloudflare Inc., Google LLC and Google Ireland Limited v Groupe Canal+ and Société d’Édition de Canal Plus" [level=2]
+                  - generic:
+                    - generic: 🇫🇷 France
+                    - generic [aria-hidden]: /
+                    - generic: Cour d'appel de Paris
+                  - generic:
+                    - generic: Intermediary Liability
+                    - generic: Article 4 DSA
+                    - generic: Article 9 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / Cisco Systems Inc., Cisco OpenDNS LLC, Cloudflare Inc., Google LLC and Google Ireland Limited, Groupe Canal+ and Société d’Édition de Canal Plus
+                    - paragraph: Source / https://www.courdecassation.fr/decision/69c7747ccdc6046d4743083b
+            - article [ref=e253]:
+              - 'link "View case: [Kläger] v [Beklagte]" [ref=e254] [cursor=pointer]':
+                - /url: /cases/xkxdj73gc8psu9a
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "[Kläger] v [Beklagte]" [level=2]
+                  - generic:
+                    - generic: 🇩🇪 Germany
+                    - generic [aria-hidden]: /
+                    - generic: Oberlandesgericht München
+                  - generic:
+                    - generic: Due Diligence
+                    - generic: Article 20 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / [Kläger], [Beklagte]
+                    - paragraph: Source / https://openjur.de/u/2545528.html
+            - article [ref=e255]:
+              - 'link "View case: Verbraucherzentrale Baden-Württemberg v Google Ireland Limited" [ref=e256] [cursor=pointer]':
+                - /url: /cases/6bkmwhhflsdbp7f
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "Verbraucherzentrale Baden-Württemberg v Google Ireland Limited" [level=2]
+                  - generic:
+                    - generic: 🇩🇪 Germany
+                    - generic [aria-hidden]: /
+                    - generic: Landgericht Bamberg
+                  - generic:
+                    - generic: Due Diligence
+                    - generic: Article 2 DSA
+                    - generic: Article 3 DSA
+                    - generic: Article 6 DSA
+                    - generic: Article 8 DSA
+                    - generic: Article 26 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / Verbraucherzentrale Baden-Württemberg, Google Ireland Limited
+                    - paragraph: Source / https://www.gesetze-bayern.de/Content/Document/Y-300-Z-BECKRS-B-2026-N-3675
+            - article [ref=e257]:
+              - 'link "View case: * GmbH v * UC" [ref=e258] [cursor=pointer]':
+                - /url: /cases/42rxjt1h2djm3l9
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: decided
+                      - generic: Published
+                  - heading "* GmbH v * UC" [level=2]
+                  - generic:
+                    - generic: Austria
+                    - generic [aria-hidden]: /
+                    - generic: Oberster Gerichtshof
+                    - generic [aria-hidden]: /
+                    - generic: ECLI:AT:OGH0002:2025:0040OB00100.25X.1125.000
+                  - generic:
+                    - generic: Intermediary Liability
+                    - generic: Article 6 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / * GmbH, * UC
+                    - paragraph: Source / https://rdb.manz.at/document/ris.just.JJT_20251125_OGH0002_0040OB00100_25X0000_000
+            - article [ref=e259]:
+              - 'link "View case: S.A.R.L. Rissler v S.A. Near Life Experience" [ref=e260] [cursor=pointer]':
+                - /url: /cases/ej3lmlwjz1wrekn
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "S.A.R.L. Rissler v S.A. Near Life Experience" [level=2]
+                  - generic:
+                    - generic: 🇫🇷 France
+                    - generic [aria-hidden]: /
+                    - generic: Tribunal judiciaire de Paris
+                  - generic:
+                    - generic: Intermediary Liability
+                    - generic: Article 6 DSA
+                    - generic: Article 16 DSA
+                    - generic: Article 20 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / S.A.R.L. Rissler, S.A. Near Life Experience
+                    - paragraph: Source / https://www.courdecassation.fr/decision/69468ec075782d5f06f5b250
+            - article [ref=e261]:
+              - 'link "View case: [Z] [U] v Airbnb Ireland Unlimited Company, [F] [Y] and [G] [B] épouse [Y]" [ref=e262] [cursor=pointer]':
+                - /url: /cases/wh9fruisglvdloi
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "[Z] [U] v Airbnb Ireland Unlimited Company, [F] [Y] and [G] [B] épouse [Y]" [level=2]
+                  - generic:
+                    - generic: 🇫🇷 France
+                    - generic [aria-hidden]: /
+                    - generic: Tribunal judiciaire de Paris
+                  - generic:
+                    - generic: Intermediary Liability
+                    - generic: Article 8 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / [Z] [U], Airbnb Ireland Unlimited Company, [F] [Y] and [G] [B] épouse [Y]
+                    - paragraph: Source / https://www.courdecassation.fr/decision/69148bbe4322238c089ced6b
+            - article [ref=e263]:
+              - 'link "View case: Etablissement public SEINE ET YVELINES NUMERIQUE and [F] [X] v Société INDEED FRANCE SAS." [ref=e264] [cursor=pointer]':
+                - /url: /cases/zvslasa7ncsuuzi
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "Etablissement public SEINE ET YVELINES NUMERIQUE and [F] [X] v Société INDEED FRANCE SAS." [level=2]
+                  - generic:
+                    - generic: 🇫🇷 France
+                    - generic [aria-hidden]: /
+                    - generic: Tribunal judiciaire de Paris
+                  - generic:
+                    - generic: Intermediary Liability
+                    - generic: Article 3 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / Etablissement public SEINE ET YVELINES NUMERIQUE and [F] [X], Société INDEED FRANCE SAS.
+                    - paragraph: Source / https://www.courdecassation.fr/decision/6700320ec34eb4cc857896f0
+            - article [ref=e265]:
+              - 'link "View case: Syndicat national de l’édition phonographique (SNEP) v S.A.S. OVH and Monsieur [H] [U]" [ref=e266] [cursor=pointer]':
+                - /url: /cases/gh4pr5ne4loe8f0
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "Syndicat national de l’édition phonographique (SNEP) v S.A.S. OVH and Monsieur [H] [U]" [level=2]
+                  - generic:
+                    - generic: 🇫🇷 France
+                    - generic [aria-hidden]: /
+                    - generic: Tribunal judiciaire de Paris
+                  - generic:
+                    - generic: Intermediary Liability
+                    - generic: Article 8 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / Syndicat national de l’édition phonographique (SNEP), S.A.S. OVH and Monsieur [H] [U]
+                    - paragraph: Source / https://www.courdecassation.fr/decision/68dec3be6af9fd1f8094d8d5
+            - article [ref=e267]:
+              - 'link "View case: [Antragstellerin] v [Online-Plattform]" [ref=e268] [cursor=pointer]':
+                - /url: /cases/7k5i9ybit5zxiei
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "[Antragstellerin] v [Online-Plattform]" [level=2]
+                  - generic:
+                    - generic: 🇩🇪 Germany
+                    - generic [aria-hidden]: /
+                    - generic: Kammergericht Berlin
+                    - generic [aria-hidden]: /
+                    - generic: ECLI:DE:KG:2025:0825.10W70.25.00
+                  - generic:
+                    - generic: Intermediary Liability
+                    - generic: Article 6 DSA
+                    - generic: Article 16 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / [Antragstellerin], [Online-Plattform]
+                    - paragraph: Source / https://gesetze.berlin.de/bsbe/document/NJRE001618227
+            - article [ref=e269]:
+              - 'link "View case: X Internet Unlimited Company v S.A. Société Éditrice du Monde, S.A.S. Société du Figaro, Le Nouvel Observateur du Monde, Télérama, Courrier International, Malesherbes Publications and Le Huffington Post" [ref=e270] [cursor=pointer]':
+                - /url: /cases/y9aqay4u8lak2x1
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "X Internet Unlimited Company v S.A. Société Éditrice du Monde, S.A.S. Société du Figaro, Le Nouvel Observateur du Monde, Télérama, Courrier International, Malesherbes Publications and Le Huffington Post" [level=2]
+                  - generic:
+                    - generic: 🇫🇷 France
+                    - generic [aria-hidden]: /
+                    - generic: Cour d'appel de Paris
+                  - generic:
+                    - generic: Due Diligence
+                    - generic: Article 8 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / X Internet Unlimited Company, S.A. Société Éditrice du Monde, S.A.S. Société du Figaro, Le Nouvel Observateur du Monde, Télérama, Courrier International, Malesherbes Publications and Le Huffington Post
+                    - paragraph: Source / https://www.courdecassation.fr/decision/68d621a2fd95ebd9ab3855ba
+            - article [ref=e271]:
+              - 'link "View case: Monsieur [G] [Z] v Wikimédia Foundation Inc." [ref=e272] [cursor=pointer]':
+                - /url: /cases/3w6pivl312apke2
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "Monsieur [G] [Z] v Wikimédia Foundation Inc." [level=2]
+                  - generic:
+                    - generic: 🇫🇷 France
+                    - generic [aria-hidden]: /
+                    - generic: Tribunal judiciaire de Paris
+                  - generic:
+                    - generic: Due Diligence
+                    - generic: Article 6 DSA
+                    - generic: Article 13 DSA
+                    - generic: Article 14 DSA
+                    - generic: Article 16 DSA
+                    - generic: Article 17 DSA
+                    - generic: Article 20 DSA
+                    - generic: "+5"
+                - generic:
+                  - generic:
+                    - paragraph: Parties / Monsieur [G] [Z], Wikimédia Foundation Inc.
+                    - paragraph: Source / https://www.courdecassation.fr/decision/68cda04654b52e4d6bdff961
+            - article [ref=e273]:
+              - 'link "View case: Madame [W] [P] and Monsieur [Y] [B] v X Internet Unlimited Company" [ref=e274] [cursor=pointer]':
+                - /url: /cases/g6kc87iiagscdaz
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "Madame [W] [P] and Monsieur [Y] [B] v X Internet Unlimited Company" [level=2]
+                  - generic:
+                    - generic: 🇫🇷 France
+                    - generic [aria-hidden]: /
+                    - generic: Tribunal judiciaire de Paris
+                  - generic:
+                    - generic: Intermediary Liability
+                    - generic: Article 10 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / Madame [W] [P] and Monsieur [Y] [B], X Internet Unlimited Company
+                    - paragraph: Source / https://www.courdecassation.fr/decision/68cc4f009da3689504688d06
+            - article [ref=e275]:
+              - 'link "View case: [Verfügungskläger] v K. (platform “XY”)" [ref=e276] [cursor=pointer]':
+                - /url: /cases/ivu522otnh8oasw
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "[Verfügungskläger] v K. (platform “XY”)" [level=2]
+                  - generic:
+                    - generic: 🇩🇪 Germany
+                    - generic [aria-hidden]: /
+                    - generic: Oberlandesgericht Bamberg
+                  - generic:
+                    - generic: Due Diligence
+                    - generic: Article 17 DSA
+                    - generic: Article 54 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / [Verfügungskläger], K. (platform “XY”)
+                    - paragraph: Source / https://www.gesetze-bayern.de/Content/Document/Y-300-Z-GRURRS-B-2025-N-29983
+            - article [ref=e277]:
+              - 'link "View case: [F] [Z] v S.A. SOCIÉTÉ FRANÇAISE DU RADIOTÉLÉPHONE – SFR." [ref=e278] [cursor=pointer]':
+                - /url: /cases/y3ghylctbc3ljf4
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: decided
+                      - generic: Published
+                  - heading "[F] [Z] v S.A. SOCIÉTÉ FRANÇAISE DU RADIOTÉLÉPHONE – SFR." [level=2]
+                  - generic:
+                    - generic: 🇫🇷 France
+                    - generic [aria-hidden]: /
+                    - generic: Tribunal judiciaire de Paris
+                  - generic:
+                    - generic: Intermediary Liability
+                    - generic: Article 3 DSA
+                - generic:
+                  - generic:
+                    - paragraph: Parties / [F] [Z], S.A. SOCIÉTÉ FRANÇAISE DU RADIOTÉLÉPHONE – SFR.
+                    - paragraph: Source / https://www.courdecassation.fr/decision/6841e149e1aa44555aa9c948
+            - article [ref=e279]:
+              - 'link "View case: A. B. v YouTube" [ref=e280] [cursor=pointer]':
+                - /url: /cases/r9tgprae3f2aq9w
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: review
+                      - generic: Published
+                  - heading "A. B. v YouTube" [level=2]
+                  - generic:
+                    - generic: 🇩🇪 Germany
+                    - generic [aria-hidden]: /
+                    - generic: Oberlandesgericht Hamm
+                  - generic:
+                    - generic: Due Diligence
+                    - generic: Article 2 DSA
+                    - generic: Article 3 DSA
+                    - generic: Article 14 DSA
+                    - generic: Article 15 DSA
+                    - generic: Article 16 DSA
+                    - generic: Article 17 DSA
+                    - generic: "+2"
+                - generic:
+                  - generic:
+                    - paragraph: Parties / A. B., YouTube
+                    - paragraph: Source / https://nrwe.justiz.nrw.de/olgs/hamm/j2025/21_U_62_23_Urteil_20250603.html
+    - contentinfo "Site footer" [ref=e142]:
+      - generic [ref=e143]:
+        - generic "Project partners" [ref=e144]:
+          - link "DSA Observatory website" [ref=e145] [cursor=pointer]:
+            - /url: https://dsa-observatory.eu/
+            - img "DSA Observatory" [ref=e146]
+          - link "University of Amsterdam website" [ref=e147] [cursor=pointer]:
+            - /url: https://www.uva.nl/en
+            - img "University of Amsterdam" [ref=e148]
+        - navigation "Footer navigation" [ref=e149]:
+          - link "About" [ref=e150] [cursor=pointer]:
+            - /url: /about
+          - link "Suggest case" [ref=e151] [cursor=pointer]:
+            - /url: /submit
+          - link "Privacy" [ref=e152] [cursor=pointer]:
+            - /url: /privacy
+          - link "Policy" [ref=e153] [cursor=pointer]:
+            - /url: /policy
+  - generic [ref=e154]: Case Database | DSA Case Law Tracker

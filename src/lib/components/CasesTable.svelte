@@ -1,9 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
+	import { PersistedState } from 'runed';
 	import { browser } from '$app/environment';
-	import { goto } from '$app/navigation';
+	import { afterNavigate, disableScrollHandling, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { claimEntryAnimation } from '$lib/entry-animation';
+	import { casesCacheKey, readCasesCache, writeCasesCache } from '$lib/stores/cases-cache';
 	import IconMap from '~icons/lucide/map';
 	import type { FilterOption } from '$lib/components/FilterMenu.svelte';
 	import CaseCardsList from '$lib/components/cases/CaseCardsList.svelte';
@@ -91,6 +94,23 @@
 	let preferencesLoaded = $state(false);
 	let mobileFiltersOpen = $state(false);
 	let isMobileViewport = $state(false);
+	let playEntry = $state(false);
+	const saved = new PersistedState(`cases:workspace:v1:${publicationFilter ?? 'all'}:${heading}`, {
+		search: '', searchScope: 'all' as SearchScope,
+		statuses: [] as string[], countries: [] as string[], categories: [] as string[],
+		articles: [] as string[], courts: [] as string[], parties: [] as string[], years: [] as string[],
+		viewMode: 'cards' as ViewMode, filterLayout: 'left' as FilterLayout,
+		mapCollapsed: mapStartsCollapsed, tableScrollTop: 0, tableScrollLeft: 0,
+		windowScrollY: 0, filterScrollTop: 0, visited: false
+	}, { storage: 'session', syncTabs: false });
+	let tableScrollLeft = $state(0);
+	let windowScrollY = $state(0);
+	let filterScrollTop = $state(0);
+	let previousFilters = '';
+	let disposed = false;
+	let requestVersion = 0;
+	let refreshing = false;
+	let refreshAgain = false;
 
 	const rowOverscan = 8;
 
@@ -217,8 +237,56 @@
 	});
 
 	$effect(() => {
-		if (!resetScrollTrigger) return;
-		resetTableScroll();
+		if (!preferencesLoaded) return;
+		const filters = JSON.stringify(resetScrollTrigger);
+		if (previousFilters && previousFilters !== filters) untrack(resetTableScroll);
+		previousFilters = filters;
+	});
+
+	$effect(() => {
+		if (!preferencesLoaded) return;
+		saved.current = { search, searchScope, statuses, countries, categories, articles,
+			courts, parties, years, viewMode, filterLayout, mapCollapsed, tableScrollTop,
+			tableScrollLeft, windowScrollY, filterScrollTop, visited: true };
+	});
+
+	function rememberWindowScroll() {
+		if (preferencesLoaded && isMobileViewport) windowScrollY = window.scrollY;
+	}
+
+	function restoreScroller(node: HTMLElement) {
+		let active = true;
+		let restored = false;
+		$effect(() => {
+			if (loading || !preferencesLoaded || restored) return;
+			restored = true;
+			const position = untrack(() => ({ top: tableScrollTop, left: tableScrollLeft }));
+			tick().then(() => {
+				if (!active) return;
+				node.scrollTop = position.top;
+				node.scrollLeft = position.left;
+				tableViewportHeight = node.clientHeight;
+			});
+		});
+		const observer = new ResizeObserver(() => { tableViewportHeight = node.clientHeight; });
+		observer.observe(node);
+		return { destroy() { active = false; observer.disconnect(); } };
+	}
+
+	function rememberFilterScroll(node: HTMLElement) {
+		const panel = node.firstElementChild as HTMLElement | null;
+		if (!panel) return;
+		let active = true;
+		tick().then(() => { if (active) panel.scrollTop = filterScrollTop; });
+		const remember = () => { filterScrollTop = panel.scrollTop; };
+		panel.addEventListener('scroll', remember);
+		return { destroy() { active = false; panel.removeEventListener('scroll', remember); } };
+	}
+
+	afterNavigate(() => {
+		if (!preferencesLoaded || !isMobileViewport || !windowScrollY) return;
+		disableScrollHandling();
+		tick().then(() => { if (!disposed) window.scrollTo(0, windowScrollY); });
 	});
 
 	function loadPreferences() {
@@ -229,6 +297,23 @@
 
 		const storedLayout = localStorage.getItem(filterLayoutStorageKey);
 		filterLayout = storedLayout === 'top' ? storedLayout : 'left';
+		const state = saved.current;
+		if (state.visited) {
+			search = state.search;
+			searchScope = state.searchScope;
+			statuses = state.statuses; countries = state.countries; categories = state.categories;
+			articles = state.articles; courts = state.courts; parties = state.parties; years = state.years;
+			viewMode = state.viewMode; filterLayout = state.filterLayout;
+			mapCollapsed = state.mapCollapsed;
+			tableScrollTop = state.tableScrollTop; tableScrollLeft = state.tableScrollLeft;
+			windowScrollY = state.windowScrollY; filterScrollTop = state.filterScrollTop;
+		}
+		// Explicit incoming search/map links take precedence over remembered filters.
+		if (page.url.searchParams.has('q')) search = page.url.searchParams.get('q') ?? '';
+		if (page.url.searchParams.has('jurisdiction')) {
+			countries = [normalizeJurisdiction(page.url.searchParams.get('jurisdiction') ?? '')];
+		}
+		if (page.url.searchParams.has('map')) mapCollapsed = mapStartsCollapsed;
 		preferencesLoaded = true;
 	}
 
@@ -560,30 +645,47 @@
 
 	function resetTableScroll() {
 		tableScrollTop = 0;
+		tableScrollLeft = 0;
 		if (tableScroller) tableScroller.scrollTop = 0;
+		if (tableScroller) tableScroller.scrollLeft = 0;
 	}
 
 	function updateTableViewport() {
 		if (!tableScroller) return;
 		tableScrollTop = tableScroller.scrollTop;
+		tableScrollLeft = tableScroller.scrollLeft;
 		tableViewportHeight = tableScroller.clientHeight;
 	}
 
 	async function loadCases() {
-		loading = true;
+		if (refreshing) { refreshAgain = true; return; }
+		refreshing = true;
+		const version = ++requestVersion;
+		const key = casesCacheKey(publicationFilter === 'draft');
+		loading = readCasesCache(key) === undefined;
 		error = '';
 
 		try {
-			cases = await pb.collection('cases').getFullList<CaseRecord>({
+			const records = await pb.collection('cases').getFullList<CaseRecord>({
 				sort: '-decision_date,-created',
 				filter:
 					publicationFilter === 'draft' ? "published = false && status != 'archived'" : undefined
 			});
+			if (disposed || version !== requestVersion || key !== casesCacheKey(publicationFilter === 'draft')) return;
+			writeCasesCache(key, records);
+			if (JSON.stringify(cases) !== JSON.stringify(records)) cases = records;
 		} catch (err) {
+			if (disposed || version !== requestVersion) return;
+			if ((err as { status?: number }).status === 401 || (err as { status?: number }).status === 403) {
+				cases = [];
+				writeCasesCache(key, []);
+			}
 			console.error('Error loading cases:', err);
 			error = 'Could not load cases. Check PocketBase availability and collection rules.';
 		} finally {
-			loading = false;
+			refreshing = false;
+			if (!disposed && version === requestVersion) loading = false;
+			if (!disposed && refreshAgain) { refreshAgain = false; void loadCases(); }
 		}
 	}
 
@@ -597,6 +699,8 @@
 		try {
 			await pb.collection('cases').delete(record.id);
 			cases = cases.filter((item) => item.id !== record.id);
+			writeCasesCache(casesCacheKey(publicationFilter === 'draft'), cases);
+			void loadCases();
 		} catch (err) {
 			console.error('Error deleting case:', err);
 			error = 'Could not delete the case. Check your permissions.';
@@ -650,6 +754,9 @@
 	}
 
 	onMount(() => {
+		playEntry = homeIntro && claimEntryAnimation('cases-tracker');
+		// Do not animate sections mounted later by changing views or map controls.
+		const entryTimer = playEntry ? window.setTimeout(() => { playEntry = false; }, 1100) : undefined;
 		const mediaQuery = window.matchMedia('(max-width: 767px)');
 		const updateMobileViewport = () => {
 			isMobileViewport = mediaQuery.matches;
@@ -658,15 +765,35 @@
 		updateMobileViewport();
 		mediaQuery.addEventListener('change', updateMobileViewport);
 		loadPreferences();
+		const cached = readCasesCache(casesCacheKey(publicationFilter === 'draft'));
+		if (cached !== undefined) { cases = cached; loading = false; }
 		loadCases();
+		const refresh = () => { void loadCases(); };
+		window.addEventListener('focus', refresh);
+		const removeAuthListener = pb.authStore.onChange(() => {
+			requestVersion++;
+			cases = []; loading = true;
+			refresh();
+		});
+		let unsubscribe: (() => void) | undefined;
+		pb.collection('cases').subscribe('*', refresh).then((stop) => {
+			if (disposed) stop(); else unsubscribe = stop;
+		}).catch(() => { /* Returning to the list and window focus still refresh it. */ });
 
 		return () => {
+			if (entryTimer !== undefined) window.clearTimeout(entryTimer);
+			disposed = true;
+			requestVersion++;
+			window.removeEventListener('focus', refresh);
+			removeAuthListener();
+			unsubscribe?.();
 			mediaQuery.removeEventListener('change', updateMobileViewport);
 		};
 	});
 </script>
 
 <svelte:window
+	onscroll={rememberWindowScroll}
 	onkeydown={(event) => {
 		if (event.key === 'Escape') closeMobileFilters();
 	}}
@@ -674,7 +801,7 @@
 
 <section
 	id="cases"
-	class:cases-animated={homeIntro}
+	class:cases-animated={playEntry}
 	class="mx-auto flex w-full max-w-[1680px] flex-col px-4 pt-1 pb-4 sm:px-6 md:h-full md:min-h-0 md:overflow-hidden md:pt-3 lg:px-8"
 >
 	<div class="z-30 mb-3 flex-none space-y-2 md:mb-4 md:space-y-3">
@@ -851,7 +978,7 @@
 							</div>
 						</details>
 						{#if canWrite}<button
-								class="inline-flex h-8 items-center justify-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
+							class="btn btn-primary h-8 min-h-0 rounded-md px-3 text-xs font-semibold whitespace-nowrap"
 								type="button"
 								onclick={() => goto(resolve('/cases/new'))}>Create case</button
 							>{/if}
@@ -904,7 +1031,7 @@
 			: 'min-w-0 md:min-h-0 md:flex-1'}
 	>
 		{#if filterLayout === 'left'}
-			<aside class="cases-entry cases-filters hidden min-h-0 min-w-0 overflow-hidden lg:block">
+			<aside use:rememberFilterScroll class="cases-entry cases-filters hidden min-h-0 min-w-0 overflow-hidden lg:block">
 				<CaseFilterPanel sidebar={true} {...filterPanelProps} />
 			</aside>
 		{/if}
@@ -912,6 +1039,7 @@
 			{#if viewMode !== 'table'}
 				<div
 					bind:this={tableScroller}
+					use:restoreScroller
 					class="max-w-full overflow-visible rounded-xl border border-slate-200 bg-base-200/60 p-3 shadow-sm shadow-slate-200/70 md:h-full md:min-h-0 md:overflow-auto"
 					onscroll={updateTableViewport}
 				>
@@ -943,6 +1071,7 @@
 			{:else}
 				<div
 					bind:this={tableScroller}
+					use:restoreScroller
 					class="max-w-full overflow-x-auto overflow-y-visible rounded-xl border border-slate-200 bg-base-200/60 p-2 shadow-sm shadow-slate-200/70 md:h-full md:min-h-0 md:overflow-auto"
 					onscroll={updateTableViewport}
 				>

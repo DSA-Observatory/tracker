@@ -3,6 +3,8 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
+	import { claimEntryAnimation } from '$lib/entry-animation';
 	import { authStore, pb, type CaseRecord } from '$lib/database';
 	import CaseSourceList from '$lib/components/cases/CaseSourceList.svelte';
 
@@ -11,6 +13,7 @@
 	let loading = $state(true);
 	let error = $state('');
 	let fileToken = $state('');
+	const playEntry = browser && claimEntryAnimation('case-detail');
 
 	const canWrite = $derived(authStore.isAdmin);
 	const sourceLinks = $derived(buildSourceLinks(record));
@@ -18,7 +21,7 @@
 	const proceduralEvents = $derived(normalizeProceduralEvents(record));
 
 	function reveal(node: HTMLElement, delay = 0) {
-		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		if (!playEntry) return;
 		node.style.setProperty('--entry-delay', `${delay}ms`);
 		node.classList.add('case-entry');
 		const observer = new IntersectionObserver(([entry]) => {

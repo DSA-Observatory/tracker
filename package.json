@@ -61,6 +61,7 @@
 		"daisyui": "^5.4.3",
 		"maplibre-gl": "^5.24.0",
 		"pocketbase": "^0.26.3",
+		"runed": "^0.37.1",
 		"svelte-french-toast": "^1.2.0"
 	}
 }

@@ -22,6 +22,7 @@
 	let pins = $state<JurisdictionPin[]>([]);
 	let visible = $state(true);
 	let documentVisible = $state(true);
+	let playEntry = $state(false);
 
 	const active = $derived(visible && documentVisible);
 
@@ -98,6 +99,7 @@
 	}
 
 	onMount(() => {
+		playEntry = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		loadPins();
 		documentVisible = !document.hidden;
 		const observer = new IntersectionObserver(([entry]) => {
@@ -116,6 +118,7 @@
 <section
 	bind:this={network}
 	class:network-active={active}
+	class:network-entry={playEntry}
 	class="case-network"
 	aria-label="Published DSA cases by European jurisdiction"
 >
@@ -271,7 +274,7 @@
 
 	@keyframes pin-breathe { 50% { transform: scale(1.16); opacity: 0.55; } }
 	@media (prefers-reduced-motion: no-preference) {
-		.case-pin { animation: pin-entry .85s var(--pin-delay) cubic-bezier(.16, 1, .3, 1) both; }
+		.network-entry .case-pin { animation: pin-entry .85s var(--pin-delay) cubic-bezier(.16, 1, .3, 1) both; }
 	}
 	@keyframes pin-entry {
 		from { opacity: 0; transform: translate(-50%, -50%) scale(.2); }

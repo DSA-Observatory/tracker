@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { claimEntryAnimation } from '$lib/entry-animation';
 	import type { CaseRecord } from '$lib/database';
 
 	let {
@@ -40,8 +41,9 @@
 
 	let entryPlayed = false;
 	function enterCards(node: HTMLElement) {
-		if (entryPlayed || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		if (entryPlayed) return;
 		entryPlayed = true;
+		if (!claimEntryAnimation('cases-cards')) return;
 		const animations = Array.from(node.children).slice(0, 6).map((card, index) =>
 			card.animate(
 				[{ opacity: 0, transform: 'translateY(20px)' }, { opacity: 1, transform: 'translateY(0)' }],
