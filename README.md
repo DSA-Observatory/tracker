@@ -204,6 +204,16 @@ Account verification requires `pocketbase/pb_hooks/admin_users.pb.js` on the Poc
 
 The verification hook was deployed on 1 October 2026 without changing records or schema. Private snapshots, the verified backup, previous hooks, and verification receipt are in `~/Library/Application Support/DSA Case Tracker/deployments/2026-10-01-admin-verification/`. An unauthenticated request returns 401; an explicit admin with invalid boolean input returns 400; valid input targeting a nonexistent account returns 404. No account was verified as part of deployment.
 
+### Invitations and account recovery
+
+New invitations use `pocketbase/pb_hooks/account_invitations.pb.js` and migration 18's private `account_invitations` collection. The frontend and backend changes must be deployed together, with the production backup/approval safeguards above. Adding these files locally does not install them on production.
+
+First-time invitation links have no time expiry. They are single-use, can be revoked, and become unusable after an account password/email change. Admins can resend a pending invitation without deleting the user; resending replaces the previous link. Only token hashes are stored. Invitation secrets travel in the URL fragment, not the query string, and opening an email link does not consume it.
+
+Existing accounts are not automatically converted to initial invitations, even if unverified. Admins can explicitly choose **Send recovery link** to issue a non-expiring, single-use, revocable recovery link while preserving the account ID and roles. Resend never revives a consumed or revoked link; a new recovery authorization requires this explicit admin action. The login form's **Forgot your password?** link uses ordinary, time-limited PocketBase resets; open the newest email promptly. Never delete/recreate an account to resend a link: this changes its ID, can affect related records, and loses its roles.
+
+Account failures show actionable guidance plus copyable timestamp, operation, HTTP status and backend field codes/messages. These reports exclude passwords, tokens, request bodies and token-bearing URLs. An accepted mail request is not proof of inbox delivery.
+
 ### Environment Variables
 
 Copy `.env.example` if you need to override defaults.
@@ -232,7 +242,7 @@ Important values:
 
 Change default credentials immediately after first login.
 
-For Resend, set `SMTP_ENABLED=true`, `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587`, `SMTP_USER=resend`, `SMTP_PASS` to your Resend API key, `SMTP_FROM` to an address on a verified Resend domain, and `PUBLIC_APP_URL` to the deployed frontend URL. Restart PocketBase after changing these values so the SMTP settings migration can save them into the PocketBase database.
+For Resend, set `SMTP_ENABLED=true`, `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587`, `SMTP_USER=resend`, `SMTP_PASS` to your Resend API key, `SMTP_FROM` to an address on a verified Resend domain, and `PUBLIC_APP_URL` to the deployed frontend URL (not the PocketBase API URL). Restart PocketBase after changing these values so the SMTP bootstrap hook can synchronize them into the PocketBase database.
 
 ## GitHub Pages Deployment
 

@@ -1,0 +1,64 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e6]:
+      - link "Case tracker home" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [aria-hidden] [ref=e8]: DSA
+        - generic [ref=e9]: Case Tracker
+      - textbox "Search cases" [ref=e16]
+      - generic [ref=e17]:
+        - link "Cases" [ref=e18] [cursor=pointer]:
+          - /url: /cases
+        - link "Map" [ref=e19] [cursor=pointer]:
+          - /url: /map
+        - link "About" [ref=e20] [cursor=pointer]:
+          - /url: /about
+      - generic [ref=e24]:
+        - button "Login" [ref=e25] [cursor=pointer]
+        - checkbox "Close" [ref=e26]
+      - link "Suggest a Case" [ref=e27] [cursor=pointer]:
+        - /url: /submit
+  - main [ref=e59]:
+    - generic [ref=e60]:
+      - paragraph [ref=e61]: Account access
+      - heading "Set your password" [level=1] [ref=e62]
+      - paragraph [ref=e63]: Choose a password for your DSA Case Law Tracker account. After this, you can sign in.
+      - alert [ref=e65]:
+        - paragraph [ref=e66]: This link is invalid or no longer usable. It may have been used, revoked, or invalidated by an account change. Older password-reset links may also have expired. Ask an administrator for help or request a password reset below.
+        - group [ref=e67]:
+          - generic "Details to send to an administrator" [ref=e68] [cursor=pointer]
+        - button "Copy error details" [ref=e69] [cursor=pointer]
+      - generic [ref=e70]:
+        - generic [ref=e71]:
+          - generic [ref=e72]: Password
+          - textbox "Password" [ref=e74]: PreviewOnly123!
+          - paragraph [ref=e75]: At least 8 characters.
+        - generic [ref=e76]:
+          - generic [ref=e77]: Confirm password
+          - textbox "Confirm password" [ref=e79]: PreviewOnly123!
+        - button "Set password" [ref=e80] [cursor=pointer]
+      - generic [ref=e81]:
+        - generic [ref=e82]: Account email
+        - textbox "Account email" [ref=e84]
+        - button "Request password reset" [ref=e85] [cursor=pointer]
+        - paragraph [ref=e86]: First-time invitations do not expire. Password-reset links expire for security; request another here if needed.
+      - link "Return to login" [ref=e87] [cursor=pointer]:
+        - /url: /
+  - contentinfo "Site footer" [ref=e46]:
+    - generic [ref=e47]:
+      - generic "Project partners" [ref=e48]:
+        - link "DSA Observatory website" [ref=e49] [cursor=pointer]:
+          - /url: https://dsa-observatory.eu/
+          - img "DSA Observatory" [ref=e50]
+        - link "University of Amsterdam website" [ref=e51] [cursor=pointer]:
+          - /url: https://www.uva.nl/en
+          - img "University of Amsterdam" [ref=e52]
+      - navigation "Footer navigation" [ref=e53]:
+        - link "About" [ref=e54] [cursor=pointer]:
+          - /url: /about
+        - link "Suggest case" [ref=e55] [cursor=pointer]:
+          - /url: /submit
+        - link "Privacy" [ref=e56] [cursor=pointer]:
+          - /url: /privacy
+        - link "Policy" [ref=e57] [cursor=pointer]:
+          - /url: /policy

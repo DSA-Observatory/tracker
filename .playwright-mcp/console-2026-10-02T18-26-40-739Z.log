@@ -1,0 +1,8 @@
+[      46ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:64010/favicon.ico:0
+[     233ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:64010/password?token=diagnostic-invalid:0
+[   27829ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:64010/password?token=diagnostic-invalid:0
+[   39004ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost:64011/api/collections/users/confirm-password-reset:0
+[  276896ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:64010/password?token=diagnostic-invalid:0
+[  289073ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:64010/password?token=diagnostic-invalid:0
+[  289190ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:64010/password?token=diagnostic-invalid:0
+[  546588ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:64010/password?token=diagnostic-invalid:0

@@ -1,21 +1,24 @@
 <script lang="ts">
 	import PhKeyBold from '~icons/ph/key-bold';
+	import { resolve } from '$app/paths';
 	import { authStore } from '$lib/database';
-	import { closeLoginModal, getAuthErrorMessage, validateEmail } from './utils';
+	import { getAuthFailure, type AuthFailure } from '$lib/auth-errors';
+	import AuthErrorAlert from '../AuthErrorAlert.svelte';
+	import { closeLoginModal, validateEmail } from './utils';
 
 	let email = $state('');
 	let password = $state('');
-	let error = $state('');
+	let error = $state<AuthFailure | null>(null);
 	let isLoading = $state(false);
 
 	async function handleEmailSignIn() {
-		error = '';
+		error = null;
 		isLoading = true;
 
 		// Validate email
 		const emailError = validateEmail(email);
 		if (emailError) {
-			error = emailError;
+			error = getAuthFailure(emailError, 'Sign in');
 			isLoading = false;
 			return;
 		}
@@ -30,8 +33,7 @@
 			email = '';
 			password = '';
 		} catch (e) {
-			error = getAuthErrorMessage(e);
-			console.error('Sign in error:', e);
+			error = getAuthFailure(e, 'Sign in');
 		} finally {
 			isLoading = false;
 		}
@@ -39,7 +41,7 @@
 </script>
 
 <form
-	class="rounded-box border-base-300 border p-3"
+	class="rounded-box border border-base-300 p-3"
 	onsubmit={(e) => {
 		e.preventDefault();
 		handleEmailSignIn();
@@ -75,12 +77,15 @@
 		</div>
 
 		{#if error}
-			<div class="alert alert-error" role="alert">{error}</div>
+			<AuthErrorAlert failure={error} />
 		{/if}
+		<a class="link text-sm link-primary" href={resolve('/password')} onclick={closeLoginModal}
+			>Forgot your password?</a
+		>
 
 		<button
 			type="submit"
-			class="btn btn-outline btn-secondary w-full"
+			class="btn w-full btn-outline btn-secondary"
 			disabled={isLoading}
 			aria-busy={isLoading}
 		>

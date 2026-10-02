@@ -7,20 +7,20 @@ onBootstrap((e) => {
 		(
 			$os.getenv('PUBLIC_APP_URL') ||
 			$os.getenv('APP_URL') ||
-			'https://casetracker.ctwhome.com'
+			'https://dsa-observatory.github.io/tracker'
 		).replace(/\/$/, '');
 
 	const syncPasswordResetTemplate = (app) => {
 		const users = app.findCollectionByNameOrId('users');
 		const passwordUrl = `${getAppUrl()}/password?token={TOKEN}`;
 
-		users.resetPasswordTemplate.subject = 'Set your DSA Case Law Tracker password';
+		users.resetPasswordTemplate.subject = 'Reset your DSA Case Law Tracker password';
 		users.resetPasswordTemplate.body = `
 <p>Hello,</p>
-<p>You have been invited to DSA Case Law Tracker. Use the secure link below to set your password:</p>
-<p><a href="${passwordUrl}">Set your password</a></p>
+<p>A password reset was requested for your DSA Case Law Tracker account. Use the secure link below to choose a new password:</p>
+<p><a href="${passwordUrl}">Reset your password</a></p>
 <p>If the button does not work, copy and paste this link into your browser:<br>${passwordUrl}</p>
-<p>If you did not expect this invitation, you can ignore this email.</p>
+<p>If you did not request a password reset, you can ignore this email.</p>
 `;
 
 		app.save(users);

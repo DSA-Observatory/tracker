@@ -2,7 +2,9 @@
 	import PhKeyBold from '~icons/ph/key-bold';
 	import { createEventDispatcher } from 'svelte';
 	import { authStore } from '$lib/database';
-	import { validateEmail, validatePassword, getAuthErrorMessage, closeLoginModal } from './utils';
+	import { validateEmail, validatePassword, closeLoginModal } from './utils';
+	import { getAuthFailure, type AuthFailure } from '$lib/auth-errors';
+	import AuthErrorAlert from '../AuthErrorAlert.svelte';
 
 	const dispatch = createEventDispatcher<{
 		registrationSuccess: void;
@@ -11,7 +13,7 @@
 	let email = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
-	let error = $state('');
+	let error = $state<AuthFailure | null>(null);
 	let success = $state('');
 	let isLoading = $state(false);
 
@@ -30,13 +32,13 @@
 	}
 
 	async function handleRegister() {
-		error = '';
+		error = null;
 		success = '';
 		isLoading = true;
 
 		const validationError = validateForm();
 		if (validationError) {
-			error = validationError;
+			error = getAuthFailure(validationError, 'Create account');
 			isLoading = false;
 			return;
 		}
@@ -58,8 +60,7 @@
 				closeLoginModal();
 			}, 1500);
 		} catch (e) {
-			error = getAuthErrorMessage(e);
-			console.error('Registration error:', e);
+			error = getAuthFailure(e, 'Create account');
 		} finally {
 			isLoading = false;
 		}
@@ -67,7 +68,7 @@
 </script>
 
 <form
-	class="rounded-box border-base-300 border p-3"
+	class="rounded-box border border-base-300 p-3"
 	onsubmit={(e) => {
 		e.preventDefault();
 		handleRegister();
@@ -120,7 +121,7 @@
 		</div>
 
 		{#if error}
-			<div class="alert alert-error" role="alert">{error}</div>
+			<AuthErrorAlert failure={error} />
 		{/if}
 
 		{#if success}
@@ -129,7 +130,7 @@
 
 		<button
 			type="submit"
-			class="btn btn-outline btn-secondary w-full"
+			class="btn w-full btn-outline btn-secondary"
 			disabled={isLoading}
 			aria-busy={isLoading}
 		>

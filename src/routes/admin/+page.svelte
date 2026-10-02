@@ -3,6 +3,16 @@
 	import AdminPanelLayout from '$lib/components/admin/AdminPanelLayout.svelte';
 	import { authStore, pb } from '$lib/database';
 	import { isAdminEmail, isAdminUser } from '$lib/admin';
+	import { getAuthFailure, type AuthFailure } from '$lib/auth-errors';
+	import AuthErrorAlert from '$lib/components/ui/AuthErrorAlert.svelte';
+
+	type Invitation = {
+		id: string;
+		user: string;
+		status: 'pending' | 'used' | 'revoked';
+		purpose?: 'setup' | 'recovery';
+	};
+	type InvitationResult = { mailSent: boolean; mailError?: string };
 
 	type ManagedUser = {
 		id: string;
@@ -17,8 +27,9 @@
 	};
 
 	let users = $state<ManagedUser[]>([]);
+	let invitations = $state<Invitation[]>([]);
 	let isLoading = $state(true);
-	let error = $state('');
+	let error = $state<AuthFailure | null>(null);
 	let success = $state('');
 	let savingUserId = $state('');
 	let inviteName = $state('');
@@ -51,26 +62,22 @@
 
 	async function loadUsers() {
 		isLoading = true;
-		error = '';
+		error = null;
 
 		try {
 			await refreshAdminSession();
 			users = await pb.collection('users').getFullList<ManagedUser>({
 				sort: '-created'
 			});
+			const result = await pb.send<{ items: Invitation[] }>('/api/admin/invitations', {
+				method: 'GET'
+			});
+			invitations = result.items;
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Could not load users.';
+			error = getAuthFailure(err, 'Load users and invitations');
 		} finally {
 			isLoading = false;
 		}
-	}
-
-	function createTemporaryPassword() {
-		const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-		const bytes = new Uint8Array(24);
-		crypto.getRandomValues(bytes);
-
-		return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join('');
 	}
 
 	async function refreshAdminSession() {
@@ -95,53 +102,106 @@
 		const email = inviteEmail.trim().toLowerCase();
 
 		if (!name || !email) {
-			error = 'Enter a name and email address.';
+			error = getAuthFailure('Enter a name and email address.', 'Invite user');
 			success = '';
 			return;
 		}
 
 		isInviting = true;
-		error = '';
+		error = null;
 		success = '';
 
 		try {
 			await refreshAdminSession();
 
-			const password = createTemporaryPassword();
-			const user = await pb.collection('users').create<ManagedUser>({
-				email,
-				name,
-				is_admin: false,
-				password,
-				passwordConfirm: password,
-				emailVisibility: true
+			const result = await pb.send<InvitationResult>('/api/admin/invitations', {
+				method: 'POST',
+				body: { email, name }
 			});
-
-			users = [user, ...users];
 			inviteName = '';
 			inviteEmail = '';
-
-			try {
-				await pb.collection('users').requestPasswordReset(email);
-			} catch (mailErr) {
-				error =
-					mailErr instanceof Error
-						? `Created ${user.email}, but could not send the setup email: ${mailErr.message}`
-						: `Created ${user.email}, but could not send the setup email.`;
-				return;
+			await loadUsers();
+			if (!result.mailSent) {
+				error = getAuthFailure(
+					`Created ${email}, but the setup email could not be sent. Use Resend setup link to retry. ${result.mailError || ''}`,
+					'Send invitation email'
+				);
+			} else {
+				success = `Invited ${email}. The setup email was accepted for sending. The invitation has no time limit.`;
 			}
-
-			success = `Invited ${user.email}. A setup email was sent with an app password link.`;
 		} catch (err) {
-			error = err instanceof Error ? err.message : `Could not invite ${email}.`;
+			error = getAuthFailure(err, 'Invite user');
 		} finally {
 			isInviting = false;
 		}
 	}
 
+	async function manageInvitation(
+		user: ManagedUser,
+		invitation: Invitation,
+		action: 'resend' | 'revoke'
+	) {
+		const kind = invitation.purpose === 'recovery' ? 'recovery' : 'setup';
+		if (
+			!confirm(
+				action === 'resend'
+					? `Send a new ${kind} link to ${user.email}? The previous link will stop working.`
+					: `Revoke the ${kind} link for ${user.email}?`
+			)
+		)
+			return;
+		savingUserId = user.id;
+		error = null;
+		success = '';
+		try {
+			await refreshAdminSession();
+			const result = await pb.send<InvitationResult>(
+				`/api/admin/invitations/${encodeURIComponent(invitation.id)}/${action}`,
+				{ method: 'POST' }
+			);
+			await loadUsers();
+			if (action === 'resend' && !result.mailSent) {
+				error = getAuthFailure(
+					result.mailError || `The ${kind} email could not be sent. Retry Resend ${kind} link.`,
+					`Resend ${kind} link`
+				);
+			} else {
+				success =
+					action === 'resend'
+						? `A new ${kind} email for ${user.email} was accepted for sending. Use the newest email; the link has no time limit.`
+						: `Revoked the ${kind} link for ${user.email}.`;
+			}
+		} catch (err) {
+			error = getAuthFailure(err, action === 'resend' ? `Resend ${kind} link` : `Revoke ${kind} link`);
+		} finally {
+			savingUserId = '';
+		}
+	}
+
+	async function sendRecoveryLink(user: ManagedUser) {
+		if (!confirm(`Send a non-expiring recovery link to ${user.email}? It can reset their password until used or revoked. Their account ID and permissions will not change.`)) return;
+		savingUserId = user.id;
+		error = null;
+		success = '';
+		try {
+			await refreshAdminSession();
+			const result = await pb.send<InvitationResult>(`/api/admin/users/${encodeURIComponent(user.id)}/recovery-invitation`, { method: 'POST' });
+			await loadUsers();
+			if (!result.mailSent) {
+				error = getAuthFailure(result.mailError || 'The recovery email could not be sent. Use Resend recovery link to retry.', 'Send recovery link');
+			} else {
+				success = `The recovery email for ${user.email} was accepted for sending. The link has no time limit until used or revoked. Their account and permissions are unchanged.`;
+			}
+		} catch (err) {
+			error = getAuthFailure(err, 'Send recovery link');
+		} finally {
+			savingUserId = '';
+		}
+	}
+
 	async function updateUser(user: ManagedUser, changes: Partial<ManagedUser>) {
 		savingUserId = user.id;
-		error = '';
+		error = null;
 		success = '';
 
 		try {
@@ -151,7 +211,7 @@
 			users = users.map((item) => (item.id === user.id ? updated : item));
 			success = `Updated ${updated.email}.`;
 		} catch (err) {
-			error = err instanceof Error ? err.message : `Could not update ${user.email}.`;
+			error = getAuthFailure(err, 'Update user');
 		} finally {
 			savingUserId = '';
 		}
@@ -159,7 +219,7 @@
 
 	async function updateUserVerified(user: ManagedUser, verified: boolean) {
 		savingUserId = user.id;
-		error = '';
+		error = null;
 		success = '';
 
 		try {
@@ -175,12 +235,12 @@
 			users = users.map((item) => (item.id === user.id ? updated : item));
 			success = `Updated ${updated.email}.`;
 		} catch (err) {
-			error =
+			error = getAuthFailure(
 				err instanceof Error && 'status' in err && err.status === 404
 					? 'Verification is unavailable: the admin verification endpoint was not found on PocketBase. The backend hook must be installed before accounts can be verified here.'
-					: err instanceof Error
-						? err.message
-						: `Could not update ${user.email}.`;
+					: err,
+				'Update email verification'
+			);
 		} finally {
 			savingUserId = '';
 		}
@@ -190,7 +250,7 @@
 		if (!confirm(`Delete ${user.email}? This cannot be undone.`)) return;
 
 		savingUserId = user.id;
-		error = '';
+		error = null;
 		success = '';
 
 		try {
@@ -200,7 +260,7 @@
 			users = users.filter((item) => item.id !== user.id);
 			success = `Deleted ${user.email}.`;
 		} catch (err) {
-			error = err instanceof Error ? err.message : `Could not delete ${user.email}.`;
+			error = getAuthFailure(err, 'Delete user');
 		} finally {
 			savingUserId = '';
 		}
@@ -247,7 +307,7 @@
 			</div>
 		{:else}
 			{#if error}
-				<div class="mt-8 alert alert-error">{error}</div>
+				<div class="mt-8"><AuthErrorAlert failure={error} /></div>
 			{/if}
 
 			{#if success}
@@ -296,7 +356,8 @@
 					</button>
 				</div>
 				<p class="mt-3 text-sm text-base-content/60">
-					The user will receive a secure link to set their password at {resolve('/password')}.
+					New users receive a single-use setup link with no time limit. For existing accounts, send a recovery link using
+					the controls below; do not delete and recreate the account.
 				</p>
 			</form>
 
@@ -317,6 +378,9 @@
 					</div>
 					<ul class="divide-y divide-base-300/60">
 						{#each users as user (user.id)}
+							{@const invitation = invitations.find(
+								(item) => item.user === user.id && item.status === 'pending'
+							)}
 							<li class="user-row p-5">
 								<div class="flex min-w-0 items-start gap-3">
 									<div
@@ -382,7 +446,30 @@
 										/>
 									</label>
 								</div>
-								<div class="flex justify-end">
+								<div class="flex flex-col items-end gap-1">
+									{#if invitation}
+										<button
+											class="btn btn-outline btn-sm"
+											type="button"
+											disabled={savingUserId === user.id}
+											onclick={() => manageInvitation(user, invitation, 'resend')}
+											>Resend {invitation.purpose === 'recovery' ? 'recovery' : 'setup'} link</button
+										>
+										<button
+											class="btn btn-ghost btn-sm"
+											type="button"
+											disabled={savingUserId === user.id}
+											onclick={() => manageInvitation(user, invitation, 'revoke')}
+											>Revoke {invitation.purpose === 'recovery' ? 'recovery' : 'setup'} link</button
+										>
+									{:else}
+										<button
+											class="btn btn-outline btn-sm"
+											type="button"
+											disabled={savingUserId === user.id}
+											onclick={() => sendRecoveryLink(user)}>Send recovery link</button
+										>
+									{/if}
 									<button
 										class="btn text-error btn-ghost btn-sm hover:bg-error/10"
 										aria-label={`Delete ${user.email}`}
@@ -420,7 +507,7 @@
 	}
 	@container (min-width: 680px) {
 		.user-row {
-			grid-template-columns: minmax(0, 1fr) 300px 64px;
+			grid-template-columns: minmax(0, 1fr) 300px auto;
 			align-items: center;
 		}
 	}
