@@ -1,1 +1,0 @@
-import{f as t,a as e}from"../chunks/BXxM7Fcv.js";import{i as r,n as m,r as s}from"../chunks/BB0mDro4.js";import{s as d}from"../chunks/B1j-SSe1.js";var v=t('<div class="container mx-auto max-w-4xl px-4 py-8"><div class="prose prose-lg max-w-none"><!></div></div>');function x(i,n){var o=v(),a=r(o),p=r(a);d(p,()=>n.children??m),s(a),s(o),e(i,o)}export{x as component};
