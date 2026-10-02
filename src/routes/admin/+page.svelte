@@ -75,10 +75,19 @@
 
 	async function refreshAdminSession() {
 		if (!pb.authStore.isValid) {
+			authStore.logout();
 			throw new Error('Your admin session expired. Sign in again to manage users.');
 		}
 
-		await pb.collection('users').authRefresh();
+		try {
+			await pb.collection('users').authRefresh();
+		} catch (err) {
+			if (err instanceof Error && 'status' in err && err.status === 401) {
+				authStore.logout();
+				throw new Error('Your admin session expired. Sign in again to manage users.');
+			}
+			throw err;
+		}
 	}
 
 	async function inviteUser() {
@@ -227,7 +236,7 @@
 			<div class="mt-8 rounded-3xl bg-base-200/70 p-6">
 				<h2 class="text-2xl font-black">Sign in required</h2>
 				<p class="mt-3 max-w-2xl text-base-content/75">
-					Log in as <span class="font-semibold">ctw@ctwhome.com</span> to manage users.
+					Use Login in the header to sign in with your administrator account.
 				</p>
 				<a class="btn mt-5 btn-primary" href={resolve('/')}>Return home</a>
 			</div>

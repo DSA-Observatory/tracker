@@ -66,6 +66,9 @@
 						</a>
 					</li>
 				{/if}
+				<li>
+					<button type="button" onclick={() => authStore.logout()}>Logout</button>
+				</li>
 			</ul>
 		</div>
 		<!-- Not logged in-->
@@ -75,8 +78,8 @@
 				<button
 					type="button"
 					class="cursor-pointer whitespace-nowrap"
-					onclick={() => (loginOpen = true)}
-				>Login</button>
+					onclick={() => (loginOpen = true)}>Login</button
+				>
 				<input id="login-modal" type="checkbox" class="modal-toggle" bind:checked={loginOpen} />
 				<div class="modal h-screen">
 					<div class="modal-box">

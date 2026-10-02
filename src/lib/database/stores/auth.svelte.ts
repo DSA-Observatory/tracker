@@ -19,10 +19,20 @@ class AuthStore {
 
 	constructor() {
 		if (browser) {
-			this.user = pb.authStore.model as unknown as User | null;
+			const syncSession = () => {
+				if (!pb.authStore.isValid) {
+					this.user = null;
+					if (pb.authStore.token || pb.authStore.record) pb.authStore.clear();
+					return;
+				}
 
-			pb.authStore.onChange(() => {
-				this.user = pb.authStore.model as unknown as User | null;
+				this.user = pb.authStore.record as unknown as User | null;
+			};
+
+			pb.authStore.onChange(syncSession, true);
+			window.addEventListener('focus', syncSession);
+			document.addEventListener('visibilitychange', () => {
+				if (document.visibilityState === 'visible') syncSession();
 			});
 		}
 	}
