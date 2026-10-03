@@ -1,0 +1,8 @@
+[     172ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:64110/tracker/password?preview=2#invite=diagnostic-invalid:0
+[   15741ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://casetracker.ctwhome.com/api/account/setup:0
+[  529777ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://dsa-observatory.github.io/tracker/password/#invite=diagnostic-invalid:0
+[  529914ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://dsa-observatory.github.io/favicon.ico:0
+[  530354ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ https://dsa-observatory.github.io/tracker/password#invite=diagnostic-invalid:0
+[  530672ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://casetracker.ctwhome.com/api/account/setup:0
+[  937653ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o @ https://dsa-observatory.github.io/tracker/password/?verified=1#invite=diagnostic-invalid:0
+[  937948ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://casetracker.ctwhome.com/api/account/setup:0

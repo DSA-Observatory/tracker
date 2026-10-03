@@ -5,7 +5,7 @@ migrate(
 		try {
 			app.findCollectionByNameOrId('account_invitations');
 			return;
-		} catch (_) {
+		} catch {
 			// Create the private collection below.
 		}
 
@@ -100,7 +100,7 @@ migrate(
 	(app) => {
 		try {
 			app.delete(app.findCollectionByNameOrId('account_invitations'));
-		} catch (_) {
+		} catch {
 			// The collection was already removed.
 		}
 	}

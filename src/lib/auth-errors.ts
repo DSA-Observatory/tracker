@@ -41,7 +41,12 @@ export function getAuthFailure(error: unknown, operation: string): AuthFailure {
 	let message = fields.length
 		? fields.map((field) => `${field.field}: ${field.message || field.code}`).join(' ')
 		: serverMessage;
-	if (fields.some((field) => field.code === 'validation_token_collection_mismatch')) {
+	if (status === 429) {
+		message = 'Too many attempts. Wait a little before trying again.';
+	} else if (status && status >= 500) {
+		message =
+			'The account server could not complete this request. Try again, or send the details below to an administrator.';
+	} else if (fields.some((field) => field.code === 'validation_token_collection_mismatch')) {
 		message =
 			'This link is for a different account system. Send the details below to an administrator.';
 	} else if (fields.some((field) => field.field === 'token')) {
@@ -49,11 +54,6 @@ export function getAuthFailure(error: unknown, operation: string): AuthFailure {
 			'This link is invalid or no longer usable. Request a password reset below, or ask an administrator to resend your invitation.';
 	} else if (status === 0) {
 		message = 'Could not reach the account server. Check your connection and try again.';
-	} else if (status === 429) {
-		message = 'Too many attempts. Wait a little before trying again.';
-	} else if (status && status >= 500) {
-		message =
-			'The account server could not complete this request. Try again, or send the details below to an administrator.';
 	} else if (operation === 'Sign in' && status === 400 && !fields.length) {
 		message =
 			'Your email or password was not accepted. Check your details, or use Forgot your password? to recover access.';

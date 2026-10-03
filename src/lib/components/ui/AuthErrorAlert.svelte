@@ -4,8 +4,7 @@
 	let { failure }: { failure: AuthFailure } = $props();
 	let copyMessage = $state('');
 	$effect(() => {
-		failure.report;
-		copyMessage = '';
+		if (failure.report) copyMessage = '';
 	});
 
 	async function copyDetails() {
@@ -19,7 +18,7 @@
 </script>
 
 <div class="rounded-2xl border border-error/25 bg-error/10 p-4 text-sm" role="alert">
-	<p class="text-error">{failure.message}</p>
+	<p class="font-medium text-base-content">{failure.message}</p>
 	<details class="mt-3">
 		<summary class="cursor-pointer font-semibold">Details to send to an administrator</summary>
 		<pre class="mt-3 break-all whitespace-pre-wrap select-text">{failure.report}</pre>

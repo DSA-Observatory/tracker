@@ -214,6 +214,8 @@ Existing accounts are not automatically converted to initial invitations, even i
 
 Account failures show actionable guidance plus copyable timestamp, operation, HTTP status and backend field codes/messages. These reports exclude passwords, tokens, request bodies and token-bearing URLs. An accepted mail request is not proof of inbox delivery.
 
+The recovery hook and migration 18 were deployed on 2 October 2026, with the password page served as a real HTTP 200 entry on GitHub Pages. Production SMTP is configured in PocketBase, not environment variables, so the environment-sync SMTP hook was deliberately not installed there; the existing SMTP configuration was preserved. Fresh snapshots, verified full backup, previous backend/frontend files, configuration rollback and deployment receipts are private at `~/Library/Application Support/DSA Case Tracker/deployments/20261002t191030z-account-recovery/`. Rollback must preserve current user passwords, account IDs and editorial records; do not blindly restore the full database backup.
+
 ### Environment Variables
 
 Copy `.env.example` if you need to override defaults.

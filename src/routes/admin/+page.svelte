@@ -172,23 +172,38 @@
 						: `Revoked the ${kind} link for ${user.email}.`;
 			}
 		} catch (err) {
-			error = getAuthFailure(err, action === 'resend' ? `Resend ${kind} link` : `Revoke ${kind} link`);
+			error = getAuthFailure(
+				err,
+				action === 'resend' ? `Resend ${kind} link` : `Revoke ${kind} link`
+			);
 		} finally {
 			savingUserId = '';
 		}
 	}
 
 	async function sendRecoveryLink(user: ManagedUser) {
-		if (!confirm(`Send a non-expiring recovery link to ${user.email}? It can reset their password until used or revoked. Their account ID and permissions will not change.`)) return;
+		if (
+			!confirm(
+				`Send a non-expiring recovery link to ${user.email}? It can reset their password until used or revoked. Their account ID and permissions will not change.`
+			)
+		)
+			return;
 		savingUserId = user.id;
 		error = null;
 		success = '';
 		try {
 			await refreshAdminSession();
-			const result = await pb.send<InvitationResult>(`/api/admin/users/${encodeURIComponent(user.id)}/recovery-invitation`, { method: 'POST' });
+			const result = await pb.send<InvitationResult>(
+				`/api/admin/users/${encodeURIComponent(user.id)}/recovery-invitation`,
+				{ method: 'POST' }
+			);
 			await loadUsers();
 			if (!result.mailSent) {
-				error = getAuthFailure(result.mailError || 'The recovery email could not be sent. Use Resend recovery link to retry.', 'Send recovery link');
+				error = getAuthFailure(
+					result.mailError ||
+						'The recovery email could not be sent. Use Resend recovery link to retry.',
+					'Send recovery link'
+				);
 			} else {
 				success = `The recovery email for ${user.email} was accepted for sending. The link has no time limit until used or revoked. Their account and permissions are unchanged.`;
 			}
@@ -356,8 +371,8 @@
 					</button>
 				</div>
 				<p class="mt-3 text-sm text-base-content/60">
-					New users receive a single-use setup link with no time limit. For existing accounts, send a recovery link using
-					the controls below; do not delete and recreate the account.
+					New users receive a single-use setup link with no time limit. For existing accounts, send
+					a recovery link using the controls below; do not delete and recreate the account.
 				</p>
 			</form>
 

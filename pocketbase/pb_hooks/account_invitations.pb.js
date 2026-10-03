@@ -5,30 +5,39 @@ onRecordAfterUpdateSuccess((e) => {
 
 	try {
 		e.app.findCollectionByNameOrId('account_invitations');
-	} catch (_) {
+	} catch {
 		// A missing invitation collection must not interfere with a user update.
 		return;
 	}
 
-	const invitations = e.app.findRecordsByFilter(
-		'account_invitations',
-		'user = {:user} && state = "pending"',
-		'',
-		1,
-		0,
-		{ user: e.record.id }
-	);
-	const invitation = invitations[0];
-	if (!invitation) return;
-
-	const stillBound =
-		invitation.getString('email') === e.record.email() &&
-		$security.equal(invitation.getString('token_key_hash'), $security.sha256(e.record.tokenKey()));
-
-	if (!stillBound) {
-		invitation.set('state', 'revoked');
-		e.app.save(invitation);
-	}
+	e.app.runInTransaction((txApp) => {
+		const invitation = txApp.findRecordsByFilter(
+			'account_invitations',
+			'user = {:user} && state = "pending"',
+			'',
+			1,
+			0,
+			{ user: e.record.id }
+		)[0];
+		if (!invitation) return;
+		const user = txApp.findRecordById('users', e.record.id);
+		const boundToCurrentUser =
+			invitation.getString('email') === user.email() &&
+			$security.equal(invitation.getString('token_key_hash'), $security.sha256(user.tokenKey()));
+		// A late update hook must not revoke a newer explicit recovery authorization.
+		// Still revoke an older link if the email was changed and then changed back.
+		const changedByThisUpdate =
+			invitation.getString('updated') <= e.record.getString('updated') &&
+			(invitation.getString('email') !== e.record.email() ||
+				!$security.equal(
+					invitation.getString('token_key_hash'),
+					$security.sha256(e.record.tokenKey())
+				));
+		if (!boundToCurrentUser || changedByThisUpdate) {
+			invitation.set('state', 'revoked');
+			txApp.save(invitation);
+		}
+	});
 }, 'users');
 
 routerAdd(
@@ -47,11 +56,7 @@ routerAdd(
 		if (!name || name.length > 255) {
 			errors.name = new ValidationError('invalid_name', 'Enter a name up to 255 characters.');
 		}
-		if (
-			!email ||
-			email.length > 254 ||
-			!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-		) {
+		if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 			errors.email = new ValidationError('invalid_email', 'Enter a valid email address.');
 		}
 		if (Object.keys(errors).length) {
@@ -64,12 +69,15 @@ routerAdd(
 		e.app.runInTransaction((txApp) => {
 			try {
 				txApp.findAuthRecordByEmail('users', email);
-				throw e.badRequestError('An account already exists for this email. Send a recovery link instead.', {
-					email: new ValidationError(
-						'account_exists',
-						'An account already exists for this email. Send a recovery link instead.'
-					)
-				});
+				throw e.badRequestError(
+					'An account already exists for this email. Send a recovery link instead.',
+					{
+						email: new ValidationError(
+							'account_exists',
+							'An account already exists for this email. Send a recovery link instead.'
+						)
+					}
+				);
 			} catch (error) {
 				if (error && error.status === 400) throw error;
 			}
@@ -124,7 +132,7 @@ routerAdd(
 <p>If the button does not work, copy and paste this link into your browser:<br>${setupUrl}</p>`
 				})
 			);
-		} catch (_) {
+		} catch {
 			mailSent = false;
 		}
 
@@ -153,17 +161,15 @@ routerAdd(
 		e.app.runInTransaction((txApp) => {
 			try {
 				user = txApp.findRecordById('users', e.request.pathValue('id'));
-			} catch (_) {
+			} catch {
 				throw e.notFoundError('User not found.', null);
 			}
 
 			try {
-				invitation = txApp.findFirstRecordByFilter(
-					'account_invitations',
-					'user = {:user}',
-					{ user: user.id }
-				);
-			} catch (_) {
+				invitation = txApp.findFirstRecordByFilter('account_invitations', 'user = {:user}', {
+					user: user.id
+				});
+			} catch {
 				invitation = new Record(txApp.findCollectionByNameOrId('account_invitations'));
 				invitation.set('user', user.id);
 			}
@@ -207,7 +213,7 @@ routerAdd(
 <p>If the button does not work, copy and paste this link into your browser:<br>${recoveryUrl}</p>`
 				})
 			);
-		} catch (_) {
+		} catch {
 			mailSent = false;
 		}
 
@@ -227,7 +233,7 @@ routerAdd(
 			throw e.forbiddenError('Admin access required.', null);
 		}
 
-		const invitations = e.app.findRecordsByFilter('account_invitations', '', '-created', 500, 0);
+		const invitations = e.app.findRecordsByFilter('account_invitations', '', '-created', 0, 0);
 		const items = [];
 
 		for (const invitation of invitations) {
@@ -235,30 +241,21 @@ routerAdd(
 			let status = invitation.getString('state');
 			try {
 				user = e.app.findRecordById('users', invitation.getString('user'));
-			} catch (_) {}
+			} catch {
+				// A deleted user is reported as having no usable invitation.
+			}
 
 			const stillBound =
 				user &&
 				invitation.getString('email') === user.email() &&
 				$security.equal(invitation.getString('token_key_hash'), $security.sha256(user.tokenKey()));
 			if (status === 'pending' && !stillBound) {
-				invitation.set('state', 'revoked');
-				e.app.save(invitation);
 				status = 'revoked';
 			}
 
 			items.push({
 				id: invitation.id,
-				user: user
-					? {
-							id: user.id,
-							name: user.getString('name'),
-							verified: user.verified(),
-							is_admin: user.getBool('is_admin'),
-							created: user.getString('created'),
-							updated: user.getString('updated')
-						}
-					: null,
+				user: invitation.getString('user'),
 				status,
 				purpose: invitation.getString('purpose')
 			});
@@ -285,7 +282,7 @@ routerAdd(
 		e.app.runInTransaction((txApp) => {
 			try {
 				invitation = txApp.findRecordById('account_invitations', e.request.pathValue('id'));
-			} catch (_) {
+			} catch {
 				throw e.notFoundError('Invitation not found.', null);
 			}
 			if (invitation.getString('state') !== 'pending') {
@@ -295,7 +292,7 @@ routerAdd(
 
 			try {
 				user = txApp.findRecordById('users', invitation.getString('user'));
-			} catch (_) {
+			} catch {
 				invitation.set('state', 'revoked');
 				txApp.save(invitation);
 				cannotResend = true;
@@ -357,7 +354,7 @@ ${purpose === 'recovery' ? '<p>This recovery link does not expire, but it stops 
 <p>If the button does not work, copy and paste this link into your browser:<br>${setupUrl}</p>`
 				})
 			);
-		} catch (_) {
+		} catch {
 			mailSent = false;
 		}
 
@@ -380,15 +377,17 @@ routerAdd(
 		}
 
 		let invitation = null;
-		try {
-			invitation = e.app.findRecordById('account_invitations', e.request.pathValue('id'));
-		} catch (_) {
-			throw e.notFoundError('Invitation not found.', null);
-		}
-		if (invitation.getString('state') === 'pending') {
-			invitation.set('state', 'revoked');
-			e.app.save(invitation);
-		}
+		e.app.runInTransaction((txApp) => {
+			try {
+				invitation = txApp.findRecordById('account_invitations', e.request.pathValue('id'));
+			} catch {
+				throw e.notFoundError('Invitation not found.', null);
+			}
+			if (invitation.getString('state') === 'pending') {
+				invitation.set('state', 'revoked');
+				txApp.save(invitation);
+			}
+		});
 
 		e.json(200, { id: invitation.id, status: invitation.getString('state') });
 	},
@@ -401,19 +400,28 @@ routerAdd(
 	'/api/account/setup',
 	(e) => {
 		const store = e.app.store();
-		const throttleKey = `account-setup:${$security.sha256(e.realIP())}`;
+		const client = $security.sha256(e.realIP());
 		const now = Date.now();
 		let allowed = true;
-		store.setFunc(throttleKey, (previous) => {
-			const current = previous && typeof previous === 'object' ? previous : null;
-			if (!current || now - current.startedAt >= 60 * 1000) {
-				return { startedAt: now, attempts: 1 };
+		store.setFunc('account-setup:windows', (previous) => {
+			const windows = previous && typeof previous === 'object' ? previous : {};
+			for (const key of Object.keys(windows)) {
+				if (now - windows[key].startedAt >= 60 * 1000) delete windows[key];
 			}
-			if (current.attempts >= 10) {
+			const current = windows[client];
+			// Bound memory even if many distinct/spoofed client addresses are submitted.
+			if (
+				(current && current.attempts >= 10) ||
+				(!current && Object.keys(windows).length >= 2048)
+			) {
 				allowed = false;
-				return current;
+				return windows;
 			}
-			return { startedAt: current.startedAt, attempts: current.attempts + 1 };
+			windows[client] = {
+				startedAt: current ? current.startedAt : now,
+				attempts: current ? current.attempts + 1 : 1
+			};
+			return windows;
 		});
 		if (!allowed) {
 			throw e.tooManyRequestsError('Too many setup attempts. Try again later.', {
@@ -427,26 +435,37 @@ routerAdd(
 		const passwordConfirm = body.passwordConfirm;
 		const errors = {};
 
-		if (typeof secret !== 'string' || secret.length < 48 || secret.length > 128 || !/^[A-Za-z0-9]+$/.test(secret)) {
-			errors.token = new ValidationError('invalid_token', 'Invitation is invalid or can no longer be used.');
+		if (
+			typeof secret !== 'string' ||
+			secret.length < 48 ||
+			secret.length > 128 ||
+			!/^[A-Za-z0-9]+$/.test(secret)
+		) {
+			errors.token = new ValidationError(
+				'invalid_token',
+				'Invitation is invalid or can no longer be used.'
+			);
 		}
-		if (typeof password !== 'string' || password.length > 255) {
-			errors.password = new ValidationError('invalid_password', 'Enter a password up to 255 characters.');
+		if (typeof password !== 'string' || Array.from(password).length > 255) {
+			errors.password = new ValidationError(
+				'invalid_password',
+				'Enter a password up to 255 characters.'
+			);
 		}
-		if (typeof passwordConfirm !== 'string' || passwordConfirm.length > 255 || passwordConfirm !== password) {
+		if (
+			typeof passwordConfirm !== 'string' ||
+			Array.from(passwordConfirm).length > 255 ||
+			passwordConfirm !== password
+		) {
 			errors.passwordConfirm = new ValidationError('password_mismatch', 'Passwords do not match.');
 		}
 		if (Object.keys(errors).length) {
 			throw e.badRequestError('Unable to set up this account.', errors);
 		}
 
-		let minimumPasswordLength = 8;
-		try {
-			minimumPasswordLength = e.app.findCollectionByNameOrId('users').options.minPasswordLength || 8;
-		} catch (_) {
-			// The later save will return the collection's password policy error.
-		}
-		if (password.length < minimumPasswordLength) {
+		const passwordField = e.app.findCollectionByNameOrId('users').fields.getByName('password');
+		const minimumPasswordLength = passwordField.min > 0 ? passwordField.min : 1;
+		if (Array.from(password).length < minimumPasswordLength) {
 			throw e.badRequestError('Unable to set up this account.', {
 				password: new ValidationError(
 					'invalid_password',
@@ -468,7 +487,7 @@ routerAdd(
 					{ tokenHash }
 				);
 				user = txApp.findRecordById('users', invitation.getString('user'));
-			} catch (_) {
+			} catch {
 				validInvitation = false;
 				return;
 			}
@@ -488,14 +507,21 @@ routerAdd(
 
 			user.setPassword(password);
 			user.setVerified(true);
-			txApp.save(user);
+			try {
+				txApp.save(user);
+			} catch (error) {
+				throw e.badRequestError('Password does not meet the account requirements.', error);
+			}
 			invitation.set('state', 'used');
 			txApp.save(invitation);
 		});
 
 		if (!validInvitation) {
 			throw e.badRequestError('Unable to set up this account.', {
-				token: new ValidationError('invalid_token', 'Invitation is invalid or can no longer be used.')
+				token: new ValidationError(
+					'invalid_token',
+					'Invitation is invalid or can no longer be used.'
+				)
 			});
 		}
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { pb } from '$lib/database';
+	import { authStore, pb } from '$lib/database';
 	import { getAuthFailure, type AuthFailure } from '$lib/auth-errors';
 	import AuthErrorAlert from '$lib/components/ui/AuthErrorAlert.svelte';
 
@@ -57,6 +57,8 @@
 			} else {
 				await pb.collection('users').confirmPasswordReset(token, password, passwordConfirm);
 			}
+			// Password changes invalidate old sessions; require a fresh sign-in.
+			authStore.logout();
 			success = 'Your password has been set. You can now sign in.';
 			password = '';
 			passwordConfirm = '';
@@ -201,7 +203,8 @@
 					{isRequesting ? 'Requesting...' : 'Request password reset'}
 				</button>
 				<p class="text-xs text-base-content/60">
-				Invitation and admin-issued recovery links do not expire. Self-service password-reset links expire for security; request another here if needed.
+					Invitation and admin-issued recovery links do not expire. Self-service password-reset
+					links expire for security; request another here if needed.
 				</p>
 				{#if recoveryError}<AuthErrorAlert failure={recoveryError} />{/if}
 				{#if recoveryMessage}<p class="text-sm" role="status">{recoveryMessage}</p>{/if}
