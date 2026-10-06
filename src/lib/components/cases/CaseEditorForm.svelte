@@ -66,6 +66,8 @@
 		'courts',
 		'decision_date',
 		'ecli',
+		'decision_reference',
+		'procedural_wording',
 		'plaintiffs',
 		'defendants',
 		'dsa_articles',
@@ -112,6 +114,8 @@
 				case_id: record.case_id,
 				title: record.title,
 				ecli: record.ecli ?? '',
+				decision_reference: record.decision_reference ?? '',
+				procedural_wording: record.procedural_wording ?? '',
 				decision_date: record.decision_date ? record.decision_date.slice(0, 10) : '',
 				status: record.status,
 				court: record.court ?? '',
@@ -463,6 +467,8 @@
 			case_id: form.case_id.trim(),
 			title: form.title.trim(),
 			ecli: form.ecli.trim(),
+			decision_reference: form.decision_reference.trim(),
+			procedural_wording: form.procedural_wording.trim(),
 			decision_date: form.decision_date || null,
 			status: form.status,
 			court: form.court.trim(),
@@ -556,7 +562,7 @@
 						<div>
 							<p class="text-[11px] font-semibold text-base-content/50">Visibility</p>
 							<p id="case-visibility-description" class={form.published ? 'text-sm font-bold text-emerald-800' : 'text-sm font-bold text-red-700'}>
-								{visibilityUncertain ? 'Unconfirmed' : form.published ? 'Public · Everyone' : 'Draft'}
+								{visibilityUncertain ? 'Unconfirmed' : form.published ? 'Public · Everyone' : 'Private · Admins only'}
 							</p>
 						</div>
 						<input type="checkbox" role="switch" class="toggle toggle-success" checked={form.published}
@@ -638,7 +644,7 @@
 						<summary class="cursor-pointer text-base font-bold">
 							Essentials
 							<span class="ml-2 text-sm font-normal text-base-content/60"
-								>ID, title, status, court</span
+								>ID, title, court</span
 							>
 						</summary>
 						<div class="mt-4 grid gap-3 md:grid-cols-3">
@@ -700,13 +706,14 @@
 									type="date"
 								/>
 							</label>
-							<label class="form-control w-full">
-								<span class="label-text mb-1 text-sm font-semibold">Case status (not visibility)</span>
-								<select class="select-bordered select w-full select-sm" bind:value={form.status}>
-									{#each statusOptions as option (option)}
-										<option value={option}>{option}</option>
-									{/each}
-								</select>
+							<label class="form-control w-full md:col-span-2">
+								<span class="label-text mb-1 text-sm font-semibold">Complete decision reference</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.decision_reference}
+									maxlength="4000"
+									placeholder="Court, date, docket number, ECLI, or original reference"
+								/>
 							</label>
 						</div>
 					</details>
@@ -821,6 +828,15 @@
 							>
 						</summary>
 						<div class="mt-4 grid gap-3 md:grid-cols-3">
+							<label class="form-control w-full md:col-span-3">
+								<span class="label-text mb-1 text-sm font-semibold">Source procedural wording</span>
+								<input
+									class="input-bordered input input-sm w-full"
+									bind:value={form.procedural_wording}
+									maxlength="4000"
+									placeholder="Proceedings status exactly as stated by the source"
+								/>
+							</label>
 							<label class="form-control w-full md:col-span-3">
 								<span class="label-text mb-1 text-sm font-semibold">Procedural events</span>
 								<textarea

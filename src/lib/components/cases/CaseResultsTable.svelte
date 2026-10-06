@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import CountryFlag from '$lib/components/CountryFlag.svelte';
 	import type { CaseRecord } from '$lib/database';
 
 	let {
@@ -12,7 +13,6 @@
 		canWrite,
 		onEdit,
 		onDelete,
-		countryFlag,
 		getCategories,
 		getTimeline,
 		sourceLinks,
@@ -28,13 +28,23 @@
 		canWrite: boolean;
 		onEdit: (record: CaseRecord) => void;
 		onDelete: (record: CaseRecord) => void;
-		countryFlag: (country: string) => string;
 		getCategories: (record: CaseRecord) => string[];
 		getTimeline: (record: CaseRecord) => string;
 		sourceLinks: (record: CaseRecord) => string[];
 		sourceLabel: (url: string) => string;
 		getSourceText: (record: CaseRecord) => string;
 	} = $props();
+
+	function formatDecisionDate(value?: string) {
+		if (!value) return '';
+		const dateOnly = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+		const date = dateOnly
+			? new Date(Date.UTC(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3])))
+			: new Date(value);
+		return Number.isNaN(date.getTime())
+			? value
+			: new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(date);
+	}
 </script>
 
 <table class="min-w-[1280px] border-separate border-spacing-0 text-sm">
@@ -44,7 +54,7 @@
 		<tr>
 			<th class="border-b border-slate-200 px-4 py-3">Case</th>
 			<th class="border-b border-slate-200 px-4 py-3">Parties</th>
-			<th class="border-b border-slate-200 px-4 py-3">Status</th>
+			{#if canWrite}<th class="border-b border-slate-200 px-4 py-3">Visibility</th>{/if}
 			<th class="border-b border-slate-200 px-4 py-3">Jurisdiction</th>
 			<th class="border-b border-slate-200 px-4 py-3">Court / Decision</th>
 			<th class="border-b border-slate-200 px-4 py-3">Legal tags</th>
@@ -56,16 +66,16 @@
 	<tbody class="text-slate-700">
 		{#if loading}
 			<tr>
-				<td class="px-4 py-6 text-slate-500" colspan={canWrite ? 9 : 8}>Loading cases...</td>
+				<td class="px-4 py-6 text-slate-500" colspan={canWrite ? 9 : 7}>Loading cases...</td>
 			</tr>
 		{:else if filteredCount === 0}
 			<tr>
-				<td class="px-4 py-6 text-slate-500" colspan={canWrite ? 9 : 8}>No cases found.</td>
+				<td class="px-4 py-6 text-slate-500" colspan={canWrite ? 9 : 7}>No cases found.</td>
 			</tr>
 		{:else}
 			{#if topSpacerHeight > 0}
 				<tr aria-hidden="true">
-					<td colspan={canWrite ? 9 : 8} style={`height: ${topSpacerHeight}px; padding: 0;`}> </td>
+					<td colspan={canWrite ? 9 : 7} style={`height: ${topSpacerHeight}px; padding: 0;`}> </td>
 				</tr>
 			{/if}
 			{#each virtualRows as record (record.id)}
@@ -99,18 +109,17 @@
 						{/if}
 						{#if !record.plaintiffs?.length && !record.defendants?.length}-{/if}
 					</td>
-					<td class="border-b border-slate-100 px-4 py-3 align-top">
+					{#if canWrite}<td class="border-b border-slate-100 px-4 py-3 align-top">
 						<span
 							class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600 capitalize"
 						>
-							{record.status}
+							{record.published ? 'Public' : 'Private'}
 						</span>
-					</td>
+					</td>{/if}
 					<td class="border-b border-slate-100 px-4 py-3 align-top">
 						{#if record.jurisdiction}
 							<span class="inline-flex items-center gap-2 whitespace-nowrap">
-								{#if countryFlag(record.jurisdiction)}<span>{countryFlag(record.jurisdiction)}</span
-									>{/if}
+								<CountryFlag country={record.jurisdiction} />
 								<span>{record.jurisdiction}</span>
 							</span>
 						{:else}
@@ -119,9 +128,15 @@
 					</td>
 					<td class="min-w-48 border-b border-slate-100 px-4 py-3 align-top">
 						<div class="text-slate-800">{record.court || '-'}</div>
-						<div class="text-sm text-slate-500">
-							{record.decision_date ? new Date(record.decision_date).toLocaleDateString() : '-'}
-						</div>
+						{#if record.decision_date}<div class="mt-1 font-semibold text-slate-900">
+							{record.decision_reference ? 'Reference date' : 'Decision date'}: {formatDecisionDate(record.decision_date)}
+						</div>{/if}
+						{#if record.decision_reference}<div class="mt-1 break-words text-sm text-slate-600">
+							<span class="font-medium">Reference:</span> {record.decision_reference}
+						</div>{/if}
+						{#if record.procedural_wording}<div class="mt-1 break-words text-sm text-slate-600">
+							<span class="font-medium">Procedure:</span> {record.procedural_wording}
+						</div>{/if}
 					</td>
 					<td class="min-w-56 border-b border-slate-100 px-4 py-3 align-top">
 						<div class="flex flex-wrap gap-1">
@@ -185,7 +200,7 @@
 			{/each}
 			{#if bottomSpacerHeight > 0}
 				<tr aria-hidden="true">
-					<td colspan={canWrite ? 9 : 8} style={`height: ${bottomSpacerHeight}px; padding: 0;`}>
+					<td colspan={canWrite ? 9 : 7} style={`height: ${bottomSpacerHeight}px; padding: 0;`}>
 					</td>
 				</tr>
 			{/if}

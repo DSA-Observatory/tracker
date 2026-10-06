@@ -1,0 +1,179 @@
+- generic [ref=f3e3]:
+  - navigation [ref=f3e4]:
+    - generic [ref=f3e6]:
+      - link "Case tracker home" [ref=f3e7] [cursor=pointer]:
+        - /url: /tracker/
+        - generic [aria-hidden] [ref=f3e8]: DSA
+        - generic [ref=f3e9]: Case Tracker
+      - generic [ref=f3e13]:
+        - textbox "Search cases" [ref=f3e16]: Brzoska
+        - button "Clear search" [ref=f3e17]:
+          - generic [aria-hidden] [ref=f3e18]: ×
+      - generic [ref=f3e19]:
+        - link "Cases" [ref=f3e20] [cursor=pointer]:
+          - /url: /tracker/cases
+        - link "Map" [ref=f3e21] [cursor=pointer]:
+          - /url: /tracker/map
+        - link "About" [ref=f3e22] [cursor=pointer]:
+          - /url: /tracker/about
+      - generic [ref=f3e26]:
+        - button "Login" [ref=f3e27] [cursor=pointer]
+        - checkbox "Close" [ref=f3e28]
+      - link "Suggest a Case" [ref=f3e29] [cursor=pointer]:
+        - /url: /tracker/submit
+  - main [ref=f3e31]:
+    - generic [ref=f3e32]:
+      - generic [ref=f3e34]:
+        - generic [ref=f3e36]:
+          - generic [ref=f3e37]:
+            - paragraph [ref=f3e38]: DSA Case Law Tracker
+            - heading "Private enforcement cases" [level=1] [ref=f3e39]
+            - paragraph [ref=f3e40]: Search, filter, map, and compare DSA litigation across jurisdictions.
+          - generic [ref=f3e41]:
+            - generic [ref=f3e42]: 79 cases
+            - button "11 countries" [ref=f3e139]
+        - generic [ref=f3e49]:
+          - generic [ref=f3e50]:
+            - generic [aria-hidden] [ref=f3e51]: Search
+            - textbox "Search cases" [ref=f3e52]:
+              - /placeholder: Search cases, parties, articles, sources
+              - text: Brzoska
+            - button "Clear search" [ref=f3e53]:
+              - generic [aria-hidden] [ref=f3e54]: ×
+          - generic [ref=f3e55]:
+            - generic [ref=f3e56]: Search in
+            - combobox "Search scope" [ref=f3e57]:
+              - option "All fields" [selected]
+              - option "Case details"
+              - option "Parties"
+              - option "Legal tags"
+              - option "Sources"
+              - option "Timeline"
+              - option "Primary sources"
+              - option "Secondary sources"
+          - generic [ref=f3e58]:
+            - group "Visualization preferences" [ref=f3e59]:
+              - 'generic "View: Table" [ref=f3e159] [cursor=pointer]':
+                - text: "View: Table"
+                - generic [aria-hidden] [ref=f3e61]: ▼
+              - generic [ref=f3e152]:
+                - paragraph [ref=f3e153]: Results
+                - button "Cards" [ref=f3e154]
+                - button "Table" [active] [ref=f3e155]
+                - paragraph [ref=f3e156]: Filters
+                - button "Left column" [ref=f3e157]
+                - button "Top row" [ref=f3e158]
+            - group [ref=f3e62]:
+              - generic "Export" [ref=f3e63] [cursor=pointer]:
+                - text: Export
+                - generic [aria-hidden] [ref=f3e64]: ▼
+      - generic [ref=f3e65]:
+        - complementary [ref=f3e66]:
+          - generic [ref=f3e67]:
+            - generic [ref=f3e68]:
+              - generic [ref=f3e69]:
+                - paragraph [ref=f3e70]: Filters
+                - paragraph [ref=f3e71]: Showing 2 of 79 cases
+              - button "Clear filters" [ref=f3e72]
+            - generic [ref=f3e73]:
+              - button "Status 1" [ref=f3e140]:
+                - generic [ref=f3e76]: Status
+                - generic [ref=f3e77]: "1"
+              - button "Country 1" [ref=f3e141]:
+                - generic [ref=f3e83]: Country
+                - generic [ref=f3e84]: "1"
+              - button "Category 1" [ref=f3e142]:
+                - generic [ref=f3e90]: Category
+                - generic [ref=f3e91]: "1"
+              - button "DSA provisions 2" [ref=f3e143]:
+                - generic [ref=f3e97]: DSA provisions
+                - generic [ref=f3e98]: "2"
+              - button "Court 2" [ref=f3e144]:
+                - generic [ref=f3e104]: Court
+                - generic [ref=f3e105]: "2"
+              - button "Parties 2" [ref=f3e145]:
+                - generic [ref=f3e111]: Parties
+                - generic [ref=f3e112]: "2"
+              - button "Decision year 2" [ref=f3e146]:
+                - generic [ref=f3e118]: Decision year
+                - generic [ref=f3e119]: "2"
+        - table [ref=f3e161]:
+          - rowgroup [ref=f3e162]:
+            - row [ref=f3e163]:
+              - columnheader "Case" [ref=f3e164]
+              - columnheader "Parties" [ref=f3e165]
+              - columnheader "Status" [ref=f3e166]
+              - columnheader "Jurisdiction" [ref=f3e167]
+              - columnheader "Court / Decision" [ref=f3e168]
+              - columnheader "Legal tags" [ref=f3e169]
+              - columnheader "Timeline" [ref=f3e170]
+              - columnheader "Sources" [ref=f3e171]
+          - rowgroup [ref=f3e172]:
+            - row [ref=f3e173]:
+              - 'cell "View case: Rafał Brzoska and Omenaa Mensah v. Meta Platforms Ireland Limited — Reference date: Mar 27, 2026 — Sąd Apelacyjny w Warszawie (The Court of Appeal in Warsaw) DSA-CLEAN-27-WARSAW-COURT-OF-APPEAL-27-03-2026-6B741D7CAD9F" [ref=f3e174]':
+                - 'link "View case: Rafał Brzoska and Omenaa Mensah v. Meta Platforms Ireland Limited — Reference date: Mar 27, 2026 — Sąd Apelacyjny w Warszawie (The Court of Appeal in Warsaw)" [ref=f3e175] [cursor=pointer]':
+                  - /url: /tracker/cases/c6b741d7cad9f95
+                  - text: Rafał Brzoska and Omenaa Mensah v. Meta Platforms Ireland Limited
+                - generic [ref=f3e176]: DSA-CLEAN-27-WARSAW-COURT-OF-APPEAL-27-03-2026-6B741D7CAD9F
+              - 'cell "P: Rafał Brzoska and Omenaa Mensah D: Meta Platforms Ireland Limited" [ref=f3e177]':
+                - generic [ref=f3e178]: "P: Rafał Brzoska and Omenaa Mensah"
+                - generic [ref=f3e179]: "D: Meta Platforms Ireland Limited"
+              - cell "draft" [ref=f3e180]
+              - cell "🇵🇱 Poland" [ref=f3e181]:
+                - generic [ref=f3e182]:
+                  - generic [ref=f3e183]: 🇵🇱
+                  - generic [ref=f3e184]: Poland
+              - 'cell "Sąd Apelacyjny w Warszawie (The Court of Appeal in Warsaw) Reference date: Mar 27, 2026 Reference: Warsaw Court of Appeal, 27.03.2026" [ref=f3e185]':
+                - generic [ref=f3e186]: Sąd Apelacyjny w Warszawie (The Court of Appeal in Warsaw)
+                - generic [ref=f3e187]: "Reference date: Mar 27, 2026"
+                - generic [ref=f3e188]: "Reference: Warsaw Court of Appeal, 27.03.2026"
+              - cell "Article 6 DSA Article 7 DSA Due Diligence" [ref=f3e189]:
+                - generic [ref=f3e190]:
+                  - generic [ref=f3e191]: Article 6 DSA
+                  - generic [ref=f3e192]: Article 7 DSA
+                  - generic [ref=f3e193]: Due Diligence
+              - cell "-" [ref=f3e194]
+              - cell "-" [ref=f3e195]
+            - row [ref=f3e196]:
+              - 'cell "View case: Rafał Brzoska and Omenaa Mensah v. Meta Platforms Ireland Limited — Reference date: Nov 7, 2024 — Sąd Okręgowy w Warszawie (The District Court in Warsaw) DSA-CLEAN-26-REGIONAL-COURT-IN-WARSAW-07-11-2024-4B05808F7649" [ref=f3e197]':
+                - 'link "View case: Rafał Brzoska and Omenaa Mensah v. Meta Platforms Ireland Limited — Reference date: Nov 7, 2024 — Sąd Okręgowy w Warszawie (The District Court in Warsaw)" [ref=f3e198] [cursor=pointer]':
+                  - /url: /tracker/cases/c4b05808f764919
+                  - text: Rafał Brzoska and Omenaa Mensah v. Meta Platforms Ireland Limited
+                - generic [ref=f3e199]: DSA-CLEAN-26-REGIONAL-COURT-IN-WARSAW-07-11-2024-4B05808F7649
+              - 'cell "P: Rafał Brzoska and Omenaa Mensah D: Meta Platforms Ireland Limited" [ref=f3e200]':
+                - generic [ref=f3e201]: "P: Rafał Brzoska and Omenaa Mensah"
+                - generic [ref=f3e202]: "D: Meta Platforms Ireland Limited"
+              - cell "draft" [ref=f3e203]
+              - cell "🇵🇱 Poland" [ref=f3e204]:
+                - generic [ref=f3e205]:
+                  - generic [ref=f3e206]: 🇵🇱
+                  - generic [ref=f3e207]: Poland
+              - 'cell "Sąd Okręgowy w Warszawie (The District Court in Warsaw) Reference date: Nov 7, 2024 Reference: Regional Court in Warsaw, 07.11.2024" [ref=f3e208]':
+                - generic [ref=f3e209]: Sąd Okręgowy w Warszawie (The District Court in Warsaw)
+                - generic [ref=f3e210]: "Reference date: Nov 7, 2024"
+                - generic [ref=f3e211]: "Reference: Regional Court in Warsaw, 07.11.2024"
+              - cell "Article 6 DSA Article 7 DSA Due Diligence" [ref=f3e212]:
+                - generic [ref=f3e213]:
+                  - generic [ref=f3e214]: Article 6 DSA
+                  - generic [ref=f3e215]: Article 7 DSA
+                  - generic [ref=f3e216]: Due Diligence
+              - cell "-" [ref=f3e217]
+              - cell "-" [ref=f3e218]
+  - contentinfo "Site footer" [ref=f3e126]:
+    - generic [ref=f3e127]:
+      - generic "Project partners" [ref=f3e128]:
+        - link "DSA Observatory website" [ref=f3e129] [cursor=pointer]:
+          - /url: https://dsa-observatory.eu/
+          - img "DSA Observatory" [ref=f3e130]
+        - link "University of Amsterdam website" [ref=f3e131] [cursor=pointer]:
+          - /url: https://www.uva.nl/en
+          - img "University of Amsterdam" [ref=f3e132]
+      - navigation "Footer navigation" [ref=f3e133]:
+        - link "About" [ref=f3e134] [cursor=pointer]:
+          - /url: /tracker/about
+        - link "Suggest case" [ref=f3e135] [cursor=pointer]:
+          - /url: /tracker/submit
+        - link "Privacy" [ref=f3e136] [cursor=pointer]:
+          - /url: /tracker/privacy
+        - link "Policy" [ref=f3e137] [cursor=pointer]:
+          - /url: /tracker/policy

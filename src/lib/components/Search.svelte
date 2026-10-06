@@ -127,6 +127,7 @@
 
 		try {
 			cases = await pb.collection('cases').getFullList<CaseRecord>({
+				filter: "published = true && status != 'archived'",
 				sort: '-decision_date,-created'
 			});
 		} catch (err) {

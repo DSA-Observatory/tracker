@@ -2,39 +2,23 @@
 	import { resolve } from '$app/paths';
 	import EuropeanCaseNetwork from '$lib/components/cases/EuropeanCaseNetwork.svelte';
 
-	function reveal(node: HTMLElement, delay = 0) {
-		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-		node.style.setProperty('--entry-delay', `${delay}ms`);
-		node.classList.add('reveal-ready');
-		const observer = new IntersectionObserver(([entry]) => {
-			if (entry.isIntersecting) {
-				node.classList.add('reveal-visible');
-				observer.disconnect();
-			}
-		}, { threshold: 0.1 });
-		observer.observe(node);
-		return { destroy: () => observer.disconnect() };
+	let definitionOpen = $state(false);
+	let definitionTrigger: HTMLButtonElement;
+	let definitionWrapper: HTMLSpanElement;
+	let pointerFocus = false;
+
+	function dismissDefinition(event: KeyboardEvent) {
+		if (event.key !== 'Escape' || !definitionOpen) return;
+		definitionOpen = false;
+		definitionTrigger?.focus();
 	}
 
-	const highlights = [
-		{
-			title: 'Case documentation',
-			description:
-				'Entries include case metadata, editorial summaries, source links, and related legal references.'
-		},
-		{
-			title: 'Search and classification',
-			description:
-				'Cases can be browsed by jurisdiction, category, procedural status, and DSA article.'
-		},
-		{
-			title: 'Research scope',
-			description:
-				'The database focuses on private enforcement of the DSA before courts in EU Member States.'
-		}
-	] as const;
-
+	function dismissDefinitionOutside(event: PointerEvent) {
+		if (!definitionWrapper?.contains(event.target as Node)) definitionOpen = false;
+	}
 </script>
+
+<svelte:window onkeydown={dismissDefinition} onpointerdown={dismissDefinitionOutside} />
 
 <svelte:head>
 	<title>DSA Case Law Tracker</title>
@@ -51,50 +35,14 @@
 			<div class="hero-copy">
 				<p class="hero-eyebrow">The DSA Case Law Tracker</p>
 				<h1><span class="headline-line"><span>DSA litigation</span></span><span class="headline-line"><span>across Europe.</span></span></h1>
-				<p class="hero-description">A public database of private enforcement cases under the EU Digital Services Act, with case summaries, legal references, and source documents.</p>
+				<p class="hero-description">A public database of <span class="definition" bind:this={definitionWrapper} onmouseenter={() => (definitionOpen = true)} onmouseleave={() => (definitionOpen = false)}><button bind:this={definitionTrigger} type="button" class="definition-trigger" aria-expanded={definitionOpen} aria-describedby="private-enforcement-definition" onpointerdown={() => (pointerFocus = true)} onfocus={() => { if (!pointerFocus) definitionOpen = true; pointerFocus = false; }} onblur={() => (definitionOpen = false)} onclick={() => (definitionOpen = true)}>private enforcement</button><span id="private-enforcement-definition" class:open={definitionOpen} class="definition-popover" role="tooltip">Our case tracker is focused on private enforcement, which involves litigation between two private entities. Enforcement by government bodies is not included.</span></span> cases under the EU Digital Services Act, with case summaries, legal references, and source documents.</p>
 				<div class="hero-actions">
-					<a class="btn btn-primary" href={resolve('/cases')}>Browse cases <span aria-hidden="true">↗</span></a>
+					<a class="btn btn-primary text-base font-bold text-black" href={resolve('/cases')}>Browse cases <span aria-hidden="true">↗</span></a>
 					<a class="hero-about" href={resolve('/about')}>About the project <span aria-hidden="true">→</span></a>
 				</div>
 				<a class="hero-map-link" href={resolve('/map')}>View cases by jurisdiction <span aria-hidden="true">↗</span></a>
 			</div>
 			<div class="hero-footnote"><span>IViR · University of Amsterdam · DSA Observatory</span></div>
-		</div>
-	</section>
-	<section class="container mx-auto max-w-6xl px-4 py-12">
-		<div class="grid gap-8 md:grid-cols-3">
-			{#each highlights as highlight, index}
-				<article use:reveal={index * 120} class="border-t border-base-300 pt-5">
-					<h2 class="text-lg font-bold">{highlight.title}</h2>
-					<p class="mt-3 leading-7 text-base-content/75">{highlight.description}</p>
-				</article>
-			{/each}
-		</div>
-	</section>
-
-	<section class="border-y border-base-300/50 bg-base-200/40">
-		<div class="container mx-auto grid max-w-6xl gap-6 px-4 py-12 md:grid-cols-3">
-			<div use:reveal>
-				<p class="text-sm font-semibold tracking-[0.25em] text-primary uppercase">Audience</p>
-				<p class="mt-3 text-base-content/75">
-					Researchers, civil society, policymakers, litigation funders, legal professionals, and
-					journalists.
-				</p>
-			</div>
-			<div use:reveal={120}>
-				<p class="text-sm font-semibold tracking-[0.25em] text-primary uppercase">Sources</p>
-				<p class="mt-3 text-base-content/75">
-					Rechtspraak.nl, CURIA, national case law databases, public documents, expert tips, and
-					community submissions.
-				</p>
-			</div>
-			<div use:reveal={240}>
-				<p class="text-sm font-semibold tracking-[0.25em] text-primary uppercase">Inspiration</p>
-				<p class="mt-3 text-base-content/75">
-					Climate Case Chart, Tech Justice Law Project, DSA Observatory, WILMap, and other public
-					legal trackers.
-				</p>
-			</div>
 		</div>
 	</section>
 </main>
@@ -108,7 +56,12 @@
 	.headline-line { display: block; overflow: hidden; padding-bottom: .12em; margin-bottom: -.12em; }
 	.headline-line > span { display: block; }
 	.headline-muted { color: color-mix(in oklab, var(--color-base-content) 48%, var(--color-base-100)); }
-	.hero-description { max-width: 23rem; margin-top: 2rem; font-size: 1.05rem; line-height: 1.75; color: color-mix(in oklab, var(--color-base-content) 65%, transparent); }
+	.hero-description { position: relative; max-width: 30rem; margin-top: 2rem; font-size: clamp(1.15rem, 1.5vw, 1.35rem); line-height: 1.65; color: var(--color-base-content); }
+	.definition { position: relative; display: inline-block; }
+	.definition-trigger { padding: 0 .12em; border-radius: .15em; background: #fde76c; color: var(--color-base-content); font: inherit; cursor: help; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+	.definition-trigger:focus-visible { outline: 2px solid var(--color-base-content); outline-offset: 2px; }
+	.definition-popover { position: absolute; z-index: 20; left: 50%; transform: translateX(-50%); bottom: calc(100% + .75rem); display: none; width: min(22rem, calc(100vw - 3rem)); padding: .85rem 1rem; border: 1px solid color-mix(in oklab, var(--color-base-content) 18%, transparent); border-radius: .6rem; background: var(--color-base-100); color: var(--color-base-content); box-shadow: 0 12px 35px color-mix(in oklab, black 16%, transparent); font-size: .85rem; line-height: 1.55; }
+	.definition-popover.open { display: block; }
 	.hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1.6rem; margin-top: 2rem; }
 	.hero-actions .btn { height: 3.25rem; padding-inline: 1.4rem; gap: 1.5rem; }
 	.hero-about { font-size: .85rem; font-weight: 600; }
@@ -143,10 +96,12 @@
 		.hero-copy { width: 100%; }
 		h1 { font-size: clamp(3.4rem, 8.5vw, 5rem); }
 		.hero-atlas { top: 13rem; right: -25%; width: 95%; height: 38rem; opacity: .55; }
-		.hero-description { max-width: 20rem; }
+		.hero-description { max-width: 27rem; }
 		.hero-footnote { margin-top: 18rem; flex-wrap: wrap; }
 	}
 	@media (max-width: 540px) {
+		.definition { position: static; }
+		.definition-popover { left: 0; transform: none; max-width: 100%; }
 		.hero-atlas { top: 26rem; right: -13%; width: 120%; height: 26rem; opacity: 1; }
 		.hero-footnote { margin-top: 26rem; }
 		.hero-description { max-width: 23rem; }

@@ -1,0 +1,22 @@
+[     104ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/entry/start.CD-o0JTA.js:0
+[     105ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/omoO9FUv.js:0
+[     111ms] Failed to fetch dynamically imported module: http://127.0.0.1:64012/tracker/_app/immutable/entry/start.CD-o0JTA.js
+[     107ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/BkcZvEu0.js:0
+[     107ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/DRffZ6Kf.js:0
+[     107ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/CBYh0XfP.js:0
+[     107ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/Bshk2tmx.js:0
+[     107ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/B6kqz4gj.js:0
+[     108ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/CnRCUaky.js:0
+[     108ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/entry/app.BzwenSNV.js:0
+[     108ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/D6Q2tEQy.js:0
+[     109ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/BHSO3uZU.js:0
+[     109ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/MDhhdIIv.js:0
+[     109ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/Fc1WIhGd.js:0
+[     109ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/DsnmJJEf.js:0
+[     109ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/D6tv371n.js:0
+[     110ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/Cz9lYlSD.js:0
+[     110ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/D-lRiUtY.js:0
+[     110ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/Di6u3Dxm.js:0
+[     111ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/BB-Q9mm7.js:0
+[     111ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/tracker/_app/immutable/chunks/yMAQ-EjX.js:0
+[     113ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:64012/favicon.ico:0

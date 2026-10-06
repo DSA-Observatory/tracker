@@ -16,7 +16,6 @@
 	import CaseVisualizationControls from '$lib/components/cases/CaseVisualizationControls.svelte';
 	import LandingCaseCardsList from '$lib/components/cases/LandingCaseCardsList.svelte';
 	import Search from '$lib/components/Search.svelte';
-	import { statusOptions } from '$lib/components/cases/types';
 	import type {
 		ActiveFilterChip,
 		FilterGroup,
@@ -27,15 +26,6 @@
 	import { authStore, pb, type CaseRecord } from '$lib/database';
 
 	const categoryOptions = ['Due Diligence', 'Intermediary Liability', 'P2B', 'Other'];
-	const countryFlags: Record<string, string> = {
-		Denmark: '🇩🇰',
-		FR: '🇫🇷',
-		France: '🇫🇷',
-		Germany: '🇩🇪',
-		Netherlands: '🇳🇱',
-		Poland: '🇵🇱',
-		Spain: '🇪🇸'
-	};
 	const viewModeStorageKey = 'cases:viewMode';
 	const filterLayoutStorageKey = 'cases:filterLayout';
 	type SearchIndexEntry = { text: string; words: string[] };
@@ -72,7 +62,6 @@
 	let cases = $state<CaseRecord[]>([]);
 	let search = $state(page.url.searchParams.get('q') ?? '');
 	let searchScope = $state<SearchScope>('all');
-	let statuses = $state<string[]>([]);
 	let countries = $state<string[]>(
 		page.url.searchParams.get('jurisdiction')
 			? [normalizeJurisdiction(page.url.searchParams.get('jurisdiction') as string) as string]
@@ -95,9 +84,9 @@
 	let mobileFiltersOpen = $state(false);
 	let isMobileViewport = $state(false);
 	let playEntry = $state(false);
-	const saved = new PersistedState(`cases:workspace:v1:${publicationFilter ?? 'all'}:${heading}`, {
+	const saved = new PersistedState(`cases:workspace:v1:${publicationFilter ?? 'published'}:${heading}`, {
 		search: '', searchScope: 'all' as SearchScope,
-		statuses: [] as string[], countries: [] as string[], categories: [] as string[],
+		countries: [] as string[], categories: [] as string[],
 		articles: [] as string[], courts: [] as string[], parties: [] as string[], years: [] as string[],
 		viewMode: 'cards' as ViewMode, filterLayout: 'left' as FilterLayout,
 		mapCollapsed: mapStartsCollapsed, tableScrollTop: 0, tableScrollLeft: 0,
@@ -115,7 +104,6 @@
 	const rowOverscan = 8;
 
 	const canWrite = $derived(authStore.isAdmin);
-	const statusFilterOptions = $derived(buildOptions('statuses', statusOptions));
 	const availableCountries = $derived(
 		uniqueSorted(cases.map((record) => normalizeJurisdiction(record.jurisdiction)))
 	);
@@ -167,7 +155,6 @@
 	const resetScrollTrigger = $derived([
 		search,
 		searchScope,
-		statuses,
 		countries,
 		categories,
 		articles,
@@ -197,14 +184,12 @@
 		totalCount: cases.length,
 		search,
 		activeChips,
-		statusFilterOptions,
 		countryFilterOptions,
 		categoryFilterOptions,
 		articleFilterOptions,
 		courtFilterOptions,
 		partyFilterOptions,
 		yearFilterOptions,
-		statuses,
 		countries,
 		categories,
 		articles,
@@ -245,7 +230,7 @@
 
 	$effect(() => {
 		if (!preferencesLoaded) return;
-		saved.current = { search, searchScope, statuses, countries, categories, articles,
+		saved.current = { search, searchScope, countries, categories, articles,
 			courts, parties, years, viewMode, filterLayout, mapCollapsed, tableScrollTop,
 			tableScrollLeft, windowScrollY, filterScrollTop, visited: true };
 	});
@@ -301,7 +286,7 @@
 		if (state.visited) {
 			search = state.search;
 			searchScope = state.searchScope;
-			statuses = state.statuses; countries = state.countries; categories = state.categories;
+			countries = state.countries; categories = state.categories;
 			articles = state.articles; courts = state.courts; parties = state.parties; years = state.years;
 			viewMode = state.viewMode; filterLayout = state.filterLayout;
 			mapCollapsed = state.mapCollapsed;
@@ -324,11 +309,7 @@
 	}
 
 	function countryLabel(country: string) {
-		return [countryFlags[country], country].filter(Boolean).join(' ');
-	}
-
-	function countryFlag(country: string) {
-		return countryFlags[country] ?? '';
+		return country;
 	}
 
 	function normalizeJurisdiction(jurisdiction?: string) {
@@ -505,6 +486,7 @@
 			record.case_id,
 			record.title,
 			record.ecli,
+			record.decision_reference,
 			record.outcome,
 			record.court,
 			record.jurisdiction
@@ -520,6 +502,7 @@
 		const sourceValues = [
 			stripHtml(record.summary),
 			getTimeline(record),
+			record.procedural_wording,
 			record.source_limitations,
 			...getPrimarySourcesList(record),
 			...getSecondarySourcesList(record),
@@ -530,7 +513,7 @@
 		if (searchScope === 'case') return caseValues;
 		if (searchScope === 'parties') return partyValues;
 		if (searchScope === 'legal') return legalValues;
-		if (searchScope === 'timeline') return [getTimeline(record)];
+		if (searchScope === 'timeline') return [getTimeline(record), record.procedural_wording];
 		if (searchScope === 'primary') return getPrimarySourcesList(record);
 		if (searchScope === 'secondary') return [...getSecondarySourcesList(record), record.commentary];
 		if (searchScope === 'sources') return sourceValues;
@@ -544,7 +527,6 @@
 	function matchesFilters(record: CaseRecord, ignoredGroup?: FilterGroup) {
 		return (
 			matchesSearch(record) &&
-			(ignoredGroup === 'statuses' || matchesAny(statuses, [record.status])) &&
 			(ignoredGroup === 'countries' ||
 				matchesAny(countries, [normalizeJurisdiction(record.jurisdiction)])) &&
 			(ignoredGroup === 'categories' || matchesAny(categories, getCategories(record))) &&
@@ -558,7 +540,6 @@
 	function optionCount(group: FilterGroup, option: string) {
 		return cases.filter((record) => {
 			if (!matchesFilters(record, group)) return false;
-			if (group === 'statuses') return record.status === option;
 			if (group === 'countries') return matchesJurisdiction(record, option);
 			if (group === 'categories') return getCategories(record).includes(option);
 			if (group === 'articles') return (record.dsa_articles ?? []).includes(option);
@@ -576,12 +557,12 @@
 		return options.map((option) => ({
 			value: option,
 			label: optionLabel(group, option),
-			count: optionCount(group, option)
+			count: optionCount(group, option),
+			...(group === 'countries' ? { country: option } : {})
 		}));
 	}
 
 	function selectedFor(group: FilterGroup) {
-		if (group === 'statuses') return statuses;
 		if (group === 'countries') return countries;
 		if (group === 'categories') return categories;
 		if (group === 'articles') return articles;
@@ -596,7 +577,6 @@
 			? selected.filter((item) => item !== value)
 			: [...selected, value];
 
-		if (group === 'statuses') statuses = next;
 		if (group === 'countries') countries = next;
 		if (group === 'categories') categories = next;
 		if (group === 'articles') articles = next;
@@ -608,7 +588,6 @@
 	function buildActiveChips() {
 		const chips: ActiveFilterChip[] = [];
 		const groups: FilterGroup[] = [
-			'statuses',
 			'countries',
 			'categories',
 			'articles',
@@ -629,7 +608,6 @@
 	function clearFilters() {
 		search = '';
 		searchScope = 'all';
-		statuses = [];
 		countries = [];
 		categories = [];
 		articles = [];
@@ -669,7 +647,9 @@
 			const records = await pb.collection('cases').getFullList<CaseRecord>({
 				sort: '-decision_date,-created',
 				filter:
-					publicationFilter === 'draft' ? "published = false && status != 'archived'" : undefined
+					publicationFilter === 'draft'
+						? "published = false && status != 'archived'"
+						: "published = true && status != 'archived'"
 			});
 			if (disposed || version !== requestVersion || key !== casesCacheKey(publicationFilter === 'draft')) return;
 			writeCasesCache(key, records);
@@ -717,6 +697,8 @@
 			court: record.court ?? '',
 			decision_date: record.decision_date ?? '',
 			ecli: record.ecli ?? '',
+			decision_reference: record.decision_reference ?? '',
+			procedural_wording: record.procedural_wording ?? '',
 			plaintiffs: (record.plaintiffs ?? []).join('; '),
 			defendants: (record.defendants ?? []).join('; '),
 			dsa_articles: (record.dsa_articles ?? []).join('; '),
@@ -823,10 +805,6 @@
 							</p>
 						</div>
 						<div class="flex shrink-0 flex-wrap gap-2 text-sm">
-							<div class="rounded-xl border border-slate-200 bg-white/75 px-3 py-2 shadow-xs">
-								<span class="font-black text-slate-950">{cases.length}</span>
-								<span class="text-slate-500"> cases</span>
-							</div>
 							{#if showMap}
 								<button
 									class={mapCollapsed
@@ -838,6 +816,7 @@
 									onclick={() => (mapCollapsed = !mapCollapsed)}
 								>
 									<IconMap class="size-4 text-slate-500" />
+									<span class="font-semibold text-slate-950">{mapCollapsed ? 'View map' : 'Hide map'}</span>
 									<span
 										><span class="font-black text-slate-950">{jurisdictionCount}</span>
 										<span class="text-slate-500"> countries</span></span
@@ -1077,7 +1056,6 @@
 				>
 					<CaseResultsTable
 						{...resultProps}
-						{countryFlag}
 						{getCategories}
 						{getTimeline}
 						{sourceLinks}

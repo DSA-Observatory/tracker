@@ -7,9 +7,9 @@
 		type StyleSpecification
 	} from 'maplibre-gl';
 	import { resolve } from '$app/paths';
-	import { PUBLIC_CARTO_API_KEY } from '$env/static/public';
 	import { onMount, tick, untrack } from 'svelte';
 	import { pb, type CaseRecord } from '$lib/database';
+	import { euJurisdictionCoordinates } from '$lib/jurisdiction-coordinates';
 
 	type JurisdictionCount = { jurisdiction: string; count: number };
 	type MapPin = JurisdictionCount & { lng: number; lat: number };
@@ -36,22 +36,13 @@
 	const casePinsSourceId = 'case-pins';
 	const casePinsUrl = resolve('/cases');
 	const geocodeCacheKey = 'map:jurisdiction-coordinates';
-	const defaultCoordinates: Record<string, Coordinates> = {
-		Austria: { lng: 14.5501, lat: 47.5162 },
-		Denmark: { lng: 9.5018, lat: 56.2639 },
-		France: { lng: 2.2137, lat: 46.2276 },
-		Germany: { lng: 10.4515, lat: 51.1657 },
-		Netherlands: { lng: 5.2913, lat: 52.1326 },
-		Poland: { lng: 19.1451, lat: 51.9194 },
-		Spain: { lng: -3.7492, lat: 40.4637 }
-	};
 	const lightMapStyle: StyleSpecification = {
 		version: 8,
 		sources: {
 			'carto-voyager': {
 				type: 'raster',
 				tiles: [
-					`https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png${PUBLIC_CARTO_API_KEY ? `?key=${encodeURIComponent(PUBLIC_CARTO_API_KEY)}` : ''}`
+					'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
 				],
 				tileSize: 256,
 				attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
@@ -172,7 +163,7 @@
 	}
 
 	async function loadJurisdictionCoordinates(items: JurisdictionCount[]) {
-		const cache = { ...defaultCoordinates, ...readGeocodeCache() };
+		const cache = { ...readGeocodeCache(), ...euJurisdictionCoordinates };
 
 		for (const { jurisdiction } of items) {
 			if (jurisdiction === 'Unknown' || cache[jurisdiction]) continue;

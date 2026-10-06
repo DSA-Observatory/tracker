@@ -1,0 +1,41 @@
+- generic [ref=f2e3]:
+  - navigation [ref=f2e4]:
+    - generic [ref=f2e6]:
+      - link "Case tracker home" [ref=f2e7] [cursor=pointer]:
+        - /url: /tracker/
+        - generic [aria-hidden] [ref=f2e8]: DSA
+        - generic [ref=f2e9]: Case Tracker
+      - textbox "Search cases" [ref=f2e16]
+      - generic [ref=f2e17]:
+        - link "Cases" [ref=f2e18] [cursor=pointer]:
+          - /url: /tracker/cases
+        - link "Map" [ref=f2e19] [cursor=pointer]:
+          - /url: /tracker/map
+        - link "About" [ref=f2e20] [cursor=pointer]:
+          - /url: /tracker/about
+      - generic [ref=f2e24]:
+        - button "Login" [ref=f2e25] [cursor=pointer]
+        - checkbox "Close" [ref=f2e26]
+      - link "Suggest a Case" [ref=f2e27] [cursor=pointer]:
+        - /url: /tracker/submit
+  - main [ref=f2e29]:
+    - button "Back to cases" [ref=f2e31] [cursor=pointer]
+    - generic [ref=f2e32]: Loading case...
+  - contentinfo "Site footer" [ref=f2e33]:
+    - generic [ref=f2e34]:
+      - generic "Project partners" [ref=f2e35]:
+        - link "DSA Observatory website" [ref=f2e36] [cursor=pointer]:
+          - /url: https://dsa-observatory.eu/
+          - img "DSA Observatory" [ref=f2e37]
+        - link "University of Amsterdam website" [ref=f2e38] [cursor=pointer]:
+          - /url: https://www.uva.nl/en
+          - img "University of Amsterdam" [ref=f2e39]
+      - navigation "Footer navigation" [ref=f2e40]:
+        - link "About" [ref=f2e41] [cursor=pointer]:
+          - /url: /tracker/about
+        - link "Suggest case" [ref=f2e42] [cursor=pointer]:
+          - /url: /tracker/submit
+        - link "Privacy" [ref=f2e43] [cursor=pointer]:
+          - /url: /tracker/privacy
+        - link "Policy" [ref=f2e44] [cursor=pointer]:
+          - /url: /tracker/policy

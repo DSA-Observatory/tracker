@@ -66,9 +66,6 @@
 						</a>
 					</li>
 				{/if}
-				<li>
-					<button type="button" onclick={() => authStore.logout()}>Logout</button>
-				</li>
 			</ul>
 		</div>
 		<!-- Not logged in-->

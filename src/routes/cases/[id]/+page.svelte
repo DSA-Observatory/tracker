@@ -7,6 +7,8 @@
 	import { claimEntryAnimation } from '$lib/entry-animation';
 	import { authStore, pb, type CaseRecord } from '$lib/database';
 	import CaseSourceList from '$lib/components/cases/CaseSourceList.svelte';
+	import CountryFlag from '$lib/components/CountryFlag.svelte';
+	import IconArrowLeft from '~icons/lucide/arrow-left';
 
 	let record = $state<CaseRecord>();
 	let relatedCases = $state<CaseRecord[]>([]);
@@ -43,7 +45,13 @@
 
 	function formatDate(value?: string) {
 		if (!value) return '';
-		return new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(new Date(value));
+		const dateOnly = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+		const date = dateOnly
+			? new Date(Date.UTC(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3])))
+			: new Date(value);
+		return Number.isNaN(date.getTime())
+			? value
+			: new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(date);
 	}
 
 	function list(values?: string[]) {
@@ -149,9 +157,12 @@
 			const legalTags = [...list(record.dsa_articles), ...list(record.legal_areas)];
 			if (legalTags.length) {
 				relatedCases = (
-					await pb.collection('cases').getFullList<CaseRecord>({ sort: '-decision_date,-created' })
+					await pb.collection('cases').getFullList<CaseRecord>({
+						filter: "published = true && status != 'archived'",
+						sort: '-decision_date,-created'
+					})
 				)
-					.filter((item) => item.id !== record?.id && (item.published || authStore.isAdmin))
+					.filter((item) => item.id !== record?.id)
 					.filter((item) =>
 						[...list(item.dsa_articles), ...list(item.legal_areas)].some((tag) =>
 							legalTags.includes(tag)
@@ -179,6 +190,7 @@
 <main class="mx-auto max-w-7xl bg-base-200/60 px-4 pb-16 sm:px-6 lg:px-8">
 	<div use:reveal class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<button class="btn btn-ghost btn-sm" type="button" onclick={() => goto(resolve('/cases'))}>
+			<IconArrowLeft class="size-4" aria-hidden="true" />
 			Back to cases
 		</button>
 		{#if canWrite && record}
@@ -195,19 +207,18 @@
 	{:else if record}
 		<section use:reveal class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
 			<div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-				<div class="max-w-4xl">
-					<p class="text-xs font-semibold tracking-[0.24em] text-slate-400 uppercase">
-						Canonical case record
-					</p>
+				<div class="min-w-0 flex-1">
 					<h1
-						class="mt-3 text-3xl leading-tight font-black tracking-tight text-slate-950 md:text-5xl"
+						class="text-3xl leading-tight font-black tracking-tight text-slate-950 md:text-5xl"
 					>
 						{record.title}
 					</h1>
 					<div class="mt-4 flex flex-wrap gap-2 text-sm">
-						<span class="rounded-full bg-slate-100 px-3 py-1 font-medium capitalize"
-							>{record.status}</span
-						>
+						{#if authStore.isAdmin}
+							<span class="rounded-full bg-slate-100 px-3 py-1 font-medium">
+								{record.published ? 'Public' : 'Private'}
+							</span>
+						{/if}
 						{#if record.outcome}<span
 								class="rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700"
 								>{record.outcome}</span
@@ -218,13 +229,38 @@
 							>{/if}
 					</div>
 				</div>
-				<div
-					class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 lg:w-80"
-				>
-					<div class="font-mono text-xs text-slate-400">{record.case_id}</div>
-					{#if record.ecli}<div class="mt-2 font-mono text-xs">{record.ecli}</div>{/if}
-					<div class="mt-3">Last updated {formatDate(record.updated)}</div>
-				</div>
+				<aside class="w-full shrink-0 rounded-xl border border-slate-200 bg-slate-50 p-5 lg:w-80" aria-label="Case reference">
+					<dl class="space-y-4">
+						{#if record.decision_reference}
+							<div>
+								<dt class="text-sm font-medium text-slate-600">Decision reference</dt>
+								<dd class="mt-1 break-words text-base leading-6 text-slate-950">{record.decision_reference}</dd>
+							</div>
+						{/if}
+						{#if record.ecli}
+							<div>
+								<dt class="text-sm font-medium text-slate-600">ECLI</dt>
+								<dd class="mt-1 break-all text-base leading-6 text-slate-950">{record.ecli}</dd>
+							</div>
+						{/if}
+						{#if record.decision_date}
+							<div>
+								<dt class="text-sm font-medium text-slate-600">{record.decision_reference ? 'Reference date' : 'Decision date'}</dt>
+								<dd class="mt-1 text-base font-semibold text-slate-950">{formatDate(record.decision_date)}</dd>
+							</div>
+						{/if}
+						<div class="border-t border-slate-200 pt-4">
+							<dt class="text-sm font-medium text-slate-600">Last updated</dt>
+							<dd class="mt-1 text-base text-slate-950">{formatDate(record.updated)}</dd>
+						</div>
+					</dl>
+					{#if canWrite}
+						<details class="mt-4 border-t border-slate-200 pt-4 text-sm text-slate-600">
+							<summary class="cursor-pointer">Internal record ID</summary>
+							<p class="mt-2 break-all font-mono text-xs">{record.case_id}</p>
+						</details>
+					{/if}
+				</aside>
 			</div>
 		</section>
 
@@ -239,6 +275,12 @@
 
 				<section use:reveal={160} class="rounded-xl border border-slate-200 bg-white p-6">
 					<h2 class="text-xl font-black">Procedural Timeline</h2>
+					{#if record.procedural_wording}
+						<div class="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
+							<div class="text-xs font-semibold text-slate-400">Source procedural wording</div>
+							<p class="mt-1 whitespace-pre-wrap text-sm text-slate-700">{record.procedural_wording}</p>
+						</div>
+					{/if}
 					{#if proceduralEvents.length}
 						<ol class="mt-4 space-y-3">
 							{#each proceduralEvents as event, index (`${event.date}-${event.label}-${index}`)}
@@ -335,11 +377,17 @@
 				<section use:reveal={180} class="rounded-xl border border-slate-200 bg-white p-5">
 					<h2 class="font-black">At a glance</h2>
 					<dl class="mt-4 space-y-3 text-sm">
-						{#each [['Jurisdiction', record.jurisdiction], ['Court', list(record.courts).join(', ') || record.court], ['Filing date', formatDate(record.filing_date)], ['Judgment/decision date', formatDate(record.decision_date)], ['Plaintiffs', list(record.plaintiffs).join(', ')], ['Defendants', list(record.defendants).join(', ')]] as item (item[0])}
+						{#each [['Jurisdiction', record.jurisdiction], ['Court', list(record.courts).join(', ') || record.court], ['Filing date', formatDate(record.filing_date)], [record.decision_reference ? 'Reference date' : 'Decision date', formatDate(record.decision_date)], ['Decision reference', record.decision_reference], ['Procedural wording', record.procedural_wording], ['Plaintiffs', list(record.plaintiffs).join(', ')], ['Defendants', list(record.defendants).join(', ')]] as item (item[0])}
 							{#if item[1]}
 								<div>
 									<dt class="text-slate-400">{item[0]}</dt>
-									<dd class="font-medium text-slate-800">{item[1]}</dd>
+									<dd class="font-medium text-slate-800">
+										{#if item[0] === 'Jurisdiction'}
+											<span class="inline-flex items-center gap-2"><CountryFlag country={item[1]} />{item[1]}</span>
+										{:else}
+											{item[1]}
+										{/if}
+									</dd>
 								</div>
 							{/if}
 						{/each}

@@ -39,6 +39,9 @@ export interface CaseRecord {
 	case_id: string;
 	title: string;
 	ecli?: string;
+	decision_reference?: string;
+	procedural_wording?: string;
+	workbook_source?: unknown;
 	filing_date?: string;
 	decision_date?: string;
 	outcome?: string;

@@ -1,6 +1,24 @@
 # Data review after the DSA replacement
 
-Last updated: 1 October 2026. The cleaned data is in production, 21 additional entries have been published, and case management is restricted to admins. Entries without identified blockers should be public; admins can unpublish them if a problem is found. This follow-up list is not permission to rerun the migration or publish entries with unresolved blockers.
+## Current state — 6 October 2026
+
+The owner explicitly approved a full clean replacement using the archived source workbook, confirmed as the cleaned data. One atomic transaction created 79 fresh DSA cases and deleted all 96 previous cases (including 17 archived cases). Their 20 comments were cascade-deleted only after fresh raw exports, an 18-open-comment review CSV, and a downloaded, ZIP-integrity-checked full backup were secured. No old summaries, timelines, dates or editorial text were carried into the clean records. No comments have yet been reapplied or resolved as part of this replacement.
+
+The replacement initially preserved publication only for unique exact source/ECLI matches: 62 records were public and 17 were drafts. The owner subsequently clarified that every case in the approved Excel sheet must be public by default. All 17 remaining entries were published on 6 October after a fresh verified full backup. All 79 workbook cases are now public; missing details are retained as unknowns, not publication blockers. Anonymous read-back verified all 79 IDs, hidden import provenance, unchanged case content/comments/non-case collections/schema, and restored batch settings. Private backup, before snapshots, visibility-only rollback proposals and verification are in `~/Library/Application Support/DSA Case Tracker/migrations/2026-10-06-workbook-publication/application/apply-20261006t122012281077z/`. This publication decision is not independent verification of every legal detail.
+
+An additional cell-level audit on 6 October found that the replacement payloads had omitted complete references, dates embedded in reference text and procedural descriptions. An ID-preserving correction has now restored 74 complete references, 54 explicit reference dates and five procedural descriptions. Three optional fields (`decision_reference`, `procedural_wording`, hidden `workbook_source`) were added without changing access rules. All 711 A:I cell positions and all 80 source hyperlinks were independently compared against the original OOXML and verified in a fresh downloaded SQLite backup, including exact raw values, blank/missing distinctions and hyperlink metadata. Numeric dates use the workbook's European day-month-year convention; 13 tokens are ambiguous under US notation, and the stored evidence records this. The dates are workbook transcriptions, not independent ruling verification. Case IDs, publication/status, comments and non-case collections were unchanged.
+
+Correction snapshots, before/after full backups, per-field rollback requests and verification are private under `~/Library/Application Support/DSA Case Tracker/migrations/2026-10-06-import-audit/`; the applied run is `application/apply-20261006t110019692019z/`. Migration 19 mirrors the approved schema additions; it must not publish records or replay older migrations. The corresponding frontend change displays reference dates, complete references and procedural wording, but has not yet been deployed. `scripts/audit-case-workbook.py` prepares future review-only correction plans; a normalized row count is not proof of lossless import.
+
+The open-comment CSV has 12 proposed new-case matches and six comments needing identity review. These are proposals, not approval to move comments or apply their requested edits. Review relevance against the clean case/source before reapplying. All 20 original comments and the original case context remain in private recovery exports.
+
+Private artifacts, confirmed workbook, fresh exports, backup, rollback proposal and application receipt are under `~/Library/Application Support/DSA Case Tracker/migrations/2026-10-06-clean-replacement/`. The applied run is `application/apply-20261006t103017051189z/`. The downloadable backup and CSV are in `~/Downloads/DSA-before-clean-replacement-20261006.zip` and `~/Downloads/DSA-open-comments-review-20261006.csv`. They must not be committed or shared publicly. Any rollback requires fresh drift checks; a full restore can overwrite newer work.
+
+## Historical review notes — superseded dataset
+
+The sections below describe the 30 September / 1 October dataset, not the current record IDs or counts. Do not act on their draft IDs, archived IDs or recovery proposals against the current database without a fresh mapping.
+
+Historical update: 1 October 2026. The cleaned data was in production, 21 additional entries had been published, and case management was restricted to admins. This historical follow-up list is not permission to rerun the migration or publish entries with unresolved blockers.
 
 ## What was applied
 

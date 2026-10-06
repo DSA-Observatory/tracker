@@ -1,7 +1,6 @@
 import type { CaseStatus } from '$lib/database';
 
 export type FilterGroup =
-	| 'statuses'
 	| 'countries'
 	| 'categories'
 	| 'articles'
@@ -32,6 +31,8 @@ export type CaseForm = {
 	case_id: string;
 	title: string;
 	ecli: string;
+	decision_reference: string;
+	procedural_wording: string;
 	decision_date: string;
 	status: CaseStatus;
 	court: string;
@@ -71,6 +72,8 @@ export const emptyCaseForm = (): CaseForm => ({
 	case_id: '',
 	title: '',
 	ecli: '',
+	decision_reference: '',
+	procedural_wording: '',
 	decision_date: '',
 	status: 'draft',
 	court: '',

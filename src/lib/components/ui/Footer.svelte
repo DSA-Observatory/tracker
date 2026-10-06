@@ -25,6 +25,7 @@
 			<a href={resolve('/submit')}>Suggest case</a>
 			<a href={resolve('/privacy')}>Privacy</a>
 			<a href={resolve('/policy')}>Policy</a>
+			<a href="https://github.com/DSA-Observatory/tracker">GitHub</a>
 		</nav>
 	</div>
 </footer>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import CountryFlag from '$lib/components/CountryFlag.svelte';
 	import type { CaseRecord } from '$lib/database';
 
 	let {
@@ -48,6 +49,17 @@
 				.trim() || value
 		);
 	}
+
+	function formatDecisionDate(value?: string) {
+		if (!value) return '';
+		const dateOnly = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+		const date = dateOnly
+			? new Date(Date.UTC(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3])))
+			: new Date(value);
+		return Number.isNaN(date.getTime())
+			? value
+			: new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }).format(date);
+	}
 </script>
 
 {#if loading}
@@ -77,32 +89,48 @@
 				<div class="flex h-full flex-col gap-4">
 					<div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
 						<div class="min-w-0 flex-1">
-							<div class="mb-2 flex flex-wrap items-center gap-2">
-								<span
-									class="rounded-sm border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs font-medium text-slate-600 capitalize"
-								>
-									{record.status}
-								</span>
-								{#if record.published}
+							{#if canWrite && !record.published}<div class="mb-2 flex flex-wrap items-center gap-2">
+								{#if canWrite && !record.published}
 									<span
 										class="rounded-sm border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-700"
 									>
-										Published
+										Private
 									</span>
 								{/if}
-							</div>
+							</div>{/if}
 							<a
 								class="line-clamp-2 text-lg leading-tight font-semibold tracking-tight text-slate-950 hover:text-slate-700 hover:underline"
 								href={resolve(`/cases/${record.id}`)}
+								aria-label={`View case: ${record.title}${record.decision_date ? ` — ${record.decision_reference ? 'Reference date' : 'Decision date'}: ${formatDecisionDate(record.decision_date)}` : ''}${record.court ? ` — ${record.court}` : ''}`}
 							>
 								{record.title}
 							</a>
+							{#if record.decision_date || record.decision_reference || record.procedural_wording}
+								<div class="mt-3 space-y-1.5 text-sm">
+									{#if record.decision_date}
+										<p class="font-semibold text-slate-900">
+											{record.decision_reference ? 'Reference date' : 'Decision date'}: {formatDecisionDate(record.decision_date)}
+										</p>
+									{/if}
+									{#if record.decision_reference}
+										<p class="break-words text-slate-700">
+											<span class="font-medium text-slate-500">Decision reference:</span>
+											{record.decision_reference}
+										</p>
+									{/if}
+									{#if record.procedural_wording}
+										<p class="break-words text-slate-700">
+											<span class="font-medium text-slate-500">Procedure:</span>
+											{record.procedural_wording}
+										</p>
+									{/if}
+								</div>
+							{/if}
 							<div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500">
-								<span
-									>{record.jurisdiction
-										? countryLabel(record.jurisdiction)
-										: 'Jurisdiction not listed'}</span
-								>
+								<span class="inline-flex items-center gap-2">
+									{#if record.jurisdiction}<CountryFlag country={record.jurisdiction} />{/if}
+									<span>{record.jurisdiction ? countryLabel(record.jurisdiction) : 'Jurisdiction not listed'}</span>
+								</span>
 								<span class="text-slate-300" aria-hidden="true">/</span>
 								<span>{record.court || 'Court not listed'}</span>
 								{#if record.ecli}

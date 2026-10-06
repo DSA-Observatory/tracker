@@ -1,32 +1,23 @@
-# About The DSA Case Law Tracker
+# About the DSA Case Law Tracker
 
 The DSA Case Law Tracker is a public, open-access web platform for tracking private enforcement cases under the EU Digital Services Act across EU Member States.
 
-It is being prepared for the Institute for Information Law (IViR), University of Amsterdam, and the DSA Observatory as part of the 2026 private enforcement research project.
+The DSA Case Law Tracker is maintained by the [DSA Observatory](https://dsa-observatory.eu/) project at the [Institute for Information Law (IViR)](https://www.ivir.nl/), University of Amsterdam.
 
-## Why It Exists
+## A focus on private enforcement
 
-Public DSA enforcement resources exist, but private enforcement developments are harder to monitor. The tracker is intended to level the information field for civil society, researchers, policymakers, litigation funders, legal professionals, and other public-interest actors.
+Our case tracker focuses on private enforcement, meaning litigation between private parties. In this way, it complements other efforts to track the DSA's public enforcement. By shining a light on private litigation, we hope to level the information field and help researchers, lawyers and other professionals better understand the DSA's private enforcement landscape.
 
-The pilot starts with DSA-related litigation and is designed so it can later expand into broader big tech litigation, including data protection, consumer protection, and competition law.
+## Work in progress
 
-## What The Prototype Should Support
+This is a pilot project, and our database is not yet comprehensive. As our work proceeds, we aim to include as many cases as possible from as many EU Member States as possible. Please be aware that relevant cases may not (yet) be included – and please [let us know](/submit) so we can add them.
 
-- Editable case management for researchers through PocketBase.
-- Structured case templates with dates, parties, courts, ECLI identifiers, DSA articles, summaries, keywords, documents, citations, and commentary.
-- Public case browsing with search and filters.
-- Case detail pages that combine metadata, editorial context, linked documents, and related references.
-- Community submissions with editorial review before publication.
-- Geographic and timeline visualizations as the case volume grows.
+In future, the tracker may expand to cover other categories of litigation, including litigation under other EU legislation and other forms of enforcement.
 
-## Research Context
+## Get involved!
 
-The tracker sits alongside case studies, expert calls, reports, and a DSA Observatory blog symposium. The product should keep case tracking distinct from broader legal analysis, while making it easy to link cases to reports, commentary, and external coverage.
+We welcome your input on the following:
 
-## Open Product Questions
-
-- Should multiple decisions from one dispute be bundled under one case page or published as separate entries?
-- Should the public scope be strictly private enforcement, or should public enforcement cases be included too?
-- Which date model best serves researchers: filing date, decision date, appeal date, or multiple procedural dates?
-- Which court documents can be linked, uploaded, or requested from parties and counsel?
-- Should maps and timelines be built into the site or embedded through tools such as Datawrapper?
+- **Tracking:** [Suggest a case](/submit) to include in the tracker.
+- **Analysis:** Pitch a case commentary to the [DSA Observatory blog](https://dsa-observatory.eu/blogposts-submission/).
+- **Feedback:** Report bugs or suggest improvements to the case tracker through our [contact form](/feedback).

@@ -8,14 +8,12 @@
 		totalCount,
 		search,
 		activeChips,
-		statusFilterOptions,
 		countryFilterOptions,
 		categoryFilterOptions,
 		articleFilterOptions,
 		courtFilterOptions,
 		partyFilterOptions,
 		yearFilterOptions,
-		statuses,
 		countries,
 		categories,
 		articles,
@@ -30,14 +28,12 @@
 		totalCount: number;
 		search: string;
 		activeChips: ActiveFilterChip[];
-		statusFilterOptions: FilterOption[];
 		countryFilterOptions: FilterOption[];
 		categoryFilterOptions: FilterOption[];
 		articleFilterOptions: FilterOption[];
 		courtFilterOptions: FilterOption[];
 		partyFilterOptions: FilterOption[];
 		yearFilterOptions: FilterOption[];
-		statuses: string[];
 		countries: string[];
 		categories: string[];
 		articles: string[];
@@ -60,7 +56,11 @@
 		<div class="min-w-0">
 			<p class="text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">Filters</p>
 			<p class="text-sm text-slate-500">
-				Showing <span class="font-medium text-slate-900">{filteredCount}</span> of {totalCount} cases
+				{#if activeChips.length > 0 || search}
+					Showing <span class="font-medium text-slate-900">{filteredCount}</span> of {totalCount} cases
+				{:else}
+					<span class="font-medium text-slate-900">{totalCount}</span> cases
+				{/if}
 			</p>
 		</div>
 
@@ -80,14 +80,6 @@
 			? 'grid min-w-0 gap-3'
 			: 'grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-[repeat(4,minmax(0,1fr))]'}
 	>
-		<FilterMenu
-			label="Status"
-			variant={sidebar ? 'collapsible' : 'dropdown'}
-			options={statusFilterOptions}
-			selected={statuses}
-			placeholder="Search statuses"
-			onToggle={(value) => onToggle('statuses', value)}
-		/>
 		<FilterMenu
 			label="Country"
 			variant={sidebar ? 'collapsible' : 'dropdown'}

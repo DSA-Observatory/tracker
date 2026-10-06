@@ -2,27 +2,67 @@
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { pb, type CaseRecord } from '$lib/database';
+	import { euJurisdictionCoordinates } from '$lib/jurisdiction-coordinates';
 
 	type Coordinates = { lng: number; lat: number };
 	type JurisdictionPin = Coordinates & { jurisdiction: string; count: number };
 
 	const casesUrl = resolve('/cases');
 	const geocodeCacheKey = 'map:jurisdiction-coordinates';
-	const defaultCoordinates: Record<string, Coordinates> = {
-		Austria: { lng: 14.5501, lat: 47.5162 },
-		Denmark: { lng: 9.5018, lat: 56.2639 },
-		France: { lng: 2.2137, lat: 46.2276 },
-		Germany: { lng: 10.4515, lat: 51.1657 },
-		Netherlands: { lng: 5.2913, lat: 52.1326 },
-		Poland: { lng: 19.1451, lat: 51.9194 },
-		Spain: { lng: -3.7492, lat: 40.4637 }
-	};
 
 	let network = $state<HTMLElement>();
 	let pins = $state<JurisdictionPin[]>([]);
 	let visible = $state(true);
 	let documentVisible = $state(true);
 	let playEntry = $state(false);
+	let panX = $state(0);
+	let panY = $state(0);
+	let dragging = $state(false);
+
+	function pannable(node: HTMLElement) {
+		let pointerId: number | undefined;
+		let startX = 0;
+		let startY = 0;
+		let originX = 0;
+		let originY = 0;
+		function down(event: PointerEvent) {
+			if (event.button !== 0 || event.pointerType !== 'mouse' || window.innerWidth < 769) return;
+			if ((event.target as Element).closest('a, button')) return;
+			pointerId = event.pointerId;
+			startX = event.clientX;
+			startY = event.clientY;
+			originX = panX;
+			originY = panY;
+			dragging = true;
+			node.setPointerCapture(event.pointerId);
+			event.preventDefault();
+		}
+		function move(event: PointerEvent) {
+			if (event.pointerId !== pointerId) return;
+			panX = 80 * Math.tanh((originX + event.clientX - startX) / 180);
+			panY = 55 * Math.tanh((originY + event.clientY - startY) / 140);
+		}
+		function end(event: PointerEvent) {
+			if (event.pointerId !== pointerId) return;
+			pointerId = undefined;
+			dragging = false;
+			panX = 0;
+			panY = 0;
+			if (node.hasPointerCapture(event.pointerId)) node.releasePointerCapture(event.pointerId);
+		}
+		node.addEventListener('pointerdown', down);
+		node.addEventListener('pointermove', move);
+		node.addEventListener('pointerup', end);
+		node.addEventListener('pointercancel', end);
+		node.addEventListener('lostpointercapture', end);
+		return { destroy() {
+			node.removeEventListener('pointerdown', down);
+			node.removeEventListener('pointermove', move);
+			node.removeEventListener('pointerup', end);
+			node.removeEventListener('pointercancel', end);
+			node.removeEventListener('lostpointercapture', end);
+		} };
+	}
 
 	const active = $derived(visible && documentVisible);
 
@@ -65,7 +105,7 @@
 				if (jurisdiction !== 'Unknown') counts.set(jurisdiction, (counts.get(jurisdiction) ?? 0) + 1);
 			}
 
-			const coordinates = { ...defaultCoordinates, ...readGeocodeCache() };
+			const coordinates = { ...readGeocodeCache(), ...euJurisdictionCoordinates };
 			for (const jurisdiction of counts.keys()) {
 				if (coordinates[jurisdiction]) continue;
 				try {
@@ -117,14 +157,18 @@
 
 <section
 	bind:this={network}
+	use:pannable
+	class:dragging
 	class:network-active={active}
 	class:network-entry={playEntry}
 	class="case-network"
 	aria-label="Published DSA cases by European jurisdiction"
 >
 	<div class="network-grid" aria-hidden="true"></div>
-	<div class="map-depth">
-		<img src={resolve('/maps/europe-natural-earth.svg')} alt="" class="europe-map" draggable="false" />
+	<div class="map-depth" style={`--pan-x: ${panX}px; --pan-y: ${panY}px;`}>
+		<div class="map-fade" aria-hidden="true">
+			<img src={resolve('/maps/europe-natural-earth.svg')} alt="" class="europe-map" draggable="false" />
+		</div>
 		<div class="pins">
 			{#each pins as pin, index (pin.jurisdiction)}
 				<a
@@ -171,6 +215,12 @@
 		transform: translate(-50%, -50%);
 	}
 
+	@media (min-width: 769px) and (pointer: fine) {
+		.case-network { cursor: grab; }
+		.case-network.dragging { cursor: grabbing; }
+	}
+
+	.map-fade,
 	.europe-map,
 	.pins {
 		position: absolute;
@@ -184,6 +234,13 @@
 		user-select: none;
 		-webkit-user-drag: none;
 		object-fit: contain;
+	}
+
+	.europe-map,
+	.pins { transform: translate(var(--pan-x, 0px), var(--pan-y, 0px)); }
+
+	.map-fade {
+		pointer-events: none;
 		opacity: 0.38;
 		mask-image:
 			linear-gradient(to bottom, transparent, rgb(0 0 0 / 20%) 20%, black 52%, black 90%, transparent),
@@ -274,6 +331,10 @@
 
 	@keyframes pin-breathe { 50% { transform: scale(1.16); opacity: 0.55; } }
 	@media (prefers-reduced-motion: no-preference) {
+		.case-network:not(.dragging) .europe-map,
+		.case-network:not(.dragging) .pins {
+			transition: transform .75s cubic-bezier(.22, 1.12, .36, 1);
+		}
 		.network-entry .case-pin { animation: pin-entry .85s var(--pin-delay) cubic-bezier(.16, 1, .3, 1) both; }
 	}
 	@keyframes pin-entry {
@@ -287,6 +348,9 @@
 		.pin-label { left: auto; right: -2rem; transform: translateY(0.3rem); }
 		.case-pin:hover .pin-label,
 		.case-pin:focus-visible .pin-label { transform: translateY(0); }
+	}
+	@media (max-width: 768px) {
+		.europe-map, .pins { transform: none; }
 	}
 
 	@media (prefers-reduced-motion: reduce) {

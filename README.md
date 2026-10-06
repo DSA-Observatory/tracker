@@ -140,6 +140,22 @@ python3 scripts/apply-cases-replacement.py \
 
 Do not use `--apply` until a reviewer has checked the dry-run artifacts and provided the target confirmation. On an ambiguous batch error, do not retry: inspect the private receipt and reconcile the deterministic record IDs first.
 
+### Lossless workbook audit
+
+Approved DSA Excel imports are published by default: a case's presence in the owner-approved sheet is the publication criterion. Missing sources, dates or classifications remain explicitly unknown rather than automatically making that entry a draft. This does not apply to unreviewed suggestions, manually created drafts, private contact sheets or unrelated existing records; production application still requires explicit authorization and backup safeguards.
+
+Row counts and normalized payload checks alone do not establish a complete import. `scripts/audit-case-workbook.py` compares the confirmed DSA workbook with the existing row-to-record mapping and fresh case snapshots, then proposes ID-preserving corrections. It makes no network requests or database writes. It retains all nine original cells per case (including blank/missing distinctions, formulas, cached values and hyperlink metadata) in the private `workbook_source` JSON field. Complete references and procedural wording use separate editable fields; migration 19 adds these fields without changing access rules or publication.
+
+```sh
+python3 scripts/audit-case-workbook.py \
+  --xlsx /private/path/cases.xlsx \
+  --mapping /private/path/clean-create-payloads.json \
+  --cases /private/path/current-cases.json \
+  --out-dir /private/path/new-audit-plan
+```
+
+Only the DSA case sheet is included. Numeric dates in complete reference text use the workbook's European day-month-year convention; extraction evidence records that interpretation, any US-notation ambiguity and the fact that rulings have not been independently verified. ECLI fragments, docket years, URL dates and writ/press-release dates are not substituted for judgment dates. Existing date/source edits require explicit conflict review. Applying an audit plan still requires separate production authorization, fresh snapshots, a verified full backup, reviewed schema additions, a rollback-capable transaction and cell/hyperlink-level read-back verification. Do not rerun either historical replacement tool against the current dataset.
+
 ## Open Product Decisions
 
 - Should the tracker publish one entry per judicial decision, or bundle multiple decisions under one case/dispute page?

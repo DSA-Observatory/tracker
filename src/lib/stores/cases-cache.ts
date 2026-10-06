@@ -6,7 +6,7 @@ const cache = new Map<string, CaseRecord[]>();
 if (browser) pb.authStore.onChange(() => cache.clear());
 
 export function casesCacheKey(drafts: boolean) {
-	return `${pb.baseURL}:${pb.authStore.token}:${drafts ? 'drafts' : 'all'}`;
+	return `${pb.baseURL}:${pb.authStore.token}:${drafts ? 'drafts' : 'published'}`;
 }
 
 export function readCasesCache(key: string) {

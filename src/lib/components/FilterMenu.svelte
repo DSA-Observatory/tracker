@@ -3,12 +3,14 @@
 		value: string;
 		label: string;
 		count: number;
+		country?: string;
 	};
 </script>
 
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
+	import CountryFlag from '$lib/components/CountryFlag.svelte';
 	import IconChevronDown from '~icons/heroicons/chevron-down';
 
 	export let label: string;
@@ -138,6 +140,7 @@
 								checked={selected.includes(option.value)}
 								onchange={() => onToggle(option.value)}
 							/>
+							{#if option.country}<CountryFlag country={option.country} />{/if}
 							<span class="truncate whitespace-nowrap text-slate-700">{option.label}</span>
 						</span>
 						<span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
@@ -178,6 +181,7 @@
 								checked={selected.includes(option.value)}
 								onchange={() => onToggle(option.value)}
 							/>
+							{#if option.country}<CountryFlag country={option.country} />{/if}
 							<span class="min-w-0 truncate text-slate-700">{option.label}</span>
 						</span>
 						<span

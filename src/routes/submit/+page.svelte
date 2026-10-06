@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { pb } from '$lib/database';
+	import { tick } from 'svelte';
 
 	let title = $state('');
 	let decisionDate = $state('');
@@ -16,6 +17,7 @@
 	let error = $state('');
 	let success = $state(false);
 	let fieldErrors = $state<Record<string, string>>({});
+	let contactDetailsOpen = $state(false);
 	const countries = ['Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Ireland', 'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands', 'Poland', 'Portugal', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden'];
 
 	function splitList(value: string) {
@@ -46,6 +48,10 @@
 		const emailInput = form.elements.namedItem('submitterEmail') as HTMLInputElement;
 		if (!emailInput.validity.valid) fieldErrors.submitterEmail = 'Enter a valid email address or leave this blank.';
 		if (Object.keys(fieldErrors).length) {
+			if (fieldErrors.submitterEmail) {
+				contactDetailsOpen = true;
+				await tick();
+			}
 			(form.elements.namedItem(Object.keys(fieldErrors)[0]) as HTMLElement)?.focus();
 			return;
 		}
@@ -142,8 +148,8 @@
 					{#if fieldErrors.summary}<span id="summary-error" class="field-error">{fieldErrors.summary}</span>{/if}
 				</label>
 			</fieldset>
-			<section class="case-details" aria-labelledby="additional-details-title">
-				<h2 id="additional-details-title" class="section-title">Additional case details <span>Optional</span></h2>
+			<details class="case-details">
+				<summary class="section-title">Additional case details <span>Optional</span></summary>
 				<fieldset disabled={saving} class="grid gap-5 md:grid-cols-2">
 					<legend class="sr-only">Optional case details</legend>
 					<label class="field"><span class="field-label">Jurisdiction</span><input class="input w-full" list="jurisdictions" bind:value={jurisdiction} placeholder="Select or enter a country" /><datalist id="jurisdictions">{#each countries as country}<option value={country}></option>{/each}</datalist></label>
@@ -153,15 +159,18 @@
 					<label class="field"><span class="field-label">Plaintiffs</span><input class="input w-full" bind:value={plaintiffs} aria-describedby="plaintiffs-help" /><span id="plaintiffs-help" class="field-help">Separate multiple names with commas.</span></label>
 					<label class="field"><span class="field-label">Defendants</span><input class="input w-full" bind:value={defendants} aria-describedby="defendants-help" /><span id="defendants-help" class="field-help">Separate multiple names with commas.</span></label>
 				</fieldset>
-			</section>
-			<fieldset disabled={saving} class="contact-section">
-				<legend class="section-title">Contact details <span>Optional</span></legend>
-				<p class="field-help mb-5">Leave your contact details if you are available for questions about this case.</p>
-				<div class="grid gap-5 md:grid-cols-2">
-					<label class="field"><span class="field-label">Your name</span><input class="input w-full" bind:value={submitterName} autocomplete="name" /></label>
-					<label class="field"><span class="field-label">Your email</span><input name="submitterEmail" class="input w-full" bind:value={submitterEmail} type="email" autocomplete="email" aria-invalid={!!fieldErrors.submitterEmail} aria-describedby={fieldErrors.submitterEmail ? 'email-error' : undefined} />{#if fieldErrors.submitterEmail}<span id="email-error" class="field-error">{fieldErrors.submitterEmail}</span>{/if}</label>
-				</div>
-			</fieldset>
+			</details>
+			<details class="contact-section" bind:open={contactDetailsOpen}>
+				<summary class="section-title">Contact details <span>Optional</span></summary>
+				<fieldset disabled={saving}>
+					<legend class="sr-only">Optional contact details</legend>
+					<p class="field-help mb-5">Leave your contact details if you are available for questions about this case.</p>
+					<div class="grid gap-5 md:grid-cols-2">
+						<label class="field"><span class="field-label">Your name</span><input class="input w-full" bind:value={submitterName} autocomplete="name" /></label>
+						<label class="field"><span class="field-label">Your email</span><input name="submitterEmail" class="input w-full" bind:value={submitterEmail} type="email" autocomplete="email" aria-invalid={!!fieldErrors.submitterEmail} aria-describedby={fieldErrors.submitterEmail ? 'email-error' : undefined} />{#if fieldErrors.submitterEmail}<span id="email-error" class="field-error">{fieldErrors.submitterEmail}</span>{/if}</label>
+					</div>
+				</fieldset>
+			</details>
 			<div class="submission-footer"><button class="btn btn-primary" type="submit" disabled={saving}>{saving ? 'Submitting...' : 'Submit for review'} <span aria-hidden="true">→</span></button><p>Submissions are reviewed before publication.</p></div>
 		</form>
 	</section>
@@ -184,10 +193,13 @@
 	.field-label { color: #0f172a; font-size: .95rem; font-weight: 600; }
 	.field-help { color: #475569; font-size: .85rem; line-height: 1.6; }
 	.field-error { color: #b91c1c; font-size: .85rem; }
-	.section-title { width: 100%; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; color: #0f172a; font-size: 1.1rem; font-weight: 700; }
+	.section-title { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; color: #0f172a; font-size: 1.1rem; font-weight: 700; cursor: pointer; list-style-position: outside; }
+	.section-title::before { content: '›'; display: inline-block; transition: transform .15s ease; }
 	.section-title span { font-size: .75rem; font-weight: 500; color: #475569; background: #f1f5f9; padding: .25rem .6rem; border-radius: 999px; }
 	.case-details { margin-block: 2rem; padding: 1.25rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: .75rem; }
-	.contact-section { padding-top: .5rem; }
+	details[open] > .section-title::before { transform: rotate(90deg); }
+	.case-details[open] .section-title, .contact-section[open] .section-title { margin-bottom: 1.5rem; }
+	.contact-section { padding: .5rem 0; }
 	.submission-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0; }
 	.submission-footer p { font-size: .8rem; color: #475569; }
 	.suggest-case-form [aria-invalid='true'] { border-color: #b91c1c; }

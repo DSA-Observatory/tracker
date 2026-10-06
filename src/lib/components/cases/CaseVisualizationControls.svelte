@@ -1,4 +1,5 @@
 <script lang="ts">
+	import IconEye from '~icons/lucide/eye';
 	import type { FilterLayout, ViewMode } from './types';
 
 	let {
@@ -16,9 +17,11 @@
 
 <details class="relative" aria-label="Visualization preferences">
 	<summary
+		aria-label={`View options: ${viewMode === 'cards' ? 'Cards' : 'Table'}`}
 		class="inline-flex h-8 cursor-pointer list-none items-center justify-center gap-1 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
 	>
-		View: {viewMode === 'cards' ? 'Cards' : 'Table'}
+		<IconEye class="mr-1 size-3.5 text-slate-500" aria-hidden="true" />
+		{viewMode === 'cards' ? 'Cards' : 'Table'}
 		<span class="text-[0.6rem] text-slate-500" aria-hidden="true">▼</span>
 	</summary>
 	<div

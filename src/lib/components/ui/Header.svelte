@@ -64,7 +64,7 @@
 				<Login />
 			</div>
 			<a
-				class="btn btn-md btn-primary ml-2 hidden whitespace-nowrap sm:inline-flex lg:ml-5"
+				class="btn btn-md btn-primary ml-2 hidden text-base font-bold whitespace-nowrap text-black sm:inline-flex lg:ml-5"
 				href={resolve('/submit')}
 			>
 				Suggest a Case

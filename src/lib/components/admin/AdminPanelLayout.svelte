@@ -7,6 +7,7 @@
 	let { children } = $props();
 	let openCommentCount = $state(0);
 	let draftCaseCount = $state(0);
+	let openFeedbackCount = $state(0);
 
 	const panels = [
 		{
@@ -28,6 +29,11 @@
 			title: 'Comments',
 			description: 'Review open case comments',
 			path: '/admin/comments'
+		},
+		{
+			title: 'Website feedback',
+			description: 'Read private reports and suggestions',
+			path: '/admin/feedback'
 		}
 	] as const;
 
@@ -38,16 +44,18 @@
 	async function loadQueueCounts() {
 		if (!authStore.isAdmin) return;
 		try {
-			const [comments, drafts] = await Promise.all([
+			const [comments, drafts, feedback] = await Promise.all([
 				pb
 					.collection('case_comments')
 					.getList(1, 1, { filter: "resolved = false && case != ''", fields: 'id' }),
 				pb
 					.collection('cases')
-					.getList(1, 1, { filter: "published = false && status != 'archived'", fields: 'id' })
+					.getList(1, 1, { filter: "published = false && status != 'archived'", fields: 'id' }),
+				pb.collection('website_feedback').getList(1, 1, { filter: 'resolved = false', fields: 'id' })
 			]);
 			openCommentCount = comments.totalItems;
 			draftCaseCount = drafts.totalItems;
+			openFeedbackCount = feedback.totalItems;
 		} catch (err) {
 			console.error('Error loading admin queue counts:', err);
 		}
@@ -67,10 +75,16 @@
 			.catch((err) => {
 				console.error('Error subscribing to draft case count:', err);
 			});
+		pb.collection('website_feedback')
+			.subscribe('*', loadQueueCounts)
+			.catch((err) => {
+				console.error('Error subscribing to feedback count:', err);
+			});
 
 		return () => {
 			pb.collection('case_comments').unsubscribe('*');
 			pb.collection('cases').unsubscribe('*');
+			pb.collection('website_feedback').unsubscribe('*');
 		};
 	});
 </script>
@@ -91,14 +105,19 @@
 					>
 						<span class="flex items-center justify-between gap-3 font-semibold">
 							{panel.title}
-							{#if panel.title === 'Draft cases'}
+							{#if panel.title === 'Draft cases' && draftCaseCount > 0}
 								<span class={isActive(panel) ? 'badge badge-sm' : 'badge badge-sm badge-neutral'}
 									>{draftCaseCount}</span
 								>
 							{/if}
-							{#if panel.path === '/admin/comments'}
+							{#if panel.path === '/admin/comments' && openCommentCount > 0}
 								<span class={isActive(panel) ? 'badge badge-sm' : 'badge badge-sm badge-neutral'}
 									>{openCommentCount}</span
+								>
+							{/if}
+							{#if panel.path === '/admin/feedback' && openFeedbackCount > 0}
+								<span class={isActive(panel) ? 'badge badge-sm' : 'badge badge-sm badge-neutral'}
+									>{openFeedbackCount}</span
 								>
 							{/if}
 						</span>
