@@ -27,7 +27,7 @@
 		},
 		{
 			title: 'Comments',
-			description: 'Review open case comments',
+			description: 'Review open editorial comments',
 			path: '/admin/comments'
 		},
 		{
@@ -47,7 +47,7 @@
 			const [comments, drafts, feedback] = await Promise.all([
 				pb
 					.collection('case_comments')
-					.getList(1, 1, { filter: "resolved = false && case != ''", fields: 'id' }),
+					.getList(1, 1, { filter: 'resolved = false', fields: 'id' }),
 				pb
 					.collection('cases')
 					.getList(1, 1, { filter: "published = false && status != 'archived'", fields: 'id' }),

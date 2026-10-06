@@ -23,6 +23,22 @@ onRecordCreateRequest((e) => {
 		throw e.badRequestError('A comment must belong to exactly one case or suggestion.', null);
 	}
 	e.record.set('author', e.auth.id);
+	const assigneeId = e.record.getString('assignee');
+	if (assigneeId) {
+		let assignee;
+		try {
+			assignee = e.app.findRecordById('users', assigneeId);
+		} catch {
+			throw e.badRequestError('Assignee must be an administrator.', {
+				assignee: new ValidationError('invalid_assignee', 'Choose an active administrator.')
+			});
+		}
+		if (!assignee.getBool('is_admin')) {
+			throw e.badRequestError('Assignee must be an administrator.', {
+				assignee: new ValidationError('invalid_assignee', 'Choose an active administrator.')
+			});
+		}
+	}
 	e.next();
 }, 'case_comments');
 
@@ -31,6 +47,24 @@ onRecordUpdateRequest((e) => {
 	const submissionId = e.record.getString('submission');
 	if ((caseId ? 1 : 0) + (submissionId ? 1 : 0) !== 1) {
 		throw e.badRequestError('A comment must belong to exactly one case or suggestion.', null);
+	}
+	if (e.record.getString('assignee') !== e.record.original().getString('assignee')) {
+		const assigneeId = e.record.getString('assignee');
+		if (assigneeId) {
+			let assignee;
+			try {
+				assignee = e.app.findRecordById('users', assigneeId);
+			} catch {
+				throw e.badRequestError('Assignee must be an administrator.', {
+					assignee: new ValidationError('invalid_assignee', 'Choose an active administrator.')
+				});
+			}
+			if (!assignee.getBool('is_admin')) {
+				throw e.badRequestError('Assignee must be an administrator.', {
+					assignee: new ValidationError('invalid_assignee', 'Choose an active administrator.')
+				});
+			}
+		}
 	}
 	e.next();
 }, 'case_comments');

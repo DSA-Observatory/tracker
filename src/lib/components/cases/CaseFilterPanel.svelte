@@ -92,7 +92,9 @@
 			onclick={() => onTabChange('browse')}>Browse</button
 		>
 		<button
-			class={activeTab === 'saved'
+			class={savedCount > 0
+				? 'rounded-md bg-primary px-2 py-1.5 font-semibold text-primary-content hover:bg-primary/90'
+				: activeTab === 'saved'
 				? 'rounded-md bg-slate-200 px-2 py-1.5 font-semibold text-slate-700'
 				: 'rounded-md px-2 py-1.5 font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-950'}
 			type="button"

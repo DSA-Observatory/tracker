@@ -381,6 +381,7 @@
 			countries = [normalizeJurisdiction(page.url.searchParams.get('jurisdiction') ?? '')];
 		}
 		if (page.url.searchParams.has('map')) mapCollapsed = mapStartsCollapsed;
+		if (page.url.searchParams.get('view') === 'map') viewMode = 'map';
 		if (viewMode === 'grid') viewMode = 'cards';
 		if (cardVariant === 'landing') searchScope = 'all';
 		preferencesLoaded = true;

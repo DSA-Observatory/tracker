@@ -83,62 +83,18 @@ ${summary ? `<div>${escapeHtml(summary)}</div>` : ''}
 
 onRecordAfterCreateSuccess((e) => {
 	e.next();
+	require(`${__hooks}/comment_assignment_helpers.js`).sendCreatedCommentNotifications(e, MailerMessage);
+}, 'case_comments');
 
-	const recipients = ($os.getenv('CASE_SUBMISSION_NOTIFY_EMAILS') || 'ctw@ctwhome.com')
-		.split(',')
-		.map((value) => value.trim())
-		.filter(Boolean);
-	if (!recipients.length) return;
-	const appUrl = (
-		$os.getenv('PUBLIC_APP_URL') ||
-		$os.getenv('APP_URL') ||
-		'https://dsa-observatory.github.io/tracker'
-	).replace(/\/$/, '');
-	const escapeHtml = (value) =>
-		String(value || '')
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#39;');
+onRecordAfterUpdateSuccess((e) => {
+	const previousAssignee = e.record.original().getString('assignee');
+	e.next();
 
-	const record = e.record;
-	const submissionId = record.getString('submission');
-	const caseId = record.getString('case');
-	let title = 'Editorial record';
-	let targetUrl = `${appUrl}/admin/comments`;
-	try {
-		if (submissionId) {
-			const submission = e.app.findRecordById('case_submissions', submissionId);
-			title = submission.getString('title') || 'Suggested case';
-			targetUrl = `${appUrl}/admin/submissions/${submissionId}`;
-		} else if (caseId) {
-			const caseRecord = e.app.findRecordById('cases', caseId);
-			title = caseRecord.getString('title') || 'Case';
-			targetUrl = `${appUrl}/cases/${caseId}/edit?comment=${record.id}`;
-		}
-	} catch (error) {
-		console.error('Could not resolve comment notification target:', error);
-	}
-	title = title.replace(/[\r\n]+/g, ' ');
-
-	try {
-		e.app.newMailClient().send(
-			new MailerMessage({
-				from: {
-					address: e.app.settings().meta.senderAddress,
-					name: e.app.settings().meta.senderName || 'DSA Case Law Tracker'
-				},
-				to: recipients.map((address) => ({ address })),
-				subject: `New editorial comment: ${title}`,
-				html: `
-<p>A new editorial comment was added to <strong>${escapeHtml(title)}</strong>.</p>
-<blockquote>${escapeHtml(record.getString('content'))}</blockquote>
-<p><a href="${targetUrl}">Review this comment</a></p>
-`
-			})
-		);
-	} catch (error) {
-		console.error('Could not send comment notification:', error);
-	}
+	const assigneeId = e.record.getString('assignee');
+	if (!assigneeId || assigneeId === previousAssignee) return;
+	require(`${__hooks}/comment_assignment_helpers.js`).sendAssignmentNotification(
+		e,
+		e.record,
+		MailerMessage
+	);
 }, 'case_comments');

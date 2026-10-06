@@ -40,14 +40,12 @@
 	const geocodeCacheKey = 'map:jurisdiction-coordinates';
 	const lightMapStyle: StyleSpecification = {
 		version: 8,
+		glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
 		sources: {
-			'carto-voyager': {
-				type: 'raster',
-				tiles: [
-					'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
-				],
-				tileSize: 256,
-				attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+			'basemap': {
+				type: 'vector',
+				url: 'https://demotiles.maplibre.org/tiles/tiles.json',
+				attribution: '<a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">Natural Earth</a> · <a href="https://maplibre.org/" target="_blank" rel="noopener noreferrer">MapLibre</a>'
 			},
 			[casePinsSourceId]: {
 				type: 'geojson',
@@ -58,13 +56,21 @@
 			{
 				id: 'background',
 				type: 'background',
-				paint: { 'background-color': '#f8fafc' }
+				paint: { 'background-color': '#e8f0f4' }
 			},
 			{
-				id: 'carto-voyager',
-				type: 'raster',
-				source: 'carto-voyager',
-				paint: { 'raster-opacity': 0.86 }
+				id: 'country-fill',
+				type: 'fill',
+				source: 'basemap',
+				'source-layer': 'countries',
+				paint: { 'fill-color': '#f8fafc' }
+			},
+			{
+				id: 'country-borders',
+				type: 'line',
+				source: 'basemap',
+				'source-layer': 'countries',
+				paint: { 'line-color': '#cbd5e1', 'line-width': 0.8 }
 			},
 			{
 				id: 'case-pin-halo',
@@ -94,7 +100,7 @@
 				layout: {
 					'text-field': ['to-string', ['get', 'count']],
 					'text-size': 14,
-					'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+					'text-font': ['Open Sans Semibold'],
 					'text-allow-overlap': true,
 					'text-ignore-placement': true
 				},

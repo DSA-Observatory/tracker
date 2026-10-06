@@ -1,3 +1,9 @@
+<script>
+	import { resolve } from '$app/paths';
+	const submitUrl = resolve('/submit');
+	const feedbackUrl = resolve('/feedback');
+</script>
+
 # About the DSA Case Law Tracker
 
 The DSA Case Law Tracker is a public, open-access web platform for tracking private enforcement cases under the EU Digital Services Act across EU Member States.
@@ -10,7 +16,7 @@ Our case tracker focuses on private enforcement, meaning litigation between priv
 
 ## Work in progress
 
-This is a pilot project, and our database is not yet comprehensive. As our work proceeds, we aim to include as many cases as possible from as many EU Member States as possible. Please be aware that relevant cases may not (yet) be included – and please [let us know](/submit) so we can add them.
+This is a pilot project, and our database is not yet comprehensive. As our work proceeds, we aim to include as many cases as possible from as many EU Member States as possible. Please be aware that relevant cases may not (yet) be included – and please <a href={submitUrl}>let us know</a> so we can add them.
 
 In future, the tracker may expand to cover other categories of litigation, including litigation under other EU legislation and other forms of enforcement.
 
@@ -18,6 +24,6 @@ In future, the tracker may expand to cover other categories of litigation, inclu
 
 We welcome your input on the following:
 
-- **Tracking:** [Suggest a case](/submit) to include in the tracker.
+- **Tracking:** <a href={submitUrl}>Suggest a case</a> to include in the tracker.
 - **Analysis:** Pitch a case commentary to the [DSA Observatory blog](https://dsa-observatory.eu/blogposts-submission/).
-- **Feedback:** Report bugs or suggest improvements to the case tracker through our [contact form](/feedback).
+- **Feedback:** Report bugs or suggest improvements to the case tracker through our <a href={feedbackUrl}>contact form</a>.

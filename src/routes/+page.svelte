@@ -40,17 +40,17 @@
 					<a class="btn btn-primary text-base font-bold text-black" href={resolve('/cases')}>Browse cases <span aria-hidden="true">↗</span></a>
 					<a class="hero-about" href={resolve('/about')}>About the project <span aria-hidden="true">→</span></a>
 				</div>
-				<a class="hero-map-link" href={resolve('/map')}>View cases by jurisdiction <span aria-hidden="true">↗</span></a>
+				<a class="hero-map-link" href={`${resolve('/cases')}?view=map`}>View cases by jurisdiction <span aria-hidden="true">↗</span></a>
 			</div>
-			<div class="hero-footnote"><span>IViR · University of Amsterdam · DSA Observatory</span></div>
 		</div>
 	</section>
 </main>
 
 <style>
 	.landing-hero { position: relative; isolation: isolate; min-height: min(850px, calc(100svh - 65px)); }
-	.hero-inner { position: relative; max-width: 1440px; margin: auto; padding: clamp(5rem, 9vw, 9rem) clamp(1.5rem, 6vw, 6rem) 2rem; pointer-events: none; }
-	.hero-copy { position: relative; width: 58%; pointer-events: auto; }
+	.hero-inner { position: relative; display: flex; flex-direction: column; min-height: inherit; max-width: 1440px; margin: auto; padding: clamp(5rem, 9vw, 9rem) clamp(1.5rem, 6vw, 6rem) 2rem; pointer-events: none; }
+	.hero-copy { position: relative; width: 58%; pointer-events: none; }
+	.hero-copy a, .definition { pointer-events: auto; }
 	.hero-eyebrow { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .25em; margin-bottom: 2rem; }
 	h1 { font-size: clamp(3.6rem, 6.4vw, 6.3rem); line-height: 1.02; letter-spacing: -.065em; font-weight: 850; }
 	.headline-line { display: block; overflow: hidden; padding-bottom: .12em; margin-bottom: -.12em; }
@@ -70,8 +70,6 @@
 	.hero-atlas { position: absolute; width: min(64vw, 1050px); height: 100%; right: max(-2%, calc((100% - 1440px) / 2 - 12rem)); top: -8rem; }
 	.hero-map-link { display: inline-block; margin-top: 1.25rem; font-size: .8rem; color: color-mix(in oklab, var(--color-base-content) 65%, transparent); }
 	.hero-map-link:hover { text-decoration: underline; }
-	.hero-footnote { display: flex; justify-content: space-between; gap: 1rem; margin-top: 6rem; padding-top: 1.25rem; font-size: .68rem; letter-spacing: .035em; color: color-mix(in oklab, var(--color-base-content) 55%, transparent); }
-	.hero-footnote a { pointer-events: auto; }
 	@media (prefers-reduced-motion: no-preference) {
 		.hero-eyebrow { animation: entry-rise .8s .1s both; }
 		.headline-line > span { animation: headline-entry 1.15s cubic-bezier(.16, 1, .3, 1) both; }
@@ -82,7 +80,6 @@
 		.hero-actions > :first-child { animation: entry-rise .9s .8s both; }
 		.hero-actions > :last-child { animation: entry-rise .9s .92s both; }
 		.hero-map-link { animation: entry-rise .9s 1s both; }
-		.hero-footnote { animation: entry-rise 1s 1.1s both; }
 		.hero-atlas { animation: atlas-entry 1.8s cubic-bezier(.16, 1, .3, 1) both; }
 		:global(.reveal-ready) { opacity: 0; transform: translateY(30px); }
 		:global(.reveal-visible) { animation: entry-rise .9s var(--entry-delay, 0ms) cubic-bezier(.16, 1, .3, 1) both; }
@@ -97,13 +94,13 @@
 		h1 { font-size: clamp(3.4rem, 8.5vw, 5rem); }
 		.hero-atlas { top: 13rem; right: -25%; width: 95%; height: 38rem; opacity: .55; }
 		.hero-description { max-width: 27rem; }
-		.hero-footnote { margin-top: 18rem; flex-wrap: wrap; }
+		.hero-inner { padding-bottom: 21.25rem; }
 	}
 	@media (max-width: 540px) {
 		.definition { position: static; }
 		.definition-popover { left: 0; transform: none; max-width: 100%; }
 		.hero-atlas { top: 26rem; right: -13%; width: 120%; height: 26rem; opacity: 1; }
-		.hero-footnote { margin-top: 26rem; }
+		.hero-inner { padding-bottom: 29.25rem; }
 		.hero-description { max-width: 23rem; }
 	}
 </style>

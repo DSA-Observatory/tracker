@@ -317,7 +317,10 @@
 							</p>{/if}
 					</section>
 
-					<CaseCommentsPanel submissionId={submission.id} />
+					<CaseCommentsPanel
+						submissionId={submission.id}
+						selectedCommentId={page.url.searchParams.get('comment') ?? undefined}
+					/>
 				</aside>
 			</div>
 		{/if}

@@ -4,12 +4,26 @@ export interface CommentCaseRecord {
 	title: string;
 }
 
+export interface CommentSubmissionRecord {
+	id: string;
+	title: string;
+	case_id?: string;
+}
+
+export interface CommentAdminRecord {
+	id: string;
+	email: string;
+	name?: string;
+	username?: string;
+}
+
 export interface CaseCommentRecord {
 	id: string;
 	case?: string;
 	submission?: string;
 	content: string;
 	author: string;
+	assignee?: string;
 	resolved: boolean;
 	resolved_by?: string;
 	resolved_at?: string;
@@ -17,13 +31,16 @@ export interface CaseCommentRecord {
 	updated: string;
 	expand?: {
 		case?: CommentCaseRecord;
+		submission?: CommentSubmissionRecord;
 		author?: { id: string; email: string; name?: string; username?: string };
+		assignee?: CommentAdminRecord;
 		resolved_by?: { id: string; email: string; name?: string; username?: string };
 	};
 }
 
 export interface CaseCommentGroup {
-	caseRecord: CommentCaseRecord;
+	target: CommentCaseRecord | CommentSubmissionRecord;
+	targetType: 'case' | 'submission';
 	comments: CaseCommentRecord[];
 }
 
@@ -31,13 +48,14 @@ export function groupOpenComments(comments: CaseCommentRecord[]) {
 	const groups = new Map<string, CaseCommentGroup>();
 
 	for (const comment of comments.filter((item) => !item.resolved)) {
-		const caseRecord = comment.expand?.case;
-		if (!caseRecord) continue;
-
-		if (!comment.case) continue;
-		const group = groups.get(comment.case) ?? { caseRecord, comments: [] };
+		const targetType = comment.case ? 'case' : comment.submission ? 'submission' : undefined;
+		const targetId = comment.case || comment.submission;
+		const target = targetType ? comment.expand?.[targetType] : undefined;
+		if (!targetType || !targetId || !target) continue;
+		const groupKey = `${targetType}:${targetId}`;
+		const group = groups.get(groupKey) ?? { target, targetType, comments: [] };
 		group.comments.push(comment);
-		groups.set(comment.case, group);
+		groups.set(groupKey, group);
 	}
 
 	return [...groups.values()]
