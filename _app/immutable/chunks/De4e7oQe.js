@@ -1,3 +1,0 @@
-const i=["draft","review","pending","decided","appealed","closed","archived","published"],a=()=>({case_id:"",title:"",ecli:"",decision_reference:"",procedural_wording:"",decision_date:"",status:"draft",court:"",jurisdiction:"",plaintiffs:"",defendants:"",outcome:"",courts:"",legal_areas:"",legal_basis:"",case_scope:"private enforcement",procedural_events:"",summary:"",timeline:"",categories:"",primary_sources:"",secondary_sources:"",source_limitations:"",editorial_notes:"",keywords:"",dsa_articles:"",published:!1}),r=s=>s.split(",").map(e=>e.trim()).filter(Boolean),t=s=>Array.isArray(s)?s.join(", "):"",o=s=>s.split(`
-`).map(e=>e.trim()).filter(Boolean),n=s=>Array.isArray(s)?s.join(`
-`):"";export{n as a,o as b,r as c,a as e,t as j,i as s};
