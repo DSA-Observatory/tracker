@@ -20,6 +20,7 @@
 		collapsed: controlledCollapsed,
 		compact = false,
 		bare = false,
+		fill = false,
 		startCollapsed = false,
 		showList = true,
 		showToggle = true
@@ -28,6 +29,7 @@
 		collapsed?: boolean;
 		compact?: boolean;
 		bare?: boolean;
+		fill?: boolean;
 		startCollapsed?: boolean;
 		showList?: boolean;
 		showToggle?: boolean;
@@ -323,6 +325,7 @@
 </script>
 
 <section
+	class:h-full={fill}
 	class={bare
 		? 'relative overflow-hidden rounded-xl'
 		: 'relative overflow-hidden rounded-[1rem] border border-slate-200 bg-white/90 shadow-sm shadow-slate-200/60'}
@@ -353,7 +356,7 @@
 	{/if}
 
 	{#if !isCollapsed}
-		<div class={bare ? '' : compact ? 'bg-slate-50 p-3 sm:p-4' : 'bg-slate-50 p-4 sm:p-5'}>
+		<div class:h-full={fill} class={bare ? '' : compact ? 'bg-slate-50 p-3 sm:p-4' : 'bg-slate-50 p-4 sm:p-5'}>
 			{#if loading}
 				<p class="text-slate-500">Loading jurisdiction data...</p>
 			{:else if error}
@@ -362,13 +365,14 @@
 				<p class="text-slate-500">No cases with jurisdiction data yet.</p>
 			{:else}
 				<div
+					class:h-full={fill}
 					class={bare
 						? 'relative overflow-hidden rounded-xl border border-slate-200'
 						: 'relative overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-100 shadow-inner'}
 				>
 					<div
 						bind:this={mapContainer}
-						class="h-[18rem] w-full md:h-[24rem]"
+						class={fill ? 'h-full min-h-[18rem] w-full md:min-h-0' : 'h-[18rem] w-full md:h-[24rem]'}
 						aria-label="Global map showing case counts by jurisdiction"
 					></div>
 

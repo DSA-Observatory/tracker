@@ -4,6 +4,13 @@ node_modules
 __pycache__/
 *.py[cod]
 
+# Browser automation artifacts
+.playwright-mcp/
+.playwright-cli/
+playwright-report/
+blob-report/
+test-results/
+
 # Output
 .output
 .vercel

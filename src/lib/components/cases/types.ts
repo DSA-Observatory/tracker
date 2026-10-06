@@ -1,12 +1,6 @@
 import type { CaseStatus } from '$lib/database';
 
-export type FilterGroup =
-	| 'countries'
-	| 'categories'
-	| 'articles'
-	| 'courts'
-	| 'parties'
-	| 'years';
+export type FilterGroup = 'countries' | 'categories' | 'articles' | 'courts' | 'parties' | 'years';
 
 export type SearchScope =
 	| 'all'
@@ -18,7 +12,7 @@ export type SearchScope =
 	| 'primary'
 	| 'secondary';
 
-export type ViewMode = 'cards' | 'table';
+export type ViewMode = 'cards' | 'grid' | 'map' | 'table';
 export type FilterLayout = 'top' | 'left';
 
 export type ActiveFilterChip = {

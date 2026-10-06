@@ -36,6 +36,7 @@
 
 	let loading = $state(Boolean(caseId));
 	let saving = $state(false);
+	let deleting = $state(false);
 	let changingVisibility = $state(false);
 	let visibilityMessage = $state('');
 	let visibilityError = $state('');
@@ -86,6 +87,23 @@
 
 	const canWrite = $derived(authStore.isAdmin && pb.authStore.isValid);
 	const isEditing = $derived(Boolean(caseId));
+
+	async function deleteCase() {
+		if (!caseId || !currentRecord || !canWrite || saving || changingVisibility || loading) return;
+		if (!confirm(`Permanently delete ${currentRecord.case_id}: ${currentRecord.title}? Associated comments and documents may also be deleted. This cannot be undone.`)) return;
+		deleting = true;
+		saving = true;
+		error = '';
+		try {
+			await pb.collection('cases').delete(caseId);
+			await goto(resolve('/cases'));
+		} catch {
+			error = 'Could not delete the case. Please refresh to check its status before trying again.';
+		} finally {
+			deleting = false;
+			saving = false;
+		}
+	}
 
 	$effect(() => {
 		if (caseId) loadCase(caseId);
@@ -996,6 +1014,9 @@
 						{/if}
 					</div>
 					<div class="flex gap-2">
+						{#if caseId && canWrite}
+							<button class="btn btn-ghost text-error" type="button" disabled={saving || changingVisibility || loading} onclick={deleteCase}>{deleting ? 'Deleting...' : 'Delete case'}</button>
+						{/if}
 						<button class="btn btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
 							>Cancel</button
 						>

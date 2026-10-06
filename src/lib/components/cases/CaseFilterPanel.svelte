@@ -20,6 +20,9 @@
 		courts,
 		parties,
 		years,
+		activeTab = 'browse',
+		savedCount = 0,
+		onTabChange = () => {},
 		onToggle,
 		onClear
 	}: {
@@ -40,13 +43,18 @@
 		courts: string[];
 		parties: string[];
 		years: string[];
+		activeTab?: 'browse' | 'saved';
+		savedCount?: number;
+		onTabChange?: (tab: 'browse' | 'saved') => void;
 		onToggle: (group: FilterGroup, value: string) => void;
 		onClear: () => void;
 	} = $props();
+
 </script>
 
 <div
-	class={`max-w-full min-w-0 ${sidebar ? 'h-full overflow-x-hidden overflow-y-auto rounded-xl border border-slate-200 bg-base-200/60 p-3 shadow-sm shadow-slate-200/60' : 'pt-3'}`}
+	data-case-filters
+	class={`max-w-full min-w-0 ${sidebar ? 'h-full overflow-x-hidden overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50/80 p-3 shadow-sm shadow-slate-200/60' : 'pt-3'}`}
 >
 	<div
 		class={sidebar
@@ -54,25 +62,44 @@
 			: 'mb-2 flex flex-wrap items-center justify-between gap-2'}
 	>
 		<div class="min-w-0">
-			<p class="text-xs font-medium tracking-[0.18em] text-slate-400 uppercase">Filters</p>
-			<p class="text-sm text-slate-500">
+			<p class="text-xl leading-tight font-bold tracking-tight text-slate-950">Filters</p>
+			<p class="mt-0.5 text-xs text-slate-500">
 				{#if activeChips.length > 0 || search}
-					Showing <span class="font-medium text-slate-900">{filteredCount}</span> of {totalCount} cases
+					Showing {filteredCount} of {totalCount} cases
 				{:else}
-					<span class="font-medium text-slate-900">{totalCount}</span> cases
+					{totalCount} cases available
 				{/if}
 			</p>
 		</div>
 
-		{#if activeChips.length > 0 || search}
-			<button
-				class="inline-flex h-7 shrink-0 items-center rounded-md bg-slate-950 px-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
-				type="button"
-				onclick={onClear}
-			>
-				Clear filters
-			</button>
-		{/if}
+		<button
+			class="inline-flex h-7 shrink-0 items-center text-xs font-semibold text-slate-500 transition hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none disabled:cursor-default disabled:opacity-40 disabled:hover:text-slate-500"
+			type="button"
+			onclick={onClear}
+			disabled={activeChips.length === 0 && !search}
+		>
+			Clear all
+		</button>
+	</div>
+
+	<div class="mb-3 grid grid-cols-2 rounded-lg border border-slate-200 bg-white p-1 text-sm">
+		<button
+			class={activeTab === 'browse'
+				? 'rounded-md bg-slate-200 px-2 py-1.5 font-semibold text-slate-700'
+				: 'rounded-md px-2 py-1.5 font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-950'}
+			type="button"
+			aria-pressed={activeTab === 'browse'}
+			onclick={() => onTabChange('browse')}>Browse</button
+		>
+		<button
+			class={activeTab === 'saved'
+				? 'rounded-md bg-slate-200 px-2 py-1.5 font-semibold text-slate-700'
+				: 'rounded-md px-2 py-1.5 font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-950'}
+			type="button"
+			aria-pressed={activeTab === 'saved'}
+			onclick={() => onTabChange('saved')}
+			>Saved {#if savedCount > 0}<span class="text-xs opacity-70">{savedCount}</span>{/if}</button
+		>
 	</div>
 
 	<div
@@ -82,6 +109,7 @@
 	>
 		<FilterMenu
 			label="Country"
+			icon="country"
 			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={countryFilterOptions}
 			selected={countries}
@@ -90,6 +118,7 @@
 		/>
 		<FilterMenu
 			label="Category"
+			icon="category"
 			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={categoryFilterOptions}
 			selected={categories}
@@ -98,6 +127,7 @@
 		/>
 		<FilterMenu
 			label="DSA provisions"
+			icon="articles"
 			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={articleFilterOptions}
 			selected={articles}
@@ -106,6 +136,7 @@
 		/>
 		<FilterMenu
 			label="Court"
+			icon="court"
 			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={courtFilterOptions}
 			selected={courts}
@@ -114,6 +145,7 @@
 		/>
 		<FilterMenu
 			label="Parties"
+			icon="parties"
 			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={partyFilterOptions}
 			selected={parties}
@@ -122,6 +154,7 @@
 		/>
 		<FilterMenu
 			label="Decision year"
+			icon="year"
 			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={yearFilterOptions}
 			selected={years}
@@ -129,19 +162,4 @@
 			onToggle={(value) => onToggle('years', value)}
 		/>
 	</div>
-
-	{#if activeChips.length > 0}
-		<div class="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-			{#each activeChips as chip (`${chip.group}:${chip.value}`)}
-				<button
-					class="inline-flex h-7 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-xs transition hover:border-slate-300 hover:bg-slate-50"
-					type="button"
-					onclick={() => onToggle(chip.group, chip.value)}
-				>
-					{chip.label}
-					<span aria-hidden="true">×</span>
-				</button>
-			{/each}
-		</div>
-	{/if}
 </div>

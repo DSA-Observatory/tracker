@@ -74,7 +74,7 @@
 			<div>
 				<button
 					type="button"
-					class="cursor-pointer whitespace-nowrap"
+					class="cursor-pointer py-2 text-sm font-semibold whitespace-nowrap text-slate-600 transition hover:text-slate-950"
 					onclick={() => (loginOpen = true)}>Login</button
 				>
 				<input id="login-modal" type="checkbox" class="modal-toggle" bind:checked={loginOpen} />

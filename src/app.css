@@ -10,6 +10,10 @@
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/container-queries';
 
+html {
+	scrollbar-gutter: stable;
+}
+
 @plugin 'daisyui/theme' {
 	name: 'ctw';
 	default: false;

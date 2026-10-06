@@ -12,12 +12,20 @@
 	import { autoUpdate, computePosition, flip, offset, shift } from '@floating-ui/dom';
 	import CountryFlag from '$lib/components/CountryFlag.svelte';
 	import IconChevronDown from '~icons/heroicons/chevron-down';
+	import IconCalendarDays from '~icons/lucide/calendar-days';
+	import IconLandmark from '~icons/lucide/landmark';
+	import IconMapPin from '~icons/lucide/map-pin';
+	import IconScale from '~icons/lucide/scale';
+	import IconTags from '~icons/lucide/tags';
+	import IconUsers from '~icons/lucide/users';
 
 	export let label: string;
 	export let options: FilterOption[] = [];
 	export let selected: string[] = [];
 	export let placeholder = 'Search options';
 	export let variant: 'dropdown' | 'collapsible' = 'dropdown';
+	export let icon: 'country' | 'category' | 'articles' | 'court' | 'parties' | 'year' | undefined =
+		undefined;
 	export let onToggle: (value: string) => void = () => {};
 
 	let open = false;
@@ -96,7 +104,33 @@
 		aria-expanded={open}
 		onclick={toggleMenu}
 	>
-		<span class="truncate">{label}</span>
+		<span class="flex min-w-0 items-center gap-2 truncate">
+			{#if icon === 'country'}<IconMapPin
+					class="size-3.5 shrink-0 text-slate-400"
+					aria-hidden="true"
+				/>{/if}
+			{#if icon === 'category'}<IconTags
+					class="size-3.5 shrink-0 text-slate-400"
+					aria-hidden="true"
+				/>{/if}
+			{#if icon === 'articles'}<IconScale
+					class="size-3.5 shrink-0 text-slate-400"
+					aria-hidden="true"
+				/>{/if}
+			{#if icon === 'court'}<IconLandmark
+					class="size-3.5 shrink-0 text-slate-400"
+					aria-hidden="true"
+				/>{/if}
+			{#if icon === 'parties'}<IconUsers
+					class="size-3.5 shrink-0 text-slate-400"
+					aria-hidden="true"
+				/>{/if}
+			{#if icon === 'year'}<IconCalendarDays
+					class="size-3.5 shrink-0 text-slate-400"
+					aria-hidden="true"
+				/>{/if}
+			<span class="truncate">{label}</span>
+		</span>
 		<span class="flex shrink-0 items-center gap-2">
 			<span
 				class={selected.length

@@ -22,6 +22,7 @@
 		showSuggestions?: boolean;
 		showSubmitButton?: boolean;
 		variant?: 'header' | 'hero';
+		showLabel?: boolean;
 		bare?: boolean;
 		trailing?: Snippet;
 	}
@@ -35,6 +36,7 @@
 		showSuggestions = navigateOnSubmit,
 		showSubmitButton = false,
 		variant = 'header',
+		showLabel = true,
 		bare = false,
 		trailing
 	}: Props = $props();
@@ -44,10 +46,13 @@
 	let suggestionsError = $state(false);
 	let activeSuggestionIndex = $state(0);
 	let searchForm = $state<HTMLFormElement>();
+	export function focus() {
+		searchForm?.querySelector<HTMLInputElement>('input[type="text"]')?.focus();
+	}
 	let syncedSearchValue = '';
 	let inputValue = $state(value);
 	let suggestions = $derived(buildSuggestions());
-	let suggestionActionCount = $derived(suggestions.length + 1);
+	let suggestionActionCount = $derived(Math.max(1, suggestions.length));
 	const applyListSearch = debounce((nextValue: string) => {
 		if (inputValue !== nextValue) return;
 		value = nextValue;
@@ -240,7 +245,7 @@
 	}}
 >
 	<div
-		class={variant === 'hero'
+		class={variant === 'hero' && (scopes.length || trailing)
 			? 'grid gap-2 md:grid-cols-[minmax(20rem,1fr)_13rem] lg:grid-cols-[minmax(20rem,1fr)_13rem_auto] lg:items-center'
 			: ''}
 	>
@@ -249,10 +254,10 @@
 				? 'flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-2.5 text-sm shadow-xs transition focus-within:border-slate-300 focus-within:ring-2 focus-within:ring-slate-950/10 md:h-10 md:px-3'
 				: 'input-bordered input flex items-center gap-2 opacity-80'}
 		>
-			{#if variant === 'hero'}
+			{#if variant === 'hero' && showLabel}
 				<span class="hidden text-slate-400 md:inline" aria-hidden="true">Search</span>
 			{:else}
-				<svg class="h-5 w-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="h-4 w-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -323,7 +328,7 @@
 
 	{#if showSuggestions && navigateOnSubmit && suggestionsOpen}
 		<div
-			class="absolute top-[calc(100%+0.5rem)] right-0 left-0 z-50 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-950/10"
+			class="absolute top-[calc(100%+0.5rem)] left-0 z-50 w-[min(28rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-950/10"
 		>
 			{#if suggestionsLoading}
 				<p class="px-3 py-2 text-sm text-slate-500">Searching cases...</p>
@@ -353,23 +358,8 @@
 						</button>
 					{/each}
 				</div>
-				{@const isSearchAllActive = activeSuggestionIndex === suggestions.length}
-				<button
-					class={isSearchAllActive
-						? 'block w-full border-t border-primary/30 bg-primary px-3 py-2 text-left text-sm font-medium text-primary-content transition focus:outline-none'
-						: 'block w-full border-t border-slate-100 px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-primary/10 focus:bg-primary/10 focus:outline-none'}
-					type="submit"
-					onmouseenter={() => (activeSuggestionIndex = suggestions.length)}
-				>
-					Search all cases for "{inputValue.trim()}"
-				</button>
 			{:else}
-				<button
-					class="block w-full bg-primary px-3 py-2 text-left text-sm font-medium text-primary-content transition focus:outline-none"
-					type="submit"
-				>
-					Search all cases for "{inputValue.trim()}"
-				</button>
+				<p class="px-3 py-2 text-sm text-slate-500">No matching cases.</p>
 			{/if}
 		</div>
 	{/if}

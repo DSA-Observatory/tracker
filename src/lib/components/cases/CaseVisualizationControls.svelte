@@ -1,5 +1,5 @@
 <script lang="ts">
-	import IconEye from '~icons/lucide/eye';
+	import IconSlidersHorizontal from '~icons/lucide/sliders-horizontal';
 	import type { FilterLayout, ViewMode } from './types';
 
 	let {
@@ -17,18 +17,18 @@
 
 <details class="relative" aria-label="Visualization preferences">
 	<summary
-		aria-label={`View options: ${viewMode === 'cards' ? 'Cards' : 'Table'}`}
+		aria-label="More case view options"
 		class="inline-flex h-8 cursor-pointer list-none items-center justify-center gap-1 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
 	>
-		<IconEye class="mr-1 size-3.5 text-slate-500" aria-hidden="true" />
-		{viewMode === 'cards' ? 'Cards' : 'Table'}
+		<IconSlidersHorizontal class="mr-1 size-3.5 text-slate-500" aria-hidden="true" />
+		More
 		<span class="text-[0.6rem] text-slate-500" aria-hidden="true">▼</span>
 	</summary>
 	<div
 		class="absolute right-0 z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white p-1 shadow-lg"
 	>
 		<p class="px-2 py-1 text-[0.65rem] font-semibold tracking-[0.16em] text-slate-400 uppercase">
-			Results
+			Other view
 		</p>
 		<button
 			class={viewMode === 'cards'
@@ -37,7 +37,7 @@
 			type="button"
 			onclick={() => onViewModeChange('cards')}
 		>
-			Cards
+			List
 		</button>
 		<button
 			class={viewMode === 'table'
@@ -46,7 +46,7 @@
 			type="button"
 			onclick={() => onViewModeChange('table')}
 		>
-			Table
+			Detailed table
 		</button>
 		<p
 			class="mt-1 border-t border-slate-100 px-2 pt-2 pb-1 text-[0.65rem] font-semibold tracking-[0.16em] text-slate-400 uppercase"

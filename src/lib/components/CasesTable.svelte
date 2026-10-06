@@ -7,15 +7,18 @@
 	import { page } from '$app/state';
 	import { claimEntryAnimation } from '$lib/entry-animation';
 	import { casesCacheKey, readCasesCache, writeCasesCache } from '$lib/stores/cases-cache';
-	import IconMap from '~icons/lucide/map';
 	import type { FilterOption } from '$lib/components/FilterMenu.svelte';
+	import CaseBrowseCards from '$lib/components/cases/CaseBrowseCards.svelte';
 	import CaseCardsList from '$lib/components/cases/CaseCardsList.svelte';
 	import CaseFilterPanel from '$lib/components/cases/CaseFilterPanel.svelte';
 	import CaseJurisdictionMap from '$lib/components/cases/CaseJurisdictionMap.svelte';
 	import CaseResultsTable from '$lib/components/cases/CaseResultsTable.svelte';
-	import CaseVisualizationControls from '$lib/components/cases/CaseVisualizationControls.svelte';
-	import LandingCaseCardsList from '$lib/components/cases/LandingCaseCardsList.svelte';
 	import Search from '$lib/components/Search.svelte';
+	import IconArrowUpDown from '~icons/lucide/arrow-up-down';
+	import IconChevronDown from '~icons/lucide/chevron-down';
+	import IconGrid from '~icons/lucide/list';
+	import IconMap from '~icons/lucide/map';
+	import IconTable from '~icons/lucide/table-2';
 	import type {
 		ActiveFilterChip,
 		FilterGroup,
@@ -28,6 +31,7 @@
 	const categoryOptions = ['Due Diligence', 'Intermediary Liability', 'P2B', 'Other'];
 	const viewModeStorageKey = 'cases:viewMode';
 	const filterLayoutStorageKey = 'cases:filterLayout';
+	const savedCasesStorageKey = `cases:saved:v1:${pb.baseURL}`;
 	type SearchIndexEntry = { text: string; words: string[] };
 
 	let {
@@ -75,7 +79,10 @@
 	let loading = $state(true);
 	let error = $state('');
 	let viewMode = $state<ViewMode>('cards');
+	let sortOrder = $state<'recent' | 'oldest' | 'title'>('recent');
 	let filterLayout = $state<FilterLayout>('left');
+	let activeTab = $state<'browse' | 'saved'>('browse');
+	let savedCaseIds = $state<string[]>([]);
 	let tableScrollTop = $state(0);
 	let tableViewportHeight = $state(640);
 	let tableScroller = $state<HTMLElement>();
@@ -84,14 +91,28 @@
 	let mobileFiltersOpen = $state(false);
 	let isMobileViewport = $state(false);
 	let playEntry = $state(false);
-	const saved = new PersistedState(`cases:workspace:v1:${publicationFilter ?? 'published'}:${heading}`, {
-		search: '', searchScope: 'all' as SearchScope,
-		countries: [] as string[], categories: [] as string[],
-		articles: [] as string[], courts: [] as string[], parties: [] as string[], years: [] as string[],
-		viewMode: 'cards' as ViewMode, filterLayout: 'left' as FilterLayout,
-		mapCollapsed: mapStartsCollapsed, tableScrollTop: 0, tableScrollLeft: 0,
-		windowScrollY: 0, filterScrollTop: 0, visited: false
-	}, { storage: 'session', syncTabs: false });
+	const saved = new PersistedState(
+		`cases:workspace:v1:${publicationFilter ?? 'published'}:${heading}`,
+		{
+			search: '',
+			searchScope: 'all' as SearchScope,
+			countries: [] as string[],
+			categories: [] as string[],
+			articles: [] as string[],
+			courts: [] as string[],
+			parties: [] as string[],
+			years: [] as string[],
+			viewMode: 'cards' as ViewMode,
+			filterLayout: 'left' as FilterLayout,
+			mapCollapsed: mapStartsCollapsed,
+			tableScrollTop: 0,
+			tableScrollLeft: 0,
+			windowScrollY: 0,
+			filterScrollTop: 0,
+			visited: false
+		},
+		{ storage: 'session', syncTabs: false }
+	);
 	let tableScrollLeft = $state(0);
 	let windowScrollY = $state(0);
 	let filterScrollTop = $state(0);
@@ -104,32 +125,41 @@
 	const rowOverscan = 8;
 
 	const canWrite = $derived(authStore.isAdmin);
+	const browseCases = $derived(
+		activeTab === 'saved' ? cases.filter((record) => savedCaseIds.includes(record.id)) : cases
+	);
 	const availableCountries = $derived(
-		uniqueSorted(cases.map((record) => normalizeJurisdiction(record.jurisdiction)))
+		uniqueSorted(browseCases.map((record) => normalizeJurisdiction(record.jurisdiction)))
 	);
 	const countryFilterOptions = $derived(buildOptions('countries', availableCountries));
 	const availableCategories = $derived(
 		categoryOptions.filter((category) =>
-			cases.some((record) => getCategories(record).includes(category))
+			browseCases.some((record) => getCategories(record).includes(category))
 		)
 	);
 	const categoryFilterOptions = $derived(buildOptions('categories', availableCategories));
 	const articleFilterOptions = $derived(
-		buildOptions('articles', uniqueSorted(cases.flatMap((record) => record.dsa_articles ?? [])))
+		buildOptions(
+			'articles',
+			uniqueSorted(browseCases.flatMap((record) => record.dsa_articles ?? []))
+		)
 	);
 	const courtFilterOptions = $derived(
-		buildOptions('courts', uniqueSorted(cases.map((record) => record.court)))
+		buildOptions('courts', uniqueSorted(browseCases.map((record) => record.court)))
 	);
 	const partyFilterOptions = $derived(
 		buildOptions(
 			'parties',
 			uniqueSorted(
-				cases.flatMap((record) => [...(record.plaintiffs ?? []), ...(record.defendants ?? [])])
+				browseCases.flatMap((record) => [
+					...(record.plaintiffs ?? []),
+					...(record.defendants ?? [])
+				])
 			)
 		)
 	);
 	const yearFilterOptions = $derived(
-		buildOptions('years', uniqueSorted(cases.map((record) => getDecisionYear(record))))
+		buildOptions('years', uniqueSorted(browseCases.map((record) => getDecisionYear(record))))
 	);
 	const normalizedSearch = $derived(normalizeSearchText(search.trim()));
 	const searchParts = $derived(searchTokens(normalizedSearch));
@@ -147,7 +177,7 @@
 			})
 		)
 	);
-	const filteredCases = $derived(cases.filter((record) => matchesFilters(record)));
+	const filteredCases = $derived(sortCases(browseCases.filter((record) => matchesFilters(record))));
 	const activeChips = $derived(buildActiveChips());
 	const activeFilterCount = $derived(
 		activeChips.length + (search.trim() || searchScope !== 'all' ? 1 : 0)
@@ -162,9 +192,17 @@
 		parties,
 		years,
 		viewMode,
+		sortOrder,
+		activeTab,
 		filterLayout
 	]);
-	const jurisdictionCount = $derived(availableCountries.length);
+	const caseStats = $derived({
+		cases: cases.length,
+		countries: uniqueSorted(cases.map((record) => normalizeJurisdiction(record.jurisdiction)))
+			.length,
+		courts: uniqueSorted(cases.map((record) => record.court)).length,
+		categories: uniqueSorted(cases.flatMap((record) => getCategories(record))).length
+	});
 	const rowHeight = $derived(viewMode === 'cards' ? 252 : 176);
 	const virtualStart = $derived(Math.max(0, Math.floor(tableScrollTop / rowHeight) - rowOverscan));
 	const virtualEnd = $derived(
@@ -176,9 +214,10 @@
 	const virtualRows = $derived(filteredCases.slice(virtualStart, virtualEnd));
 	const topSpacerHeight = $derived(virtualStart * rowHeight);
 	const bottomSpacerHeight = $derived((filteredCases.length - virtualEnd) * rowHeight);
-	const visibleRows = $derived(isMobileViewport ? filteredCases : virtualRows);
-	const visibleTopSpacerHeight = $derived(isMobileViewport ? 0 : topSpacerHeight);
-	const visibleBottomSpacerHeight = $derived(isMobileViewport ? 0 : bottomSpacerHeight);
+	const useCaseCardVirtualization = $derived(cardVariant !== 'landing' && !isMobileViewport);
+	const visibleRows = $derived(useCaseCardVirtualization ? virtualRows : filteredCases);
+	const visibleTopSpacerHeight = $derived(useCaseCardVirtualization ? topSpacerHeight : 0);
+	const visibleBottomSpacerHeight = $derived(useCaseCardVirtualization ? bottomSpacerHeight : 0);
 	const filterPanelProps = $derived({
 		filteredCount: filteredCases.length,
 		totalCount: cases.length,
@@ -196,6 +235,9 @@
 		courts,
 		parties,
 		years,
+		activeTab,
+		savedCount: savedCaseIds.filter((id) => cases.some((record) => record.id === id)).length,
+		onTabChange: setActiveTab,
 		onToggle: toggleFilter,
 		onClear: clearFilters
 	});
@@ -230,9 +272,24 @@
 
 	$effect(() => {
 		if (!preferencesLoaded) return;
-		saved.current = { search, searchScope, countries, categories, articles,
-			courts, parties, years, viewMode, filterLayout, mapCollapsed, tableScrollTop,
-			tableScrollLeft, windowScrollY, filterScrollTop, visited: true };
+		saved.current = {
+			search,
+			searchScope,
+			countries,
+			categories,
+			articles,
+			courts,
+			parties,
+			years,
+			viewMode,
+			filterLayout,
+			mapCollapsed,
+			tableScrollTop,
+			tableScrollLeft,
+			windowScrollY,
+			filterScrollTop,
+			visited: true
+		};
 	});
 
 	function rememberWindowScroll() {
@@ -253,32 +310,50 @@
 				tableViewportHeight = node.clientHeight;
 			});
 		});
-		const observer = new ResizeObserver(() => { tableViewportHeight = node.clientHeight; });
+		const observer = new ResizeObserver(() => {
+			tableViewportHeight = node.clientHeight;
+		});
 		observer.observe(node);
-		return { destroy() { active = false; observer.disconnect(); } };
+		return {
+			destroy() {
+				active = false;
+				observer.disconnect();
+			}
+		};
 	}
 
 	function rememberFilterScroll(node: HTMLElement) {
 		const panel = node.firstElementChild as HTMLElement | null;
 		if (!panel) return;
 		let active = true;
-		tick().then(() => { if (active) panel.scrollTop = filterScrollTop; });
-		const remember = () => { filterScrollTop = panel.scrollTop; };
+		tick().then(() => {
+			if (active) panel.scrollTop = filterScrollTop;
+		});
+		const remember = () => {
+			filterScrollTop = panel.scrollTop;
+		};
 		panel.addEventListener('scroll', remember);
-		return { destroy() { active = false; panel.removeEventListener('scroll', remember); } };
+		return {
+			destroy() {
+				active = false;
+				panel.removeEventListener('scroll', remember);
+			}
+		};
 	}
 
 	afterNavigate(() => {
 		if (!preferencesLoaded || !isMobileViewport || !windowScrollY) return;
 		disableScrollHandling();
-		tick().then(() => { if (!disposed) window.scrollTo(0, windowScrollY); });
+		tick().then(() => {
+			if (!disposed) window.scrollTo(0, windowScrollY);
+		});
 	});
 
 	function loadPreferences() {
 		if (!browser) return;
 
 		const stored = localStorage.getItem(viewModeStorageKey);
-		viewMode = stored === 'table' ? stored : 'cards';
+		viewMode = stored === 'table' || stored === 'grid' || stored === 'map' ? stored : 'cards';
 
 		const storedLayout = localStorage.getItem(filterLayoutStorageKey);
 		filterLayout = storedLayout === 'top' ? storedLayout : 'left';
@@ -286,12 +361,19 @@
 		if (state.visited) {
 			search = state.search;
 			searchScope = state.searchScope;
-			countries = state.countries; categories = state.categories;
-			articles = state.articles; courts = state.courts; parties = state.parties; years = state.years;
-			viewMode = state.viewMode; filterLayout = state.filterLayout;
+			countries = state.countries;
+			categories = state.categories;
+			articles = state.articles;
+			courts = state.courts;
+			parties = state.parties;
+			years = state.years;
+			viewMode = state.viewMode;
+			filterLayout = state.filterLayout;
 			mapCollapsed = state.mapCollapsed;
-			tableScrollTop = state.tableScrollTop; tableScrollLeft = state.tableScrollLeft;
-			windowScrollY = state.windowScrollY; filterScrollTop = state.filterScrollTop;
+			tableScrollTop = state.tableScrollTop;
+			tableScrollLeft = state.tableScrollLeft;
+			windowScrollY = state.windowScrollY;
+			filterScrollTop = state.filterScrollTop;
 		}
 		// Explicit incoming search/map links take precedence over remembered filters.
 		if (page.url.searchParams.has('q')) search = page.url.searchParams.get('q') ?? '';
@@ -299,6 +381,8 @@
 			countries = [normalizeJurisdiction(page.url.searchParams.get('jurisdiction') ?? '')];
 		}
 		if (page.url.searchParams.has('map')) mapCollapsed = mapStartsCollapsed;
+		if (viewMode === 'grid') viewMode = 'cards';
+		if (cardVariant === 'landing') searchScope = 'all';
 		preferencesLoaded = true;
 	}
 
@@ -306,6 +390,16 @@
 		return [...new Set(values.map((value) => value?.trim()).filter(Boolean) as string[])].sort(
 			(a, b) => a.localeCompare(b)
 		);
+	}
+
+	function sortCases(records: CaseRecord[]) {
+		return [...records].sort((a, b) => {
+			if (sortOrder === 'title') return a.title.localeCompare(b.title);
+			const aDate = a.decision_date ? new Date(a.decision_date).getTime() : 0;
+			const bDate = b.decision_date ? new Date(b.decision_date).getTime() : 0;
+			const difference = aDate - bDate;
+			return sortOrder === 'oldest' ? difference : -difference;
+		});
 	}
 
 	function countryLabel(country: string) {
@@ -400,8 +494,10 @@
 
 	function getCategories(record: CaseRecord) {
 		const categories = listOrFallback(record.categories);
-		if (categories.length) return categories;
-		return (record.keywords ?? []).filter((keyword) => categoryOptions.includes(keyword));
+		const values = categories.length ? categories : (record.keywords ?? []);
+		return [...new Set(values.map((value) =>
+			categoryOptions.find((category) => category.toLowerCase() === value.trim().toLowerCase()) ?? value.trim()
+		))].filter((value) => categories.length || categoryOptions.includes(value));
 	}
 
 	function getSummarySection(record: CaseRecord, heading: string) {
@@ -538,7 +634,7 @@
 	}
 
 	function optionCount(group: FilterGroup, option: string) {
-		return cases.filter((record) => {
+		return browseCases.filter((record) => {
 			if (!matchesFilters(record, group)) return false;
 			if (group === 'countries') return matchesJurisdiction(record, option);
 			if (group === 'categories') return getCategories(record).includes(option);
@@ -617,6 +713,43 @@
 		resetTableScroll();
 	}
 
+	function setActiveTab(tab: 'browse' | 'saved') {
+		activeTab = tab;
+		if (tab === 'saved' && viewMode === 'map') viewMode = 'cards';
+	}
+
+	function toggleSavedCase(record: CaseRecord) {
+		if (!cases.some((caseRecord) => caseRecord.id === record.id)) return;
+		savedCaseIds = savedCaseIds.includes(record.id)
+			? savedCaseIds.filter((id) => id !== record.id)
+			: [...savedCaseIds, record.id];
+		if (browser) localStorage.setItem(savedCasesStorageKey, JSON.stringify(savedCaseIds));
+	}
+
+	function loadSavedCases() {
+		if (!browser) return;
+		try {
+			const saved = JSON.parse(localStorage.getItem(savedCasesStorageKey) ?? '[]');
+			savedCaseIds = Array.isArray(saved)
+				? saved.filter((id): id is string => typeof id === 'string')
+				: [];
+		} catch {
+			savedCaseIds = [];
+		}
+	}
+
+	function openFilters() {
+		if (isMobileViewport) {
+			mobileFiltersOpen = true;
+			return;
+		}
+		const panel = Array.from(document.querySelectorAll<HTMLElement>('[data-case-filters]')).find(
+			(candidate) => candidate.offsetParent !== null
+		);
+		panel?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+		(panel?.querySelector('button') as HTMLButtonElement | null)?.focus();
+	}
+
 	function closeMobileFilters() {
 		mobileFiltersOpen = false;
 	}
@@ -636,7 +769,10 @@
 	}
 
 	async function loadCases() {
-		if (refreshing) { refreshAgain = true; return; }
+		if (refreshing) {
+			refreshAgain = true;
+			return;
+		}
 		refreshing = true;
 		const version = ++requestVersion;
 		const key = casesCacheKey(publicationFilter === 'draft');
@@ -651,12 +787,25 @@
 						? "published = false && status != 'archived'"
 						: "published = true && status != 'archived'"
 			});
-			if (disposed || version !== requestVersion || key !== casesCacheKey(publicationFilter === 'draft')) return;
+			if (
+				disposed ||
+				version !== requestVersion ||
+				key !== casesCacheKey(publicationFilter === 'draft')
+			)
+				return;
 			writeCasesCache(key, records);
 			if (JSON.stringify(cases) !== JSON.stringify(records)) cases = records;
+			const validSavedIds = savedCaseIds.filter((id) => records.some((record) => record.id === id));
+			if (validSavedIds.length !== savedCaseIds.length) {
+				savedCaseIds = validSavedIds;
+				if (browser) localStorage.setItem(savedCasesStorageKey, JSON.stringify(savedCaseIds));
+			}
 		} catch (err) {
 			if (disposed || version !== requestVersion) return;
-			if ((err as { status?: number }).status === 401 || (err as { status?: number }).status === 403) {
+			if (
+				(err as { status?: number }).status === 401 ||
+				(err as { status?: number }).status === 403
+			) {
 				cases = [];
 				writeCasesCache(key, []);
 			}
@@ -665,7 +814,10 @@
 		} finally {
 			refreshing = false;
 			if (!disposed && version === requestVersion) loading = false;
-			if (!disposed && refreshAgain) { refreshAgain = false; void loadCases(); }
+			if (!disposed && refreshAgain) {
+				refreshAgain = false;
+				void loadCases();
+			}
 		}
 	}
 
@@ -738,7 +890,11 @@
 	onMount(() => {
 		playEntry = homeIntro && claimEntryAnimation('cases-tracker');
 		// Do not animate sections mounted later by changing views or map controls.
-		const entryTimer = playEntry ? window.setTimeout(() => { playEntry = false; }, 1100) : undefined;
+		const entryTimer = playEntry
+			? window.setTimeout(() => {
+					playEntry = false;
+				}, 1100)
+			: undefined;
 		const mediaQuery = window.matchMedia('(max-width: 767px)');
 		const updateMobileViewport = () => {
 			isMobileViewport = mediaQuery.matches;
@@ -747,20 +903,33 @@
 		updateMobileViewport();
 		mediaQuery.addEventListener('change', updateMobileViewport);
 		loadPreferences();
+		loadSavedCases();
 		const cached = readCasesCache(casesCacheKey(publicationFilter === 'draft'));
-		if (cached !== undefined) { cases = cached; loading = false; }
+		if (cached !== undefined) {
+			cases = cached;
+			loading = false;
+		}
 		loadCases();
-		const refresh = () => { void loadCases(); };
+		const refresh = () => {
+			void loadCases();
+		};
 		window.addEventListener('focus', refresh);
 		const removeAuthListener = pb.authStore.onChange(() => {
 			requestVersion++;
-			cases = []; loading = true;
+			cases = [];
+			loading = true;
 			refresh();
 		});
 		let unsubscribe: (() => void) | undefined;
-		pb.collection('cases').subscribe('*', refresh).then((stop) => {
-			if (disposed) stop(); else unsubscribe = stop;
-		}).catch(() => { /* Returning to the list and window focus still refresh it. */ });
+		pb.collection('cases')
+			.subscribe('*', refresh)
+			.then((stop) => {
+				if (disposed) stop();
+				else unsubscribe = stop;
+			})
+			.catch(() => {
+				/* Returning to the list and window focus still refresh it. */
+			});
 
 		return () => {
 			if (entryTimer !== undefined) window.clearTimeout(entryTimer);
@@ -790,44 +959,80 @@
 		<div>
 			{#if homeIntro}
 				<div
-					class="cases-entry cases-intro mb-3 overflow-hidden rounded-2xl border border-slate-200 bg-base-200/60 shadow-sm shadow-slate-200/60"
+					class="cases-entry cases-intro relative mb-3 overflow-hidden rounded-2xl border border-sky-100 bg-gradient-to-br from-white via-sky-50 to-blue-100 shadow-sm shadow-slate-200/60"
 				>
-					<div class="relative flex flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-5">
-						<div class="min-w-0">
+					<div
+						class="pointer-events-none absolute inset-0 hidden sm:block"
+						aria-hidden="true"
+					>
+						<img
+							src={resolve('/maps/europe-banner.png')}
+						alt=""
+						class="h-full w-full object-fill opacity-50 saturate-[0.7]"
+						draggable="false"
+						/>
+					</div>
+					<div
+						class="relative grid min-h-[158px] items-center gap-5 px-5 py-5 sm:px-6 md:grid-cols-[minmax(0,1fr)_21rem] md:gap-6 md:px-7 md:py-4"
+					>
+						<div class="min-w-0 md:max-w-[42rem]">
 							<p class="text-xs font-black tracking-[0.28em] text-amber-500 uppercase">
 								DSA Case Law Tracker
 							</p>
-							<h1 class="mt-1 text-2xl font-black tracking-tight text-slate-950 md:text-3xl">
+							<h1
+								class="mt-2 text-2xl leading-[1.08] font-black tracking-[-0.035em] text-slate-950 sm:text-3xl lg:text-4xl"
+							>
 								Private enforcement cases
 							</h1>
-							<p class="mt-1 max-w-2xl text-sm text-slate-600">
-								Search, filter, map, and compare DSA litigation across jurisdictions.
+							<p class="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+								Search, filter and compare private enforcement cases under the Digital Services Act.
 							</p>
 						</div>
-						<div class="flex shrink-0 flex-wrap gap-2 text-sm">
-							{#if showMap}
-								<button
-									class={mapCollapsed
-										? 'inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/75 px-3 py-2 text-left shadow-xs transition hover:border-slate-300 hover:bg-white focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none'
-										: 'inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-100 px-3 py-2 text-left shadow-xs transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none'}
-									type="button"
-									aria-pressed={!mapCollapsed}
-									title={mapCollapsed ? 'Show map' : 'Hide map'}
-									onclick={() => (mapCollapsed = !mapCollapsed)}
-								>
-									<IconMap class="size-4 text-slate-500" />
-									<span class="font-semibold text-slate-950">{mapCollapsed ? 'View map' : 'Hide map'}</span>
-									<span
-										><span class="font-black text-slate-950">{jurisdictionCount}</span>
-										<span class="text-slate-500"> countries</span></span
+						<div class="min-w-0">
+							<div
+								class="grid grid-cols-4 items-center rounded-xl border border-white/60 bg-white/65 px-2 py-5 shadow-sm shadow-sky-900/5 backdrop-blur-md sm:px-3"
+							>
+								<div class="px-2 text-left sm:px-3">
+									<strong
+										class="block text-xl leading-none font-bold tracking-tight text-slate-950"
+										>{caseStats.cases}</strong
 									>
-								</button>
-							{:else}
-								<div class="rounded-xl border border-slate-200 bg-white/75 px-3 py-2 shadow-xs">
-									<span class="font-black text-slate-950">{jurisdictionCount}</span>
-									<span class="text-slate-500"> countries</span>
+									<span
+										class="mt-1 block text-xs font-medium text-slate-600"
+										>cases</span
+									>
 								</div>
-							{/if}
+								<div class="border-l border-slate-200/80 px-2 text-left sm:px-3">
+									<strong
+										class="block text-base leading-none font-bold tracking-tight text-slate-900"
+										>{caseStats.countries}</strong
+									>
+									<span
+										class="mt-2 block text-xs font-normal text-slate-500"
+										>countries</span
+									>
+								</div>
+								<div class="border-l border-slate-200/80 px-2 text-left sm:px-3">
+									<strong
+										class="block text-base leading-none font-bold tracking-tight text-slate-900"
+										>{caseStats.courts}</strong
+									>
+									<span
+										class="mt-2 block text-xs font-normal text-slate-500"
+										>courts</span
+									>
+								</div>
+								<div class="border-l border-slate-200/80 px-2 text-left sm:px-3">
+									<strong
+										class="block text-base leading-none font-bold tracking-tight text-slate-900"
+										>{caseStats.categories}</strong
+									>
+									<span
+										class="mt-2 block text-xs font-normal text-slate-500"
+										>categories</span
+									>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -847,30 +1052,51 @@
 					placeholder="Search cases, parties, articles, sources"
 					navigateOnSubmit={false}
 					variant="hero"
+					showLabel={false}
 					bare={true}
 				/>
 
-				<div class="mt-2 flex items-center justify-between gap-2">
+				<div class="mt-2 flex flex-wrap items-center justify-between gap-2">
 					<div
 						class="inline-flex items-center rounded-md border border-slate-200 bg-white/80 p-0.5 shadow-xs"
 					>
 						<button
-							class={viewMode === 'cards'
-								? 'h-7 rounded-sm bg-slate-100 px-2.5 text-xs font-semibold text-slate-950 transition'
-								: 'h-7 rounded-sm px-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800'}
+							class={viewMode === 'grid' || viewMode === 'cards'
+								? 'inline-flex h-7 items-center gap-1 rounded-sm bg-slate-100 px-2.5 text-xs font-semibold text-slate-950 transition'
+								: 'inline-flex h-7 items-center gap-1 rounded-sm px-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800'}
 							type="button"
-							onclick={() => (viewMode = 'cards')}>Cards</button
+							onclick={() => (viewMode = 'cards')}><IconGrid class="size-3.5" aria-hidden="true" /> List</button
 						>
 						<button
-							class={viewMode === 'table'
-								? 'h-7 rounded-sm bg-slate-100 px-2.5 text-xs font-semibold text-slate-950 transition'
-								: 'h-7 rounded-sm px-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800'}
-							type="button"
-							onclick={() => (viewMode = 'table')}>Table</button
-						>
+								class={viewMode === 'table'
+									? 'inline-flex h-7 items-center gap-1 rounded-sm bg-slate-100 px-2.5 text-xs font-semibold text-slate-950 transition'
+									: 'inline-flex h-7 items-center gap-1 rounded-sm px-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800'}
+								type="button"
+								onclick={() => (viewMode = 'table')}><IconTable class="size-3.5" aria-hidden="true" /> Table</button
+							>
+						{#if cardVariant === 'landing' && showMap}<button
+								class={viewMode === 'map'
+									? 'inline-flex h-7 items-center gap-1 rounded-sm bg-slate-900 px-2.5 text-xs font-semibold text-white transition'
+									: 'inline-flex h-7 items-center gap-1 rounded-sm px-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800'}
+								type="button"
+								onclick={() => (viewMode = 'map')}><IconMap class="size-3.5" aria-hidden="true" /> Map</button
+							>{/if}
 					</div>
 
 					<div class="flex items-center gap-1.5">
+						<label class="relative">
+						<IconArrowUpDown class="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+						<select
+							class="h-8 max-w-32 appearance-none rounded-md border border-slate-300 bg-white pr-6 pl-7 text-xs font-semibold text-slate-700"
+							bind:value={sortOrder}
+							aria-label="Sort cases"
+						>
+							<option value="recent">Recent</option><option value="oldest">Oldest</option><option
+								value="title">Title A–Z</option
+							>
+						</select>
+						<IconChevronDown class="pointer-events-none absolute top-1/2 right-2 size-3 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+						</label>
 						<details class="relative">
 							<summary
 								class="inline-flex h-8 shrink-0 cursor-pointer list-none items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
@@ -903,7 +1129,7 @@
 						<button
 							class="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
 							type="button"
-							onclick={() => (mobileFiltersOpen = true)}
+							onclick={openFilters}
 							aria-haspopup="dialog"
 							aria-expanded={mobileFiltersOpen}
 						>
@@ -917,6 +1143,7 @@
 				</div>
 			</div>
 
+			{#if cardVariant !== 'landing'}
 			<div class="cases-entry cases-toolbar hidden md:block">
 				<Search
 					bind:value={search}
@@ -925,15 +1152,47 @@
 					placeholder="Search cases, parties, articles, sources"
 					navigateOnSubmit={false}
 					variant="hero"
+					showLabel={false}
 					bare={true}
 				>
 					{#snippet trailing()}
-						<CaseVisualizationControls
-							{viewMode}
-							{filterLayout}
-							onViewModeChange={(mode) => (viewMode = mode)}
-							onFilterLayoutChange={(layout) => (filterLayout = layout)}
-						/>
+						<select
+							class="h-8 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-700 shadow-xs focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
+							bind:value={sortOrder}
+							aria-label="Sort cases"
+						>
+							<option value="recent">Most recent</option>
+							<option value="oldest">Oldest first</option>
+							<option value="title">Title A–Z</option>
+						</select>
+						<div
+							class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-0.5 shadow-xs"
+						>
+							<button
+								class={viewMode === 'grid' || viewMode === 'cards'
+									? 'h-7 rounded-md bg-slate-900 px-2.5 text-xs font-semibold text-white'
+									: 'h-7 rounded-md px-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
+								type="button"
+								aria-pressed={viewMode === 'grid' || viewMode === 'cards'}
+								onclick={() => (viewMode = 'cards')}>List</button
+							>
+							<button
+									class={viewMode === 'table'
+										? 'h-7 rounded-md bg-slate-100 px-2.5 text-xs font-semibold text-slate-950'
+										: 'h-7 rounded-md px-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
+									type="button"
+									aria-pressed={viewMode === 'table'}
+									onclick={() => (viewMode = 'table')}>Table</button
+								>
+							{#if cardVariant === 'landing' && showMap}<button
+									class={viewMode === 'map'
+										? 'h-7 rounded-md bg-slate-100 px-2.5 text-xs font-semibold text-slate-950'
+										: 'h-7 rounded-md px-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
+									type="button"
+									aria-pressed={viewMode === 'map'}
+									onclick={() => (viewMode = 'map')}>Map</button
+								>{/if}
+						</div>
 						<details class="relative">
 							<summary
 								class="inline-flex h-8 cursor-pointer list-none items-center justify-center gap-1 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
@@ -957,7 +1216,7 @@
 							</div>
 						</details>
 						{#if canWrite}<button
-							class="btn btn-primary h-8 min-h-0 rounded-md px-3 text-xs font-semibold whitespace-nowrap"
+								class="btn h-8 min-h-0 rounded-md px-3 text-xs font-semibold whitespace-nowrap btn-primary"
 								type="button"
 								onclick={() => goto(resolve('/cases/new'))}>Create case</button
 							>{/if}
@@ -970,6 +1229,29 @@
 					cases
 				</p>
 			</div>
+			{#if activeChips.length > 0 || search.trim()}<div
+				class="cases-entry flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-2.5"
+			>
+				<div class="flex min-w-0 flex-wrap items-center gap-1.5">
+					{#each activeChips as chip (`${chip.group}:${chip.value}`)}
+						<button
+							class="inline-flex h-7 max-w-44 items-center gap-1 truncate rounded-full border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+							type="button"
+							onclick={() => toggleFilter(chip.group, chip.value)}
+							title={`Remove ${chip.label} filter`}
+						>
+							<span class="truncate">{chip.label}</span><span aria-hidden="true">×</span>
+						</button>
+					{/each}
+					{#if search.trim()}<button
+							class="inline-flex h-7 max-w-44 items-center gap-1 truncate rounded-full border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+							type="button"
+							onclick={() => (search = '')}
+							><span class="truncate">Search: {search}</span><span aria-hidden="true">×</span
+							></button
+						>{/if}
+				</div>
+			</div>{/if}
 
 			{#if filterLayout === 'top'}
 				<div class="hidden md:block">
@@ -979,6 +1261,7 @@
 				<div class="hidden md:block lg:hidden">
 					<CaseFilterPanel sidebar={false} {...filterPanelProps} />
 				</div>
+			{/if}
 			{/if}
 		</div>
 	</div>
@@ -991,45 +1274,144 @@
 		</div>
 	{/if}
 
-	{#if showMap && !mapCollapsed}
-		<div class="mb-4 flex-none">
-			<CaseJurisdictionMap
-				{cases}
-				collapsed={mapCollapsed}
-				compact={true}
-				bare={true}
-				showList={false}
-				showToggle={false}
-			/>
-		</div>
-	{/if}
-
 	<div
-		class={filterLayout === 'left'
-			? 'grid min-w-0 gap-4 md:min-h-0 md:flex-1 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]'
+		class={cardVariant === 'landing'
+			? 'grid min-w-0 gap-4 md:min-h-0 md:flex-1 lg:grid-cols-[17.5rem_minmax(0,1fr)]'
+			: filterLayout === 'left'
+			? 'grid min-w-0 gap-4 md:min-h-0 md:flex-1 lg:grid-cols-[17.5rem_minmax(0,1fr)]'
 			: 'min-w-0 md:min-h-0 md:flex-1'}
 	>
-		{#if filterLayout === 'left'}
-			<aside use:rememberFilterScroll class="cases-entry cases-filters hidden min-h-0 min-w-0 overflow-hidden lg:block">
+		{#if cardVariant === 'landing' || filterLayout === 'left'}
+			<aside
+				use:rememberFilterScroll
+				class="cases-entry cases-filters hidden min-h-0 min-w-0 overflow-hidden lg:block"
+			>
 				<CaseFilterPanel sidebar={true} {...filterPanelProps} />
 			</aside>
 		{/if}
-		<div class="cases-entry cases-results min-w-0 md:h-full md:min-h-0 md:overflow-hidden">
-			{#if viewMode !== 'table'}
+		<div class="cases-entry cases-results min-w-0 md:flex md:h-full md:min-h-0 md:flex-col md:overflow-hidden">
+			{#if cardVariant === 'landing'}
+				<div class="mb-3 hidden flex-none space-y-2 md:block">
+					<div class="flex min-w-0 items-center gap-2">
+						<div class="min-w-0 flex-1">
+							<Search
+								bind:value={search}
+								placeholder="Search cases, parties, articles, sources"
+								navigateOnSubmit={false}
+								variant="hero"
+								showLabel={false}
+								bare={true}
+							/>
+						</div>
+						<label class="relative shrink-0">
+							<span class="sr-only">Sort cases</span>
+							<IconArrowUpDown class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+							<select
+								class="h-10 appearance-none rounded-lg border border-slate-200 bg-white py-0 pr-9 pl-9 text-sm font-semibold text-slate-700 shadow-xs outline-none transition hover:border-slate-300 focus:ring-2 focus:ring-slate-900/10"
+								bind:value={sortOrder}
+							>
+								<option value="recent">Most recent</option>
+								<option value="oldest">Oldest first</option>
+								<option value="title">Title A–Z</option>
+							</select>
+							<IconChevronDown class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+						</label>
+						<div class="inline-flex h-10 shrink-0 items-center rounded-lg border border-slate-200 bg-white p-1 shadow-xs">
+							<button
+								class={viewMode === 'grid' || viewMode === 'cards'
+									? 'inline-flex h-8 items-center gap-1.5 rounded-md bg-slate-200 px-3 text-sm font-semibold text-slate-700'
+									: 'inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-950'}
+								type="button"
+								aria-pressed={viewMode === 'grid' || viewMode === 'cards'}
+								onclick={() => (viewMode = 'cards')}
+							><IconGrid class="size-4" aria-hidden="true" /> List</button
+							>
+							<button
+								class={viewMode === 'table'
+									? 'inline-flex h-8 items-center gap-1.5 rounded-md bg-slate-200 px-3 text-sm font-semibold text-slate-700'
+									: 'inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-950'}
+								type="button"
+								aria-pressed={viewMode === 'table'}
+								onclick={() => (viewMode = 'table')}
+							><IconTable class="size-4" aria-hidden="true" /> Table</button
+							>
+							{#if showMap}<button
+									class={viewMode === 'map'
+										? 'inline-flex h-8 items-center gap-1.5 rounded-md bg-slate-200 px-3 text-sm font-semibold text-slate-700'
+										: 'inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-950'}
+									type="button"
+									aria-pressed={viewMode === 'map'}
+									onclick={() => (viewMode = 'map')}
+								><IconMap class="size-4" aria-hidden="true" /> Map</button
+								>{/if}
+						</div>
+						<details class="relative shrink-0">
+							<summary class="inline-flex h-10 cursor-pointer list-none items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 shadow-xs hover:border-slate-300">Export <IconChevronDown class="size-3.5" aria-hidden="true" /></summary>
+							<div class="absolute right-0 z-50 mt-1 min-w-32 rounded-md border border-slate-200 bg-white p-1 shadow-lg">
+								<button class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50" type="button" onclick={() => downloadFilteredCases('csv')}>CSV</button>
+								<button class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50" type="button" onclick={() => downloadFilteredCases('json')}>JSON</button>
+							</div>
+						</details>
+						{#if canWrite}<button class="btn h-10 min-h-0 shrink-0 rounded-md px-3 text-xs font-semibold whitespace-nowrap btn-primary" type="button" onclick={() => goto(resolve('/cases/new'))}>Create case</button>{/if}
+					</div>
+
+					{#if activeChips.length > 0 || search.trim()}<div class="flex min-h-8 flex-wrap items-center gap-2">
+						<div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+							{#each activeChips as chip (`${chip.group}:${chip.value}`)}
+								<button
+									class="inline-flex h-7 max-w-48 items-center gap-1 rounded-full bg-slate-100 px-2.5 text-xs font-medium text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
+									type="button"
+									onclick={() => toggleFilter(chip.group, chip.value)}
+									title={`Remove ${chip.label} filter`}
+								><span class="truncate">{chip.label}</span><span aria-hidden="true">×</span></button
+								>
+							{/each}
+							{#if search.trim()}<button
+									class="inline-flex h-7 max-w-48 items-center gap-1 rounded-full bg-slate-100 px-2.5 text-xs font-medium text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
+									type="button"
+									onclick={() => (search = '')}
+									><span class="truncate">Search: {search}</span><span aria-hidden="true">×</span></button
+								>{/if}
+						</div>
+					</div>{/if}
+				</div>
+				<div class="hidden flex-none md:block lg:hidden">
+					<CaseFilterPanel sidebar={false} {...filterPanelProps} />
+				</div>
+			{/if}
+			{#if cardVariant === 'landing' && viewMode === 'map' && showMap}
+				<div
+					class="min-h-0 flex-1 rounded-xl border border-slate-200 bg-white p-3 shadow-sm shadow-slate-200/70"
+				>
+					<CaseJurisdictionMap
+						cases={filteredCases}
+						collapsed={false}
+						compact={true}
+						bare={true}
+						fill={true}
+						showList={false}
+						showToggle={false}
+					/>
+				</div>
+			{:else if viewMode !== 'table'}
 				<div
 					bind:this={tableScroller}
 					use:restoreScroller
-					class="max-w-full overflow-visible rounded-xl border border-slate-200 bg-base-200/60 p-3 shadow-sm shadow-slate-200/70 md:h-full md:min-h-0 md:overflow-auto"
+					class={cardVariant === 'landing'
+						? 'max-w-full overflow-visible md:min-h-0 md:flex-1 md:overflow-auto'
+						: 'max-w-full overflow-visible rounded-xl border border-slate-200 bg-base-200/60 p-3 shadow-sm shadow-slate-200/70 md:h-full md:min-h-0 md:overflow-auto'}
 					onscroll={updateTableViewport}
 				>
 					{#if cardVariant === 'landing'}
-						<LandingCaseCardsList
+						<CaseBrowseCards
 							{...resultProps}
-							{getPartyValues}
+							layout={viewMode === 'grid' ? 'grid' : 'list'}
+							{savedCaseIds}
+							emptySaved={activeTab === 'saved' && savedCaseIds.length === 0}
+							onToggleSaved={toggleSavedCase}
+							onEdit={editCase}
 							{countryLabel}
 							{getCategories}
-							{getPrimarySourcesList}
-							{getSecondarySourcesList}
 							{sourceLinks}
 							{sourceLabel}
 						/>
@@ -1051,7 +1433,9 @@
 				<div
 					bind:this={tableScroller}
 					use:restoreScroller
-					class="max-w-full overflow-x-auto overflow-y-visible rounded-xl border border-slate-200 bg-base-200/60 p-2 shadow-sm shadow-slate-200/70 md:h-full md:min-h-0 md:overflow-auto"
+					class={cardVariant === 'landing'
+						? 'max-w-full overflow-x-auto overflow-y-visible rounded-xl border border-slate-200 bg-base-200/60 p-2 shadow-sm shadow-slate-200/70 md:min-h-0 md:flex-1 md:overflow-auto'
+						: 'max-w-full overflow-x-auto overflow-y-visible rounded-xl border border-slate-200 bg-base-200/60 p-2 shadow-sm shadow-slate-200/70 md:h-full md:min-h-0 md:overflow-auto'}
 					onscroll={updateTableViewport}
 				>
 					<CaseResultsTable
@@ -1067,21 +1451,6 @@
 		</div>
 	</div>
 </section>
-
-<style>
-	@media (prefers-reduced-motion: no-preference) {
-		.cases-animated .cases-entry {
-			animation: cases-enter .75s cubic-bezier(.16, 1, .3, 1) backwards;
-		}
-		.cases-animated .cases-toolbar { animation-delay: .1s; }
-		.cases-animated .cases-filters { animation-delay: .18s; }
-		.cases-animated .cases-results { animation-delay: .25s; }
-	}
-	@keyframes cases-enter {
-		from { opacity: 0; transform: translateY(16px); }
-		to { opacity: 1; transform: translateY(0); }
-	}
-</style>
 
 {#if mobileFiltersOpen}
 	<div
@@ -1119,3 +1488,30 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	@media (prefers-reduced-motion: no-preference) {
+		.cases-animated .cases-entry {
+			animation: cases-enter 0.75s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+		}
+		.cases-animated .cases-toolbar {
+			animation-delay: 0.1s;
+		}
+		.cases-animated .cases-filters {
+			animation-delay: 0.18s;
+		}
+		.cases-animated .cases-results {
+			animation-delay: 0.25s;
+		}
+	}
+	@keyframes cases-enter {
+		from {
+			opacity: 0;
+			transform: translateY(16px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+</style>

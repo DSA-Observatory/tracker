@@ -9,6 +9,8 @@
 	import CaseSourceList from '$lib/components/cases/CaseSourceList.svelte';
 	import CountryFlag from '$lib/components/CountryFlag.svelte';
 	import IconArrowLeft from '~icons/lucide/arrow-left';
+	import IconPencil from '~icons/lucide/pencil';
+	import IconMapPin from '~icons/lucide/map-pin';
 
 	let record = $state<CaseRecord>();
 	let relatedCases = $state<CaseRecord[]>([]);
@@ -21,6 +23,15 @@
 	const sourceLinks = $derived(buildSourceLinks(record));
 	const documentFiles = $derived(record?.documents ?? []);
 	const proceduralEvents = $derived(normalizeProceduralEvents(record));
+	const categories = $derived(list(record?.categories).map((category) =>
+		category.toLowerCase() === 'due diligence' ? 'Due Diligence' : category
+	));
+
+	function categoryStyle(category: string) {
+		if (category === 'Intermediary Liability') return 'bg-blue-50 text-blue-700';
+		if (category === 'Due Diligence') return 'bg-emerald-50 text-emerald-700';
+		return 'bg-slate-100 text-slate-600';
+	}
 
 	function reveal(node: HTMLElement, delay = 0) {
 		if (!playEntry) return;
@@ -194,7 +205,7 @@
 			Back to cases
 		</button>
 		{#if canWrite && record}
-			<a class="btn btn-outline btn-sm" href={resolve(`/cases/${record.id}/edit`)}>Edit case</a>
+			<a class="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50" href={resolve(`/cases/${record.id}/edit`)}><IconPencil class="size-3.5" aria-hidden="true" />Edit case</a>
 		{/if}
 	</div>
 
@@ -205,18 +216,34 @@
 	{:else if error}
 		<div class="rounded-xl border border-red-200 bg-red-50 p-8 text-red-700">{error}</div>
 	{:else if record}
-		<section use:reveal class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+		<section use:reveal class="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/40 sm:p-8">
 			<div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
 				<div class="min-w-0 flex-1">
+					{#if categories.length}
+						<div class="mb-3 flex flex-wrap gap-2">
+							{#each [...new Set(categories)] as category}
+								<span class={`rounded-full px-2.5 py-1 text-xs font-semibold ${categoryStyle(category)}`}>{category}</span>
+							{/each}
+						</div>
+					{/if}
 					<h1
-						class="text-3xl leading-tight font-black tracking-tight text-slate-950 md:text-5xl"
+						class="text-2xl leading-snug font-bold tracking-tight text-slate-950 sm:text-3xl"
 					>
 						{record.title}
 					</h1>
+					<div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
+						{#if record.jurisdiction}<span class="inline-flex items-center gap-1.5"><CountryFlag country={record.jurisdiction} />{record.jurisdiction}</span>{/if}
+						{#if record.court}<span class="inline-flex items-center gap-1.5"><IconMapPin class="size-3.5 shrink-0" aria-hidden="true" />{record.court}</span>{/if}
+					</div>
+					{#if list(record.dsa_articles).length}
+						<div class="mt-4 flex flex-wrap gap-1.5">
+							{#each [...new Set(list(record.dsa_articles))] as article}<span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{article}</span>{/each}
+						</div>
+					{/if}
 					<div class="mt-4 flex flex-wrap gap-2 text-sm">
-						{#if authStore.isAdmin}
+						{#if authStore.isAdmin && !record.published}
 							<span class="rounded-full bg-slate-100 px-3 py-1 font-medium">
-								{record.published ? 'Public' : 'Private'}
+								Private
 							</span>
 						{/if}
 						{#if record.outcome}<span
@@ -229,7 +256,7 @@
 							>{/if}
 					</div>
 				</div>
-				<aside class="w-full shrink-0 rounded-xl border border-slate-200 bg-slate-50 p-5 lg:w-80" aria-label="Case reference">
+				<aside class="w-full shrink-0 rounded-xl border border-slate-200/80 bg-slate-50/70 p-5 lg:w-80" aria-label="Case reference">
 					<dl class="space-y-4">
 						{#if record.decision_reference}
 							<div>
@@ -254,12 +281,6 @@
 							<dd class="mt-1 text-base text-slate-950">{formatDate(record.updated)}</dd>
 						</div>
 					</dl>
-					{#if canWrite}
-						<details class="mt-4 border-t border-slate-200 pt-4 text-sm text-slate-600">
-							<summary class="cursor-pointer">Internal record ID</summary>
-							<p class="mt-2 break-all font-mono text-xs">{record.case_id}</p>
-						</details>
-					{/if}
 				</aside>
 			</div>
 		</section>
@@ -397,8 +418,8 @@
 				<section use:reveal={240} class="rounded-xl border border-slate-200 bg-white p-5">
 					<h2 class="font-black">Legal classification</h2>
 					<div class="mt-4 flex flex-wrap gap-2">
-						{#each [...list(record.dsa_articles), ...list(record.legal_areas), ...list(record.legal_basis), ...list(record.categories)] as tag, index (`${tag}-${index}`)}
-							<span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
+						{#each [...new Set([...list(record.dsa_articles), ...list(record.legal_areas), ...list(record.legal_basis), ...categories])] as tag (tag)}
+							<span class={`rounded-full px-2.5 py-1 text-xs font-semibold ${categories.includes(tag) ? categoryStyle(tag) : 'bg-slate-100 text-slate-600'}`}
 								>{tag}</span
 							>
 						{/each}
