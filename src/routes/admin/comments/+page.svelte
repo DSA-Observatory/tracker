@@ -121,21 +121,19 @@
 			<div class="mt-8 space-y-4">
 				{#each visibleGroups as group (`${group.targetType}:${group.target.id}`)}
 					<article class="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-						<div class="flex flex-wrap items-start justify-between gap-4">
-							<div>
+						<div class="flex items-start justify-between gap-4">
+							<div class="min-w-0 flex-1">
 								<div class="flex items-center gap-2 text-sm text-slate-500">
 									<IconMessageSquare class="size-4" />
 									{group.comments.length} unresolved
 								</div>
-								<h2 class="mt-2 text-xl font-bold text-slate-950">{group.target.title}</h2>
-								{#if group.targetType === 'case'}
-									<p class="mt-1 font-mono text-xs text-slate-500">{group.target.case_id}</p>
-								{:else}
+								<h2 class="mt-2 text-xl font-medium break-words text-slate-950">{group.target.title}</h2>
+								{#if group.targetType === 'submission'}
 									<p class="mt-1 text-xs text-slate-500">Suggested case</p>
 								{/if}
 							</div>
 							<a
-								class="btn btn-sm btn-primary"
+								class="btn btn-sm btn-primary h-auto min-h-8 max-w-32 shrink-0 py-2 text-center sm:max-w-none"
 								href={
 									group.targetType === 'case'
 										? resolve('/cases/[id]/edit', { id: group.target.id })
@@ -143,23 +141,25 @@
 								}>{group.targetType === 'case' ? 'Open case' : 'Open suggested case'}</a
 							>
 						</div>
-						<div class="mt-4 divide-y divide-slate-100 border-t border-slate-100">
+						<div class="mt-4 space-y-2">
 							{#each group.comments as comment (comment.id)}
 								<a
-									class="block py-3 text-slate-700 transition hover:text-slate-950"
+									class="block rounded-lg bg-yellow-50 p-4 text-slate-700 transition hover:bg-yellow-100 hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
 									href={
 										group.targetType === 'case'
 											? resolve(`/cases/${group.target.id}/edit?comment=${encodeURIComponent(comment.id)}`)
 											: resolve(`/admin/submissions/${group.target.id}?comment=${encodeURIComponent(comment.id)}`)
 									}
 								>
-									<p class="line-clamp-2 text-sm">{comment.content}</p>
+									<div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
+										<span class="font-semibold">{comment.expand?.author?.name || comment.expand?.author?.username || comment.expand?.author?.email || 'Unknown author'}</span>
+										<span aria-hidden="true">·</span>
+										<time datetime={comment.created}>{formatDate(comment.created)}</time>
+									</div>
+									<p class="mt-2 line-clamp-2 text-sm font-medium break-words">{comment.content}</p>
 									{#if comment.expand?.assignee}<p class="mt-1 text-xs text-slate-500"
 											>Assigned to {comment.expand.assignee.name || comment.expand.assignee.username || comment.expand.assignee.email}</p
 										>{/if}
-									<time class="mt-1 block text-xs text-slate-400" datetime={comment.created}
-										>{formatDate(comment.created)}</time
-									>
 								</a>
 							{/each}
 						</div>
