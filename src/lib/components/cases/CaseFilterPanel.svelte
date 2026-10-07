@@ -73,7 +73,7 @@
 		</div>
 
 		<button
-			class="inline-flex h-7 shrink-0 items-center text-xs font-semibold text-slate-500 transition hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none disabled:cursor-default disabled:opacity-40 disabled:hover:text-slate-500"
+			class="inline-flex h-8 shrink-0 items-center rounded-md bg-slate-950 px-3 text-xs font-semibold text-white transition hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-default disabled:bg-transparent disabled:text-slate-500 disabled:opacity-40 disabled:hover:bg-transparent"
 			type="button"
 			onclick={onClear}
 			disabled={activeChips.length === 0 && !search}

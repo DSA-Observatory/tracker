@@ -8,6 +8,7 @@
 	import IconSend from '~icons/lucide/send';
 	import IconPencil from '~icons/lucide/pencil';
 	import IconTrash from '~icons/lucide/trash-2';
+	import IconEllipsis from '~icons/lucide/ellipsis-vertical';
 
 	let {
 		caseId,
@@ -280,6 +281,7 @@
 							</div>
 						</form>
 					{:else}
+						<div class="relative">
 						<button
 							type="button"
 							class={`w-full rounded-lg border p-3 text-left text-base-content transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content ${selectedId === comment.id ? 'border-base-content/60 ring-2 ring-base-content/15' : 'border-base-300'} ${comment.resolved ? 'bg-base-200' : 'bg-base-100'}`}
@@ -290,7 +292,7 @@
 								deletingId = '';
 							}}
 						>
-							<div class="flex items-start justify-between gap-2">
+							<div class="flex items-start justify-between gap-2 pr-7">
 								<span class="text-xs font-semibold">{authorName(comment)}</span>
 								<div class="flex flex-wrap justify-end gap-1">
 									{#if comment.assignee}<span class="max-w-full rounded-lg border border-base-content/30 px-2 py-0.5 text-xs leading-5 break-words"
@@ -308,6 +310,36 @@
 								>{formatDate(comment.created)}</time
 							>
 						</button>
+						<details
+							class="dropdown dropdown-end absolute top-2 right-2"
+							onkeydown={(event) => {
+								if (event.key === 'Escape') {
+									event.currentTarget.open = false;
+									event.currentTarget.querySelector('summary')?.focus();
+								}
+							}}
+						>
+							<summary class="btn btn-ghost btn-xs btn-square list-none [&::-webkit-details-marker]:hidden" aria-label={`Actions for comment by ${authorName(comment)}`}>
+								<IconEllipsis class="size-4" />
+							</summary>
+							<ul class="dropdown-content menu z-10 w-36 rounded-lg border border-base-300 bg-base-100 p-1 shadow-lg">
+								<li><button type="button" disabled={saving} onclick={(event) => {
+									event.currentTarget.closest('details')?.removeAttribute('open');
+									selectedId = comment.id;
+									deletingId = '';
+									editingId = comment.id;
+									editContent = comment.content;
+									editAssigneeId = comment.assignee ?? '';
+									editAssigneeLabel = assigneeName(comment);
+								}}><IconPencil class="size-3.5" /> Edit</button></li>
+								<li><button type="button" class="text-error" disabled={saving} onclick={(event) => {
+									event.currentTarget.closest('details')?.removeAttribute('open');
+									selectedId = comment.id;
+									deletingId = comment.id;
+								}}><IconTrash class="size-3.5" /> Delete</button></li>
+							</ul>
+						</details>
+						</div>
 					{/if}
 					{#if selectedId === comment.id && editingId !== comment.id}
 						{#if deletingId === comment.id}
@@ -329,26 +361,6 @@
 								</div>
 							</div>
 						{:else}
-							<div class="flex gap-2">
-								<button
-									type="button"
-									class="btn flex-1 btn-outline btn-sm"
-									disabled={saving}
-									onclick={() => {
-										editingId = comment.id;
-										editContent = comment.content;
-										editAssigneeId = comment.assignee ?? '';
-										editAssigneeLabel = assigneeName(comment);
-									}}><IconPencil class="size-3.5" /> Edit</button
-								>
-								<button
-									type="button"
-									class="btn flex-1 btn-outline btn-sm"
-									disabled={saving}
-									onclick={() => (deletingId = comment.id)}
-									><IconTrash class="size-3.5" /> Delete</button
-								>
-							</div>
 							{#if comment.assignee}
 								<div class="mt-2 flex flex-wrap items-start justify-between gap-2 rounded-lg bg-base-200 px-3 py-2">
 									<span class="min-w-0 flex-1 text-xs leading-5 break-words">Assigned to {assigneeName(comment)}</span>
