@@ -54,14 +54,15 @@ test('admin-only migration locks case writes and prevents public role escalation
 	expect(source).toContain("cases.fields.getByName('documents').protected = true");
 });
 
-test('the case editor exposes an admin-only draft and published control', async () => {
+test('the case editor saves admin-only visibility separately from case edits', async () => {
 	const source = await read('src/lib/components/cases/CaseEditorForm.svelte');
 
-	expect(source).toContain('{#if authStore.isAdmin}');
-	expect(source).toContain('aria-label="Publication status"');
-	expect(source.includes('>Draft</button')).toBe(true);
-	expect(source.includes('>Published</button')).toBe(true);
-	expect(source).toContain('published: form.published');
+	expect(source).toContain('authStore.isAdmin && pb.authStore.isValid');
+	expect(source).toContain('{#if canWrite && !loading}');
+	expect(source).toContain('aria-label="Public on website"');
+	expect(source).toContain('published: !form.published');
+	expect(source).toContain('...(!caseId ? { published: false } : {})');
+	expect(source.includes('published: form.published')).toBe(false);
 	expect(source).toContain('pb.files.getToken()');
 	expect(source).toContain('{ token: fileToken }');
 	expect(source.includes("form.published || form.status === 'published'")).toBe(false);

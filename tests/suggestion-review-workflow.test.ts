@@ -37,16 +37,25 @@ test('suggestion review is admin-only, transactional, and creates one private dr
 	expect(hook).toContain("if (currentStatus === 'rejected' && decision === 'rejected')");
 });
 
-test('public suggestions cannot set workflow fields and comments require one target', async () => {
+test('public suggestions cannot set workflow fields and comments support case, suggestion, or general targets', async () => {
 	const hook = await readFile(
 		new URL('../pocketbase/pb_hooks/case_submission_workflow.pb.js', import.meta.url),
+		'utf8'
+	);
+	const commentHelpers = await readFile(
+		new URL('../pocketbase/pb_hooks/comment_assignment_helpers.js', import.meta.url),
 		'utf8'
 	);
 
 	expect(hook).toContain("e.record.set('status', 'pending')");
 	expect(hook).toContain("e.record.set('resulting_case', '')");
 	expect(hook).toContain("e.record.set('decided_by', '')");
-	expect(hook).toContain('if ((caseId ? 1 : 0) + (submissionId ? 1 : 0) !== 1)');
+	expect(/validateCommentMutation\(\s*e,\s*false\s*\)/.test(hook)).toBe(true);
+	expect(/validateCommentMutation\(\s*e,\s*true\s*\)/.test(hook)).toBe(true);
+	expect(commentHelpers).toContain(
+		'A comment can belong to one case, one suggestion, or the general queue.'
+	);
+	expect(commentHelpers).toContain('immutable_comment_target');
 	expect(hook).toContain("throw e.badRequestError('Source links must use HTTP or HTTPS.'");
 	expect(hook).toContain("e.record.getStringSlice('document_links')");
 });

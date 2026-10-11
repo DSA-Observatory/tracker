@@ -16,6 +16,13 @@
 	const canDecide = $derived(
 		submission ? ['new', 'pending', 'review'].includes(submission.status) : false
 	);
+	const canReturnToSuggested = $derived(
+		submission?.status === 'accepted' &&
+			Boolean(submission.resulting_case) &&
+			(!submission.expand?.resulting_case ||
+				(submission.expand.resulting_case.status === 'draft' &&
+					!submission.expand.resulting_case.published))
+	);
 
 	function formatDate(value?: string) {
 		return value
@@ -83,8 +90,14 @@
 		}
 	}
 
-	async function decide(decision: 'accepted' | 'rejected') {
-		if (!submission || !canReview || !canDecide || saving) return;
+	async function decide(decision: 'accepted' | 'rejected' | 'pending') {
+		if (
+			!submission ||
+			!canReview ||
+			(decision === 'pending' ? !canReturnToSuggested : !canDecide) ||
+			saving
+		)
+			return;
 		const generation = loadGeneration;
 		const submissionId = submission.id;
 
@@ -183,7 +196,7 @@
 										.filter(Boolean)
 										.join(' | ') )).length}
 							<ol class="mt-4 space-y-3">
-								{#each submission.procedural_events ?? [] as event}
+								{#each submission.procedural_events ?? [] as event, index (index)}
 									<li class="rounded-xl border border-slate-100 bg-slate-50 p-4">
 										{#if event.date}<div class="text-xs font-semibold text-slate-400">
 												{event.date}
@@ -210,27 +223,33 @@
 							<div>
 								<h3 class="font-semibold">Primary sources</h3>
 								<ul class="mt-2 space-y-2 text-sm text-slate-600">
-									{#each list(submission.primary_sources) as source}<li>{source}</li>{/each}
+									{#each list(submission.primary_sources) as source, index (index)}<li>
+											{source}
+										</li>{/each}
 									{#if !list(submission.primary_sources).length}<li>None submitted</li>{/if}
 								</ul>
 							</div>
 							<div>
 								<h3 class="font-semibold">Secondary sources</h3>
 								<ul class="mt-2 space-y-2 text-sm text-slate-600">
-									{#each list(submission.secondary_sources) as source}<li>{source}</li>{/each}
+									{#each list(submission.secondary_sources) as source, index (index)}<li>
+											{source}
+										</li>{/each}
 									{#if !list(submission.secondary_sources).length}<li>None submitted</li>{/if}
 								</ul>
 							</div>
 						</div>
 						{#if sourceLinks(submission).length}
 							<div class="mt-5 flex flex-wrap gap-2">
-								{#each sourceLinks(submission) as link}
+								{#each sourceLinks(submission) as link (link)}
+									<!-- eslint-disable svelte/no-navigation-without-resolve -->
 									<a
 										class="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-50"
 										href={link}
 										target="_blank"
 										rel="noreferrer">{sourceLabel(link)}</a
 									>
+									<!-- eslint-enable svelte/no-navigation-without-resolve -->
 								{/each}
 							</div>
 						{/if}
@@ -260,6 +279,17 @@
 									onclick={() => decide('rejected')}>Reject</button
 								>
 							</div>
+						{:else if canReturnToSuggested}
+							<p class="mt-3 text-sm text-slate-600">
+								Return this unpublished draft to the suggested-case review queue. Its record and
+								comments stay linked.
+							</p>
+							<button
+								class="btn mt-4 w-full btn-outline btn-sm"
+								type="button"
+								disabled={saving}
+								onclick={() => decide('pending')}>Return to suggested cases</button
+							>
 						{:else}
 							<p class="mt-3 text-sm text-slate-600 capitalize">Decision: {submission.status}</p>
 						{/if}
@@ -271,7 +301,7 @@
 								{/if}
 							</p>
 						{/if}
-						{#if submission.resulting_case}
+						{#if submission.status === 'accepted' && submission.resulting_case}
 							<a
 								class="btn mt-4 w-full btn-sm btn-primary"
 								href={resolve('/cases/[id]/edit', { id: submission.resulting_case })}
@@ -283,7 +313,7 @@
 					<section class="rounded-2xl border border-slate-200 bg-white p-5">
 						<h2 class="font-black">At a glance</h2>
 						<dl class="mt-4 space-y-3 text-sm">
-							{#each [['Case ID', submission.case_id], ['ECLI', submission.ecli], ['Jurisdiction', submission.jurisdiction], ['Court', list(submission.courts).join(', ') || submission.court], ['Filing date', submission.filing_date], ['Decision date', submission.decision_date], ['Plaintiffs', list(submission.plaintiffs).join(', ')], ['Defendants', list(submission.defendants).join(', ')]] as item}
+							{#each [['Case ID', submission.case_id], ['ECLI', submission.ecli], ['Jurisdiction', submission.jurisdiction], ['Court', list(submission.courts).join(', ') || submission.court], ['Filing date', submission.filing_date], ['Decision date', submission.decision_date], ['Plaintiffs', list(submission.plaintiffs).join(', ')], ['Defendants', list(submission.defendants).join(', ')]] as item (item[0])}
 								{#if item[1]}
 									<div>
 										<dt class="text-slate-400">{item[0]}</dt>
@@ -297,7 +327,7 @@
 					<section class="rounded-2xl border border-slate-200 bg-white p-5">
 						<h2 class="font-black">Legal classification</h2>
 						<div class="mt-4 flex flex-wrap gap-2">
-							{#each [...list(submission.dsa_articles), ...list(submission.legal_areas), ...list(submission.legal_basis), ...list(submission.categories), ...list(submission.themes), ...list(submission.keywords)] as tag}
+							{#each [...list(submission.dsa_articles), ...list(submission.legal_areas), ...list(submission.legal_basis), ...list(submission.categories), ...list(submission.themes), ...list(submission.keywords)] as tag, index (index)}
 								<span
 									class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
 									>{tag}</span

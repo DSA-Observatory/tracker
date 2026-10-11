@@ -1,4 +1,5 @@
 /// <reference path="../pb_data/types.d.ts" />
+/* eslint-disable @typescript-eslint/no-require-imports -- PocketBase hook callbacks load helpers with require. */
 
 onRecordCreateRequest((e) => {
 	const links = e.record.getStringSlice('document_links');
@@ -17,11 +18,11 @@ onRecordCreateRequest((e) => {
 }, 'case_submissions');
 
 onRecordCreateRequest((e) => {
-	const caseId = e.record.getString('case');
-	const submissionId = e.record.getString('submission');
-	if ((caseId ? 1 : 0) + (submissionId ? 1 : 0) !== 1) {
-		throw e.badRequestError('A comment must belong to exactly one case or suggestion.', null);
-	}
+	const validation = require(`${__hooks}/comment_assignment_helpers.js`).validateCommentMutation(
+		e,
+		false
+	);
+	if (validation) throwCommentValidationError(e, validation);
 	e.record.set('author', e.auth.id);
 	const assigneeId = e.record.getString('assignee');
 	if (assigneeId) {
@@ -43,11 +44,11 @@ onRecordCreateRequest((e) => {
 }, 'case_comments');
 
 onRecordUpdateRequest((e) => {
-	const caseId = e.record.getString('case');
-	const submissionId = e.record.getString('submission');
-	if ((caseId ? 1 : 0) + (submissionId ? 1 : 0) !== 1) {
-		throw e.badRequestError('A comment must belong to exactly one case or suggestion.', null);
-	}
+	const validation = require(`${__hooks}/comment_assignment_helpers.js`).validateCommentMutation(
+		e,
+		true
+	);
+	if (validation) throwCommentValidationError(e, validation);
 	if (e.record.getString('assignee') !== e.record.original().getString('assignee')) {
 		const assigneeId = e.record.getString('assignee');
 		if (assigneeId) {
@@ -69,6 +70,12 @@ onRecordUpdateRequest((e) => {
 	e.next();
 }, 'case_comments');
 
+function throwCommentValidationError(e, validation) {
+	throw e.badRequestError(validation.message, {
+		[validation.field]: new ValidationError(validation.code, validation.message)
+	});
+}
+
 routerAdd(
 	'PATCH',
 	'/api/admin/submissions/{id}/decision',
@@ -78,8 +85,11 @@ routerAdd(
 		}
 
 		const decision = e.requestInfo().body.decision;
-		if (decision !== 'accepted' && decision !== 'rejected') {
-			throw e.badRequestError('Decision must be accepted or rejected.', null);
+		if (decision !== 'accepted' && decision !== 'rejected' && decision !== 'pending') {
+			throw e.badRequestError(
+				'Decision must be accepted, rejected, or returned to suggested.',
+				null
+			);
 		}
 
 		let submission;
@@ -88,6 +98,26 @@ routerAdd(
 			submission = txApp.findRecordById('case_submissions', e.request.pathValue('id'));
 			const currentStatus = submission.getString('status');
 			const resultingCaseId = submission.getString('resulting_case');
+
+			if (decision === 'pending') {
+				if (currentStatus !== 'accepted' || !resultingCaseId) {
+					throw e.badRequestError(
+						'Only accepted suggestions with a draft can return to suggested.',
+						null
+					);
+				}
+				caseRecord = txApp.findRecordById('cases', resultingCaseId);
+				if (caseRecord.getBool('published') || caseRecord.getString('status') !== 'draft') {
+					throw e.badRequestError('Only unpublished draft cases can return to suggested.', null);
+				}
+				caseRecord.set('status', 'archived');
+				txApp.save(caseRecord);
+				submission.set('status', 'pending');
+				submission.set('decided_by', '');
+				submission.set('decided_at', '');
+				txApp.save(submission);
+				return;
+			}
 
 			if (currentStatus === 'accepted' && resultingCaseId) {
 				if (decision !== 'accepted') {
@@ -139,6 +169,15 @@ routerAdd(
 					caseRecord.set('submitted_by', submission.id);
 					caseRecord.set('status', 'draft');
 					caseRecord.set('published', false);
+					txApp.save(caseRecord);
+				} else {
+					if (caseRecord.getBool('published')) {
+						throw e.badRequestError(
+							'Published cases cannot be returned to the suggestion workflow.',
+							null
+						);
+					}
+					caseRecord.set('status', 'draft');
 					txApp.save(caseRecord);
 				}
 				submission.set('resulting_case', caseRecord.id);

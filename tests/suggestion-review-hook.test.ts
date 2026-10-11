@@ -30,6 +30,10 @@ class FakeRecord {
 		return this.values[field] === true;
 	}
 
+	original() {
+		return new FakeRecord({}, this.values);
+	}
+
 	set(field: string, value: unknown) {
 		this.values[field] = value;
 	}
@@ -47,19 +51,53 @@ type Route = {
 };
 
 type ReviewEvent = ReturnType<typeof createEvent>['event'];
+type CommentEvent = {
+	record: FakeRecord;
+	auth: FakeRecord;
+	app: { findRecordById: (collection: string, id: string) => FakeRecord };
+	next: () => void;
+	badRequestError: (
+		message: string,
+		details?: Values | null
+	) => Error & { status?: number; details?: Values | null };
+};
 
 const hookSource = await readFile(
 	new URL('../pocketbase/pb_hooks/case_submission_workflow.pb.js', import.meta.url),
 	'utf8'
 );
+const commentHelperSource = await readFile(
+	new URL('../pocketbase/pb_hooks/comment_assignment_helpers.js', import.meta.url),
+	'utf8'
+);
 
 function registerRoute() {
 	let route: Route | undefined;
+	let commentCreateHandler: ((event: CommentEvent) => void) | undefined;
+	let commentUpdateHandler: ((event: CommentEvent) => void) | undefined;
 	const requireAuth = Symbol('requireAuth');
+	const requireCommentHelpers = (path: string) => {
+		expect(path).toBe('/hooks/comment_assignment_helpers.js');
+		const module = { exports: {} as Record<string, unknown> };
+		runInNewContext(commentHelperSource, { module, console });
+		return module.exports;
+	};
 	runInNewContext(hookSource, {
 		Record: FakeRecord,
-		onRecordCreateRequest() {},
-		onRecordUpdateRequest() {},
+		ValidationError: class ValidationError {
+			constructor(
+				public code: string,
+				public message: string
+			) {}
+		},
+		__hooks: '/hooks',
+		require: requireCommentHelpers,
+		onRecordCreateRequest(handler: (event: CommentEvent) => void, collection: string) {
+			if (collection === 'case_comments') commentCreateHandler = handler;
+		},
+		onRecordUpdateRequest(handler: (event: CommentEvent) => void, collection: string) {
+			if (collection === 'case_comments') commentUpdateHandler = handler;
+		},
 		routerAdd(method: string, path: string, handler: Route['handler'], middleware: unknown) {
 			route = { method, path, handler, middleware };
 		},
@@ -67,7 +105,12 @@ function registerRoute() {
 	});
 
 	expect(Boolean(route)).toBe(true);
-	return { route: route!, requireAuth };
+	return {
+		route: route!,
+		requireAuth,
+		commentCreateHandler: commentCreateHandler!,
+		commentUpdateHandler: commentUpdateHandler!
+	};
 }
 
 function createAuth({ collection = 'users', isAdmin = false, email = 'user@example.com' } = {}) {
@@ -187,6 +230,33 @@ function thrownBy(run: () => unknown) {
 	}
 }
 
+function createCommentEvent({
+	record = new FakeRecord({}, { id: 'comment-2', case: 'case-1', submission: '', parent: '' }),
+	parent = new FakeRecord({}, { id: 'comment-1', case: 'case-1', submission: '' })
+}: { record?: FakeRecord; parent?: FakeRecord } = {}) {
+	let nextCalls = 0;
+	return {
+		event: {
+			record,
+			auth: createAuth({ isAdmin: true }),
+			app: {
+				findRecordById(collection: string, id: string) {
+					if (collection === 'case_comments' && id === parent.id) return parent;
+					if (collection === 'users') return new FakeRecord({}, { id, is_admin: true });
+					throw new Error('record not found');
+				}
+			},
+			next() {
+				nextCalls += 1;
+			},
+			badRequestError(message: string, details?: Values | null) {
+				return Object.assign(new Error(message), { status: 400, details });
+			}
+		} satisfies CommentEvent,
+		getNextCalls: () => nextCalls
+	};
+}
+
 test('registers the decision route with authentication middleware', () => {
 	const { route, requireAuth } = registerRoute();
 	expect(route.method).toBe('PATCH');
@@ -210,6 +280,55 @@ test('review decisions require a flagged users record', () => {
 		expect(error?.status).toBe(403);
 		expect(request.getTransactions()).toBe(0);
 	}
+});
+
+test('isolated comment callbacks validate reply targets and immutable thread fields', () => {
+	const { commentCreateHandler, commentUpdateHandler } = registerRoute();
+	const validReply = createCommentEvent({
+		record: new FakeRecord(
+			{},
+			{ id: 'comment-2', case: 'case-1', submission: '', parent: 'comment-1' }
+		)
+	});
+
+	commentCreateHandler(validReply.event);
+	expect(validReply.event.record.getString('author')).toBe('reviewer');
+	expect(validReply.getNextCalls()).toBe(1);
+
+	const crossTargetReply = createCommentEvent({
+		record: new FakeRecord(
+			{},
+			{ id: 'comment-3', case: 'case-2', submission: '', parent: 'comment-1' }
+		)
+	});
+	const parentError = thrownBy(() => commentCreateHandler(crossTargetReply.event));
+	expect(parentError?.message).toBe('Replies must stay with the same comment thread.');
+	expect(parentError?.status).toBe(400);
+
+	const changedTarget = new FakeRecord(
+		{},
+		{ id: 'comment-2', case: 'case-2', submission: '', parent: '' }
+	);
+	changedTarget.original = () =>
+		new FakeRecord({}, { id: 'comment-2', case: 'case-1', submission: '', parent: '' });
+	const targetUpdate = createCommentEvent({ record: changedTarget });
+	const targetError = thrownBy(() => commentUpdateHandler(targetUpdate.event));
+	expect(targetError?.message).toBe(
+		'A comment target and reply parent cannot change after creation.'
+	);
+	expect(targetUpdate.getNextCalls()).toBe(0);
+
+	const changedParent = new FakeRecord(
+		{},
+		{ id: 'comment-2', case: 'case-1', submission: '', parent: 'comment-1' }
+	);
+	changedParent.original = () =>
+		new FakeRecord({}, { id: 'comment-2', case: 'case-1', submission: '', parent: '' });
+	const parentUpdate = createCommentEvent({ record: changedParent });
+	const immutableParentError = thrownBy(() => commentUpdateHandler(parentUpdate.event));
+	expect(immutableParentError?.message).toBe(
+		'A comment target and reply parent cannot change after creation.'
+	);
 });
 
 test('acceptance atomically creates a private draft preserving source metadata safely', () => {
@@ -286,6 +405,67 @@ test('accepted retries return the same draft without creating or saving another'
 	expect(request.getResponse()?.body.case).toBe(draft);
 });
 
+test('an accepted unpublished draft can return to suggested and be reused on acceptance', () => {
+	const { route } = registerRoute();
+	const draft = new FakeRecord(
+		{},
+		{
+			id: 'draft-existing',
+			submitted_by: 'submission-1',
+			status: 'draft',
+			published: false
+		}
+	);
+	const submission = new FakeRecord(
+		{},
+		submissionValues({ status: 'accepted', resulting_case: draft.id })
+	);
+	const returned = createEvent({ submission, existingCase: draft, body: { decision: 'pending' } });
+
+	route.handler(returned.event);
+
+	expect(returned.submission.getString('status')).toBe('pending');
+	expect(returned.submission.getString('decided_by')).toBe('');
+	expect(returned.submission.getString('decided_at')).toBe('');
+	expect(draft.getString('status')).toBe('archived');
+	expect(returned.cases).toEqual([draft]);
+
+	const acceptedAgain = createEvent({
+		submission,
+		existingCase: draft,
+		body: { decision: 'accepted' }
+	});
+	route.handler(acceptedAgain.event);
+
+	expect(acceptedAgain.cases).toEqual([draft]);
+	expect(draft.getString('status')).toBe('draft');
+	expect(acceptedAgain.submission.getString('resulting_case')).toBe(draft.id);
+});
+
+test('published cases cannot return to suggested', () => {
+	const { route } = registerRoute();
+	const draft = new FakeRecord(
+		{},
+		{
+			id: 'published-case',
+			submitted_by: 'submission-1',
+			status: 'draft',
+			published: true
+		}
+	);
+	const submission = new FakeRecord(
+		{},
+		submissionValues({ status: 'accepted', resulting_case: draft.id })
+	);
+	const request = createEvent({ submission, existingCase: draft, body: { decision: 'pending' } });
+
+	const error = thrownBy(() => route.handler(request.event));
+
+	expect(error?.message).toBe('Only unpublished draft cases can return to suggested.');
+	expect(request.saves).toEqual([]);
+	expect(draft.getString('status')).toBe('draft');
+});
+
 test('a rejected suggestion cannot later be accepted', () => {
 	const { route } = registerRoute();
 	const submission = new FakeRecord({}, submissionValues({ status: 'rejected' }));
@@ -303,7 +483,7 @@ test('malformed decisions fail before starting a transaction', () => {
 	for (const decision of [undefined, null, '', 'approve', true]) {
 		const request = createEvent({ body: decision === undefined ? {} : { decision } });
 		const error = thrownBy(() => route.handler(request.event));
-		expect(error?.message).toBe('Decision must be accepted or rejected.');
+		expect(error?.message).toBe('Decision must be accepted, rejected, or returned to suggested.');
 		expect(error?.status).toBe(400);
 		expect(request.getTransactions()).toBe(0);
 	}

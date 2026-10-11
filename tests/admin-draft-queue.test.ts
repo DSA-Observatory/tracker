@@ -23,3 +23,16 @@ test('accept action uses an AA contrast color pair', async () => {
 	expect(source).toContain('bg-emerald-700 text-white');
 	expect(source.includes('btn-success')).toBe(false);
 });
+
+test('draft queue exposes return-to-suggested options only for unpublished linked drafts', async () => {
+	const [drafts, submission] = await Promise.all([
+		readFile(new URL('../src/routes/admin/drafts/+page.svelte', import.meta.url), 'utf8'),
+		readFile(new URL('../src/routes/admin/submissions/[id]/+page.svelte', import.meta.url), 'utf8')
+	]);
+
+	expect(drafts).toContain("status = 'accepted' && resulting_case != ''");
+	expect(drafts).toContain("resulting_case?.status === 'draft'");
+	expect(drafts).toContain('Review return options');
+	expect(submission).toContain("submission.expand.resulting_case.status === 'draft'");
+	expect(submission).toContain('Return to suggested cases');
+});

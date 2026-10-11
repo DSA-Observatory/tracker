@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { beforeNavigate, goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { caseEditorSnapshot } from '$lib/case-editor-dirty';
+	import { untrack } from 'svelte';
 	import {
 		authStore,
 		pb,
@@ -56,6 +58,20 @@
 	let csvInput = $state<HTMLInputElement>();
 	let importingCsv = $state(false);
 	let importMessage = $state('');
+	let savedSnapshot = $state(
+		untrack(() => caseEditorSnapshot(form, primarySources, secondarySources, selectedDocuments))
+	);
+
+	const unsavedChangesMessage =
+		'Are you sure you want to leave? Your unsaved changes will be lost.';
+	const currentSnapshot = $derived(
+		caseEditorSnapshot(form, primarySources, secondarySources, selectedDocuments)
+	);
+	const hasUnsavedChanges = $derived(currentSnapshot !== savedSnapshot);
+
+	beforeNavigate(({ cancel, willUnload }) => {
+		if (hasUnsavedChanges && !willUnload && !confirm(unsavedChangesMessage)) cancel();
+	});
 
 	const csvColumns = [
 		'case_id',
@@ -88,14 +104,30 @@
 	const canWrite = $derived(authStore.isAdmin && pb.authStore.isValid);
 	const isEditing = $derived(Boolean(caseId));
 
+	function markSaved() {
+		savedSnapshot = caseEditorSnapshot(form, primarySources, secondarySources, selectedDocuments);
+	}
+
+	function warnBeforeUnload(event: BeforeUnloadEvent) {
+		if (!hasUnsavedChanges) return;
+		event.preventDefault();
+		event.returnValue = '';
+	}
+
 	async function deleteCase() {
 		if (!caseId || !currentRecord || !canWrite || saving || changingVisibility || loading) return;
-		if (!confirm(`Permanently delete ${currentRecord.case_id}: ${currentRecord.title}? Associated comments and documents may also be deleted. This cannot be undone.`)) return;
+		if (
+			!confirm(
+				`Permanently delete ${currentRecord.case_id}: ${currentRecord.title}? Associated comments and documents may also be deleted. This cannot be undone.`
+			)
+		)
+			return;
 		deleting = true;
 		saving = true;
 		error = '';
 		try {
 			await pb.collection('cases').delete(caseId);
+			markSaved();
 			await goto(resolve('/cases'));
 		} catch {
 			error = 'Could not delete the case. Please refresh to check its status before trying again.';
@@ -162,6 +194,7 @@
 				dsa_articles: joinCaseFormList(record.dsa_articles),
 				published: record.published
 			};
+			markSaved();
 		} catch (err) {
 			console.error('Error loading case:', err);
 			error = 'Could not load this case. Check PocketBase availability and permissions.';
@@ -442,16 +475,20 @@
 			});
 			form.published = record.published === true;
 			currentRecord = record;
-			visibilityMessage = form.published ? 'Visibility saved · Public' : 'Visibility saved · Private';
+			visibilityMessage = form.published
+				? 'Visibility saved · Public'
+				: 'Visibility saved · Private';
 		} catch {
 			try {
 				const record = await pb.collection('cases').getOne<CaseRecord>(caseId);
 				form.published = record.published === true;
 				currentRecord = record;
-				visibilityError = 'The change could not be confirmed. Current visibility is shown; try again if needed.';
+				visibilityError =
+					'The change could not be confirmed. Current visibility is shown; try again if needed.';
 			} catch {
 				visibilityUncertain = true;
-				visibilityError = 'We could not confirm visibility. Reload this case before changing it again.';
+				visibilityError =
+					'We could not confirm visibility. Reload this case before changing it again.';
 			}
 		} finally {
 			changingVisibility = false;
@@ -493,8 +530,6 @@
 			jurisdiction: form.jurisdiction.trim(),
 			plaintiffs: splitCaseFormList(form.plaintiffs),
 			defendants: splitCaseFormList(form.defendants),
-			outcome: form.outcome.trim(),
-			courts: splitCaseFormList(form.courts),
 			legal_areas: splitCaseFormList(form.legal_areas),
 			legal_basis: splitCaseFormList(form.legal_basis),
 			case_scope: form.case_scope.trim(),
@@ -513,6 +548,7 @@
 			dsa_articles: splitCaseFormList(form.dsa_articles),
 			...(!caseId ? { published: false } : {})
 		};
+		const submittedSnapshot = caseEditorSnapshot(form, primarySources, secondarySources, []);
 
 		try {
 			let savedRecord: CaseRecord;
@@ -543,6 +579,7 @@
 			existingDocuments = savedRecord.documents ?? [];
 			selectedDocuments = [];
 			if (documentInput) documentInput.value = '';
+			savedSnapshot = submittedSnapshot;
 			saveMessage = form.published ? 'Saved · Public' : 'Saved · Still private';
 			if (!caseId) await goto(resolve('/cases/[id]/edit', { id: savedRecord.id }));
 		} catch (err) {
@@ -554,6 +591,8 @@
 	}
 </script>
 
+<svelte:window onbeforeunload={warnBeforeUnload} />
+
 <section class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 	{#if !isEditing}
 		<input
@@ -564,33 +603,61 @@
 			onchange={importCsv}
 		/>
 	{/if}
-	<div class={isEditing && authStore.isAdmin
-		? 'mb-6 grid items-center gap-3 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-6'
-		: 'mb-6 flex flex-wrap items-center justify-between gap-3'}>
+	<div
+		class={isEditing && authStore.isAdmin
+			? 'mb-6 grid items-center gap-3 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-6'
+			: 'mb-6 flex flex-wrap items-center justify-between gap-3'}
+	>
 		<div class="flex min-w-0 flex-wrap items-center justify-between gap-3">
-		<div>
-			<p class="text-xs font-semibold tracking-[0.2em] text-base-content/50 uppercase">
-				Case editor
-			</p>
-			<h1 class="text-3xl font-black">{isEditing ? 'Edit case' : 'Create case'}</h1>
-		</div>
+			<div>
+				<p class="text-xs font-semibold tracking-[0.2em] text-base-content/50 uppercase">
+					Case editor
+				</p>
+				<h1 class="text-3xl font-black">{isEditing ? 'Edit case' : 'Create case'}</h1>
+			</div>
 			{#if canWrite && !loading}
-				<div class="w-60 max-w-full rounded-xl border border-base-300 bg-base-100 px-4 py-2 shadow-sm">
+				<div
+					class="w-60 max-w-full rounded-xl border border-base-300 bg-base-100 px-4 py-2 shadow-sm"
+				>
 					<div class="flex items-center justify-between gap-5">
 						<div>
 							<p class="text-[11px] font-semibold text-base-content/50">Visibility</p>
-							<p id="case-visibility-description" class={form.published ? 'text-sm font-bold text-emerald-800' : 'text-sm font-bold text-red-700'}>
-								{visibilityUncertain ? 'Unconfirmed' : form.published ? 'Public · Everyone' : 'Private · Admins only'}
+							<p
+								id="case-visibility-description"
+								class={form.published
+									? 'text-sm font-bold text-emerald-800'
+									: 'text-sm font-bold text-red-700'}
+							>
+								{visibilityUncertain
+									? 'Unconfirmed'
+									: form.published
+										? 'Public · Everyone'
+										: 'Private · Admins only'}
 							</p>
 						</div>
-						<input type="checkbox" role="switch" class="toggle toggle-success" checked={form.published}
-							aria-label="Public on website" aria-describedby="case-visibility-description"
-							title={caseId ? 'Save website visibility immediately' : 'Create this case privately first'}
+						<input
+							type="checkbox"
+							role="switch"
+							class="toggle toggle-success"
+							checked={form.published}
+							aria-label="Public on website"
+							aria-describedby="case-visibility-description"
+							title={caseId
+								? 'Save website visibility immediately'
+								: 'Create this case privately first'}
 							disabled={!caseId || saving || changingVisibility || visibilityUncertain}
-							onchange={(event) => { event.currentTarget.checked = form.published; changeVisibility(); }} />
+							onchange={(event) => {
+								event.currentTarget.checked = form.published;
+								changeVisibility();
+							}}
+						/>
 					</div>
-					<p class="sr-only" role="status">{changingVisibility ? 'Saving visibility…' : visibilityMessage}</p>
-					{#if visibilityError}<p class="mt-1 max-w-xs text-xs text-red-700" role="alert">{visibilityError}</p>{/if}
+					<p class="sr-only" role="status">
+						{changingVisibility ? 'Saving visibility…' : visibilityMessage}
+					</p>
+					{#if visibilityError}<p class="mt-1 max-w-xs text-xs text-red-700" role="alert">
+							{visibilityError}
+						</p>{/if}
 				</div>
 			{/if}
 		</div>
@@ -661,9 +728,7 @@
 					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm" open>
 						<summary class="cursor-pointer text-base font-bold">
 							Essentials
-							<span class="ml-2 text-sm font-normal text-base-content/60"
-								>ID, title, court</span
-							>
+							<span class="ml-2 text-sm font-normal text-base-content/60">ID, title, court</span>
 						</summary>
 						<div class="mt-4 grid gap-3 md:grid-cols-3">
 							<label class="form-control w-full">
@@ -725,7 +790,9 @@
 								/>
 							</label>
 							<label class="form-control w-full md:col-span-2">
-								<span class="label-text mb-1 text-sm font-semibold">Complete decision reference</span>
+								<span class="label-text mb-1 text-sm font-semibold"
+									>Complete decision reference</span
+								>
 								<input
 									class="input-bordered input input-sm w-full"
 									bind:value={form.decision_reference}
@@ -738,12 +805,12 @@
 
 					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm" open>
 						<summary class="cursor-pointer text-base font-bold">
-							Parties & outcome
+							Parties
 							<span class="ml-2 text-sm font-normal text-base-content/60"
-								>Who sued, who responded, result</span
+								>Who sued and who responded</span
 							>
 						</summary>
-						<div class="mt-4 grid gap-3 md:grid-cols-3">
+						<div class="mt-4 grid gap-3 md:grid-cols-2">
 							<label class="form-control w-full">
 								<span class="label-text mb-1 text-sm font-semibold">Plaintiffs</span>
 								<input
@@ -758,22 +825,6 @@
 									class="input-bordered input input-sm w-full"
 									bind:value={form.defendants}
 									placeholder="Comma separated"
-								/>
-							</label>
-							<label class="form-control w-full">
-								<span class="label-text mb-1 text-sm font-semibold">Outcome</span>
-								<input
-									class="input-bordered input input-sm w-full"
-									bind:value={form.outcome}
-									placeholder="Granted, dismissed, pending..."
-								/>
-							</label>
-							<label class="form-control w-full md:col-span-2">
-								<span class="label-text mb-1 text-sm font-semibold">Courts involved</span>
-								<input
-									class="input-bordered input input-sm w-full"
-									bind:value={form.courts}
-									placeholder="Comma separated if multiple courts"
 								/>
 							</label>
 						</div>
@@ -897,6 +948,7 @@
 									class="sr-only"
 									type="file"
 									multiple
+									disabled={saving}
 									accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.html,.jpg,.jpeg,.png,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,text/html,image/jpeg,image/png,image/webp"
 									onchange={selectDocuments}
 								/>
@@ -935,6 +987,7 @@
 													type="button"
 													class="btn btn-circle text-base-content/60 btn-ghost btn-xs hover:text-error"
 													aria-label={`Remove ${file.name}`}
+													disabled={saving}
 													onclick={() => removeSelectedDocument(index)}
 												>
 													<IconX class="h-4 w-4" />
@@ -993,7 +1046,10 @@
 						<div class="mt-4 grid gap-3 md:grid-cols-3">
 							<div class="form-control w-full md:col-span-3">
 								<span class="label-text mb-1 text-sm font-semibold">Internal editorial notes</span>
-								<CaseSummaryEditor label="Internal editorial notes" bind:value={form.editorial_notes} />
+								<CaseSummaryEditor
+									label="Internal editorial notes"
+									bind:value={form.editorial_notes}
+								/>
 							</div>
 							<div class="form-control w-full md:col-span-3">
 								<span class="label-text mb-1 text-sm font-semibold">Editorial summary</span>
@@ -1015,7 +1071,12 @@
 					</div>
 					<div class="flex gap-2">
 						{#if caseId && canWrite}
-							<button class="btn btn-ghost text-error" type="button" disabled={saving || changingVisibility || loading} onclick={deleteCase}>{deleting ? 'Deleting...' : 'Delete case'}</button>
+							<button
+								class="btn text-error btn-ghost"
+								type="button"
+								disabled={saving || changingVisibility || loading}
+								onclick={deleteCase}>{deleting ? 'Deleting...' : 'Delete case'}</button
+							>
 						{/if}
 						<button class="btn btn-ghost" type="button" onclick={() => goto(resolve('/cases'))}
 							>Cancel</button

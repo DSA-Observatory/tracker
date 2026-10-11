@@ -13,8 +13,16 @@
 	let {
 		caseId,
 		submissionId,
-		selectedCommentId
-	}: { caseId?: string; submissionId?: string; selectedCommentId?: string } = $props();
+		selectedCommentId,
+		general = false,
+		onCommentChange = () => {}
+	}: {
+		caseId?: string;
+		submissionId?: string;
+		selectedCommentId?: string;
+		general?: boolean;
+		onCommentChange?: () => void | Promise<void>;
+	} = $props();
 	let comments = $state<CaseCommentRecord[]>([]);
 	let content = $state('');
 	let assigneeId = $state('');
@@ -28,14 +36,21 @@
 	let editContent = $state('');
 	let editAssigneeId = $state('');
 	let editAssigneeLabel = $state('');
+	let replyToId = $state('');
 	let deletingId = $state('');
 	let loadGeneration = 0;
-	const targetField = $derived(submissionId ? 'submission' : 'case');
+	const targetField = $derived(submissionId ? 'submission' : caseId ? 'case' : undefined);
 	const targetId = $derived(submissionId ?? caseId ?? '');
+	const orderedComments = $derived(orderComments(comments));
 
 	function authorName(comment: CaseCommentRecord) {
 		const author = comment.expand?.author;
 		return author?.name || author?.username || author?.email || 'Admin';
+	}
+
+	function replyAuthorName() {
+		const comment = comments.find((item) => item.id === replyToId);
+		return comment ? authorName(comment) : 'this comment';
 	}
 
 	function assigneeName(comment: CaseCommentRecord) {
@@ -50,6 +65,38 @@
 		}).format(new Date(value));
 	}
 
+	function orderComments(items: CaseCommentRecord[]) {
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- Local traversal data, never component state.
+		const children = new Map<string, CaseCommentRecord[]>();
+		const roots: CaseCommentRecord[] = [];
+		const commentIds = new Set(items.map((comment) => comment.id));
+		for (const comment of items) {
+			if (comment.parent && commentIds.has(comment.parent)) {
+				const replies = children.get(comment.parent) ?? [];
+				replies.push(comment);
+				children.set(comment.parent, replies);
+			} else {
+				roots.push(comment);
+			}
+		}
+		const ordered: { comment: CaseCommentRecord; depth: number }[] = [];
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- Local cycle detection, never component state.
+		const seen = new Set<string>();
+		function append(comment: CaseCommentRecord, depth: number) {
+			if (seen.has(comment.id)) return;
+			seen.add(comment.id);
+			ordered.push({ comment, depth });
+			for (const reply of (children.get(comment.id) ?? []).sort((a, b) =>
+				a.created.localeCompare(b.created)
+			)) {
+				append(reply, depth + 1);
+			}
+		}
+		for (const comment of roots.sort((a, b) => a.created.localeCompare(b.created)))
+			append(comment, 0);
+		return ordered;
+	}
+
 	async function loadComments(field = targetField, id = targetId) {
 		const generation = ++loadGeneration;
 		if (!authStore.isAdmin) {
@@ -59,9 +106,11 @@
 
 		try {
 			const loaded = await pb.collection('case_comments').getFullList<CaseCommentRecord>({
-				filter: pb.filter(`${field} = {:targetId}`, { targetId: id }),
+				filter: general
+					? "case = '' && submission = ''"
+					: pb.filter(`${field} = {:targetId}`, { targetId: id }),
 				sort: 'created',
-				expand: 'author,resolved_by,assignee'
+				expand: 'author,resolved_by,assignee,parent'
 			});
 			if (generation !== loadGeneration || field !== targetField || id !== targetId) return;
 			comments = loaded;
@@ -89,10 +138,19 @@
 		}
 	}
 
+	async function refreshComments() {
+		await loadComments();
+		try {
+			await onCommentChange();
+		} catch (err) {
+			console.error('Error refreshing comment queue:', err);
+		}
+	}
+
 	$effect(() => {
 		const field = targetField;
 		const id = targetId;
-		if (!id || !authStore.isAdmin) return;
+		if ((!id && !general) || !authStore.isAdmin) return;
 		selectedId = selectedCommentId ?? '';
 		content = '';
 		assigneeId = '';
@@ -100,6 +158,7 @@
 		editContent = '';
 		editAssigneeId = '';
 		editAssigneeLabel = '';
+		replyToId = '';
 		deletingId = '';
 		error = '';
 		comments = [];
@@ -115,16 +174,18 @@
 		error = '';
 		try {
 			const comment = await pb.collection('case_comments').create<CaseCommentRecord>({
-				[targetField]: targetId,
+				...(targetField ? { [targetField]: targetId } : {}),
 				author: authStore.user.id,
 				content: message,
 				assignee: assigneeId,
+				parent: replyToId,
 				resolved: false
 			});
 			content = '';
 			assigneeId = '';
+			replyToId = '';
 			selectedId = comment.id;
-			await loadComments();
+			await refreshComments();
 		} catch (err) {
 			console.error('Error adding case comment:', err);
 			error = 'Could not send this comment.';
@@ -144,7 +205,7 @@
 				resolved_by: authStore.user.id,
 				resolved_at: new Date().toISOString()
 			});
-			await loadComments();
+			await refreshComments();
 		} catch (err) {
 			console.error('Error resolving case comment:', err);
 			error = 'Could not resolve this comment.';
@@ -159,14 +220,13 @@
 		saving = true;
 		error = '';
 		try {
-			await pb.collection('case_comments').update(comment.id, {
-				content: message,
-				assignee: editAssigneeId
-			});
+			const changes: { content: string; assignee?: string } = { content: message };
+			if (editAssigneeId !== (comment.assignee ?? '')) changes.assignee = editAssigneeId;
+			await pb.collection('case_comments').update(comment.id, changes);
 			editingId = '';
 			editAssigneeId = '';
 			editAssigneeLabel = '';
-			await loadComments();
+			await refreshComments();
 		} catch {
 			error = 'Could not save this comment. Your edits have been kept.';
 		} finally {
@@ -180,7 +240,7 @@
 		error = '';
 		try {
 			await pb.collection('case_comments').update(comment.id, { assignee: '' });
-			await loadComments();
+			await refreshComments();
 		} catch {
 			error = 'Could not clear this assignment.';
 		} finally {
@@ -196,7 +256,7 @@
 			await pb.collection('case_comments').delete(comment.id);
 			if (selectedId === comment.id) selectedId = '';
 			deletingId = '';
-			await loadComments();
+			await refreshComments();
 		} catch {
 			error = 'Could not delete this comment.';
 		} finally {
@@ -240,7 +300,7 @@
 			{:else if !comments.length}
 				<p class="rounded-lg bg-base-200 p-4 text-sm text-base-content/65">No comments yet.</p>
 			{:else}
-				{#each comments as comment (comment.id)}
+				{#each orderedComments as { comment, depth } (comment.id)}
 					{#if editingId === comment.id}
 						<form
 							class="rounded-lg border border-base-content/40 bg-base-100 p-3"
@@ -281,64 +341,82 @@
 							</div>
 						</form>
 					{:else}
-						<div class="relative">
-						<button
-							type="button"
-							class={`w-full rounded-lg border p-3 text-left text-base-content transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content ${selectedId === comment.id ? 'border-base-content/60 ring-2 ring-base-content/15' : 'border-base-300'} ${comment.resolved ? 'bg-base-200' : 'bg-base-100'}`}
-							aria-pressed={selectedId === comment.id}
-							disabled={saving}
-							onclick={() => {
-								selectedId = comment.id;
-								deletingId = '';
-							}}
-						>
-							<div class="flex items-start justify-between gap-2 pr-7">
-								<span class="text-xs font-semibold">{authorName(comment)}</span>
-								<div class="flex flex-wrap justify-end gap-1">
-									{#if comment.assignee}<span class="max-w-full rounded-lg border border-base-content/30 px-2 py-0.5 text-xs leading-5 break-words"
-											>Assigned: {assigneeName(comment)}</span
-										>{/if}
-									{#if comment.resolved}<span class="badge gap-1 badge-sm badge-success"
-											><IconCheck class="size-3" /> Resolved</span
-										>{/if}
-								</div>
-							</div>
-							<p class="mt-2 text-sm break-words whitespace-pre-wrap">
-								{comment.content}
-							</p>
-							<time class="mt-2 block text-xs text-base-content/75" datetime={comment.created}
-								>{formatDate(comment.created)}</time
-							>
-						</button>
-						<details
-							class="dropdown dropdown-end absolute top-2 right-2"
-							onkeydown={(event) => {
-								if (event.key === 'Escape') {
-									event.currentTarget.open = false;
-									event.currentTarget.querySelector('summary')?.focus();
-								}
-							}}
-						>
-							<summary class="btn btn-ghost btn-xs btn-square list-none [&::-webkit-details-marker]:hidden" aria-label={`Actions for comment by ${authorName(comment)}`}>
-								<IconEllipsis class="size-4" />
-							</summary>
-							<ul class="dropdown-content menu z-10 w-36 rounded-lg border border-base-300 bg-base-100 p-1 shadow-lg">
-								<li><button type="button" disabled={saving} onclick={(event) => {
-									event.currentTarget.closest('details')?.removeAttribute('open');
+						<div class="relative" style:margin-left={`${Math.min(depth, 4) * 1.25}rem`}>
+							<button
+								type="button"
+								class={`w-full rounded-lg border p-3 text-left text-base-content transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content ${selectedId === comment.id ? 'border-base-content/60 ring-2 ring-base-content/15' : 'border-base-300'} ${comment.resolved ? 'bg-base-200' : 'bg-base-100'}`}
+								aria-pressed={selectedId === comment.id}
+								disabled={saving}
+								onclick={() => {
 									selectedId = comment.id;
 									deletingId = '';
-									editingId = comment.id;
-									editContent = comment.content;
-									editAssigneeId = comment.assignee ?? '';
-									editAssigneeLabel = assigneeName(comment);
-								}}><IconPencil class="size-3.5" /> Edit</button></li>
-								<li><button type="button" class="text-error" disabled={saving} onclick={(event) => {
-									event.currentTarget.closest('details')?.removeAttribute('open');
-									selectedId = comment.id;
-									deletingId = comment.id;
-								}}><IconTrash class="size-3.5" /> Delete</button></li>
-							</ul>
-						</details>
+								}}
+							>
+								<div class="flex items-start justify-between gap-2 pr-7">
+									<span class="text-xs font-semibold">{authorName(comment)}</span>
+									<div class="flex flex-wrap justify-end gap-1">
+										{#if comment.assignee}<span
+												class="max-w-full rounded-lg border border-base-content/30 px-2 py-0.5 text-xs leading-5 break-words"
+												>Assigned: {assigneeName(comment)}</span
+											>{/if}
+										{#if comment.resolved}<span class="badge gap-1 badge-sm badge-success"
+												><IconCheck class="size-3" /> Resolved</span
+											>{/if}
+									</div>
+								</div>
+								<p class="mt-2 text-sm break-words whitespace-pre-wrap">
+									{comment.content}
+								</p>
+								<time class="mt-2 block text-xs text-base-content/75" datetime={comment.created}
+									>{formatDate(comment.created)}</time
+								>
+							</button>
+							<details class="dropdown absolute dropdown-end top-2 right-2">
+								<summary
+									class="btn btn-square list-none btn-ghost btn-xs [&::-webkit-details-marker]:hidden"
+									aria-label={`Actions for comment by ${authorName(comment)}`}
+									onkeydown={(event) => {
+										if (event.key !== 'Escape') return;
+										event.preventDefault();
+										const details = event.currentTarget.parentElement;
+										if (details instanceof HTMLDetailsElement) details.open = false;
+										event.currentTarget.focus();
+									}}
+								>
+									<IconEllipsis class="size-4" />
+								</summary>
+								<ul
+									class="dropdown-content menu z-10 w-36 rounded-lg border border-base-300 bg-base-100 p-1 shadow-lg"
+								>
+									<li>
+										<button
+											type="button"
+											disabled={saving}
+											onclick={(event) => {
+												event.currentTarget.closest('details')?.removeAttribute('open');
+												selectedId = comment.id;
+												deletingId = '';
+												editingId = comment.id;
+												editContent = comment.content;
+												editAssigneeId = comment.assignee ?? '';
+												editAssigneeLabel = assigneeName(comment);
+											}}><IconPencil class="size-3.5" /> Edit</button
+										>
+									</li>
+									<li>
+										<button
+											type="button"
+											class="text-error"
+											disabled={saving}
+											onclick={(event) => {
+												event.currentTarget.closest('details')?.removeAttribute('open');
+												selectedId = comment.id;
+												deletingId = comment.id;
+											}}><IconTrash class="size-3.5" /> Delete</button
+										>
+									</li>
+								</ul>
+							</details>
 						</div>
 					{/if}
 					{#if selectedId === comment.id && editingId !== comment.id}
@@ -360,28 +438,43 @@
 									>
 								</div>
 							</div>
-						{:else}
-							{#if comment.assignee}
-								<div class="mt-2 flex flex-wrap items-start justify-between gap-2 rounded-lg bg-base-200 px-3 py-2">
-									<span class="min-w-0 flex-1 text-xs leading-5 break-words">Assigned to {assigneeName(comment)}</span>
-									<button
-										type="button"
-										class="btn btn-ghost btn-xs"
-										disabled={saving}
-										onclick={() => clearAssignee(comment)}>Clear assignment</button
-									>
-								</div>
-							{/if}
+						{:else if comment.assignee}
+							<div
+								class="mt-2 flex flex-wrap items-start justify-between gap-2 rounded-lg bg-base-200 px-3 py-2"
+							>
+								<span class="min-w-0 flex-1 text-xs leading-5 break-words"
+									>Assigned to {assigneeName(comment)}</span
+								>
+								<button
+									type="button"
+									class="btn btn-ghost btn-xs"
+									disabled={saving}
+									onclick={() => clearAssignee(comment)}>Clear assignment</button
+								>
+							</div>
 						{/if}
 						{#if !comment.resolved && deletingId !== comment.id}
-							<button
-								class="btn w-full gap-2 btn-sm btn-success"
-								type="button"
-								disabled={saving}
-								onclick={() => resolveComment(comment)}
-							>
-								<IconCheck class="size-4" /> Resolve comment
-							</button>
+							<div class="mt-2 flex gap-2">
+								<button
+									class="btn flex-1 gap-2 btn-sm btn-success"
+									type="button"
+									disabled={saving}
+									onclick={() => resolveComment(comment)}
+								>
+									<IconCheck class="size-4" /> Resolve comment
+								</button>
+								<button
+									class="btn btn-outline btn-sm"
+									type="button"
+									disabled={saving}
+									onclick={() => {
+										replyToId = comment.id;
+										requestAnimationFrame(() =>
+											document.getElementById(`${targetField ?? 'general'}-comment`)?.focus()
+										);
+									}}>Reply</button
+								>
+							</div>
 						{/if}
 					{/if}
 				{/each}
@@ -397,8 +490,18 @@
 		>
 			{#if error}<p class="mb-2 text-sm text-error">{error}</p>{/if}
 			{#if adminError}<p class="mb-2 text-sm text-error">{adminError}</p>{/if}
+			{#if replyToId}
+				<div
+					class="mb-2 flex items-center justify-between gap-2 rounded-lg bg-base-200 px-3 py-2 text-xs"
+				>
+					<span>Replying to {replyAuthorName()}</span>
+					<button class="btn btn-ghost btn-xs" type="button" onclick={() => (replyToId = '')}
+						>Cancel reply</button
+					>
+				</div>
+			{/if}
 			<AdminMentionComposer
-				id={`${targetField}-comment`}
+				id={`${targetField ?? 'general'}-comment`}
 				label="Write a comment"
 				bind:content
 				bind:assigneeId

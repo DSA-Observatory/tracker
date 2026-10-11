@@ -192,6 +192,12 @@ Only the DSA case sheet is included. Numeric dates in complete reference text us
 
 Published cases are public. Only accounts with `is_admin = true` can read unpublished or archived cases, or create, edit, publish and delete cases. Signing in alone does not grant editorial access. The application and PocketBase rules enforce the admin role; public registration and profile updates cannot grant it. Uploaded case files are protected by the case view rule. Admins should unpublish problematic cases rather than delete records with comment history.
 
+### Editorial comments and suggested-case reversal
+
+General comments, threaded replies, and returning an accepted draft to suggested require migration `23_comment_replies.js` plus the updated `case_submission_workflow.pb.js` and `comment_assignment_helpers.js` on PocketBase. Deploy the frontend and these backend changes together only with explicit production approval, fresh snapshots, a verified full backup, and saved copies of the previous hooks. A Git commit or frontend push does not install backend files. Do not deploy unrelated pending migrations or the SMTP settings hook as part of this update.
+
+The draft queue links eligible accepted suggestions to their return action. Returning requires an unpublished case with status `draft`; it archives rather than deletes the linked case. Re-accepting reuses the record ID and preserves comments and edits. General comments remain admin-only, and replies cannot change their original target or parent. Rolling back migration 23 removes reply relationships, so preserve them before any approved rollback.
+
 ### Prerequisites
 
 - Docker and Docker Compose.

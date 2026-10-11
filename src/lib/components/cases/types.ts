@@ -1,6 +1,6 @@
 import type { CaseStatus } from '$lib/database';
 
-export type FilterGroup = 'countries' | 'categories' | 'articles' | 'courts' | 'parties' | 'years';
+export type FilterGroup = 'countries' | 'categories' | 'articles' | 'courts' | 'years';
 
 export type SearchScope =
 	| 'all'

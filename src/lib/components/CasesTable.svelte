@@ -3,10 +3,11 @@
 	import { PersistedState } from 'runed';
 	import { browser } from '$app/environment';
 	import { afterNavigate, disableScrollHandling, goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
+	import { asset, resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { claimEntryAnimation } from '$lib/entry-animation';
 	import { casesCacheKey, readCasesCache, writeCasesCache } from '$lib/stores/cases-cache';
+	import { caseExportRows, caseExportCsv, caseExportExcel } from '$lib/case-export';
 	import type { FilterOption } from '$lib/components/FilterMenu.svelte';
 	import CaseBrowseCards from '$lib/components/cases/CaseBrowseCards.svelte';
 	import CaseCardsList from '$lib/components/cases/CaseCardsList.svelte';
@@ -74,10 +75,11 @@
 	let categories = $state<string[]>([]);
 	let articles = $state<string[]>([]);
 	let courts = $state<string[]>([]);
-	let parties = $state<string[]>([]);
 	let years = $state<string[]>([]);
 	let loading = $state(true);
 	let error = $state('');
+	let exporting = $state(false);
+	let exportError = $state('');
 	let viewMode = $state<ViewMode>('cards');
 	let sortOrder = $state<'recent' | 'oldest' | 'title'>('recent');
 	let filterLayout = $state<FilterLayout>('left');
@@ -100,7 +102,6 @@
 			categories: [] as string[],
 			articles: [] as string[],
 			courts: [] as string[],
-			parties: [] as string[],
 			years: [] as string[],
 			viewMode: 'cards' as ViewMode,
 			filterLayout: 'left' as FilterLayout,
@@ -147,17 +148,6 @@
 	const courtFilterOptions = $derived(
 		buildOptions('courts', uniqueSorted(browseCases.map((record) => record.court)))
 	);
-	const partyFilterOptions = $derived(
-		buildOptions(
-			'parties',
-			uniqueSorted(
-				browseCases.flatMap((record) => [
-					...(record.plaintiffs ?? []),
-					...(record.defendants ?? [])
-				])
-			)
-		)
-	);
 	const yearFilterOptions = $derived(
 		buildOptions('years', uniqueSorted(browseCases.map((record) => getDecisionYear(record))))
 	);
@@ -189,7 +179,6 @@
 		categories,
 		articles,
 		courts,
-		parties,
 		years,
 		viewMode,
 		sortOrder,
@@ -227,13 +216,11 @@
 		categoryFilterOptions,
 		articleFilterOptions,
 		courtFilterOptions,
-		partyFilterOptions,
 		yearFilterOptions,
 		countries,
 		categories,
 		articles,
 		courts,
-		parties,
 		years,
 		activeTab,
 		savedCount: savedCaseIds.filter((id) => cases.some((record) => record.id === id)).length,
@@ -279,7 +266,6 @@
 			categories,
 			articles,
 			courts,
-			parties,
 			years,
 			viewMode,
 			filterLayout,
@@ -365,7 +351,6 @@
 			categories = state.categories;
 			articles = state.articles;
 			courts = state.courts;
-			parties = state.parties;
 			years = state.years;
 			viewMode = state.viewMode;
 			filterLayout = state.filterLayout;
@@ -378,7 +363,13 @@
 		// Explicit incoming search/map links take precedence over remembered filters.
 		if (page.url.searchParams.has('q')) search = page.url.searchParams.get('q') ?? '';
 		if (page.url.searchParams.has('jurisdiction')) {
-			countries = [normalizeJurisdiction(page.url.searchParams.get('jurisdiction') ?? '')];
+			countries = [normalizeJurisdiction(page.url.searchParams.get('jurisdiction') ?? '') ?? ''];
+			search = page.url.searchParams.get('q') ?? '';
+			searchScope = 'all';
+			categories = [];
+			articles = [];
+			courts = [];
+			years = [];
 		}
 		if (page.url.searchParams.has('map')) mapCollapsed = mapStartsCollapsed;
 		if (page.url.searchParams.get('view') === 'map') viewMode = 'map';
@@ -496,9 +487,16 @@
 	function getCategories(record: CaseRecord) {
 		const categories = listOrFallback(record.categories);
 		const values = categories.length ? categories : (record.keywords ?? []);
-		return [...new Set(values.map((value) =>
-			categoryOptions.find((category) => category.toLowerCase() === value.trim().toLowerCase()) ?? value.trim()
-		))].filter((value) => categories.length || categoryOptions.includes(value));
+		return [
+			...new Set(
+				values.map(
+					(value) =>
+						categoryOptions.find(
+							(category) => category.toLowerCase() === value.trim().toLowerCase()
+						) ?? value.trim()
+				)
+			)
+		].filter((value) => categories.length || categoryOptions.includes(value));
 	}
 
 	function getSummarySection(record: CaseRecord, heading: string) {
@@ -629,7 +627,6 @@
 			(ignoredGroup === 'categories' || matchesAny(categories, getCategories(record))) &&
 			(ignoredGroup === 'articles' || matchesAny(articles, record.dsa_articles ?? [])) &&
 			(ignoredGroup === 'courts' || matchesAny(courts, [record.court])) &&
-			(ignoredGroup === 'parties' || matchesAny(parties, getPartyValues(record))) &&
 			(ignoredGroup === 'years' || matchesAny(years, [getDecisionYear(record)]))
 		);
 	}
@@ -641,7 +638,6 @@
 			if (group === 'categories') return getCategories(record).includes(option);
 			if (group === 'articles') return (record.dsa_articles ?? []).includes(option);
 			if (group === 'courts') return record.court === option;
-			if (group === 'parties') return getPartyValues(record).includes(option);
 			return getDecisionYear(record) === option;
 		}).length;
 	}
@@ -664,7 +660,6 @@
 		if (group === 'categories') return categories;
 		if (group === 'articles') return articles;
 		if (group === 'courts') return courts;
-		if (group === 'parties') return parties;
 		return years;
 	}
 
@@ -678,20 +673,12 @@
 		if (group === 'categories') categories = next;
 		if (group === 'articles') articles = next;
 		if (group === 'courts') courts = next;
-		if (group === 'parties') parties = next;
 		if (group === 'years') years = next;
 	}
 
 	function buildActiveChips() {
 		const chips: ActiveFilterChip[] = [];
-		const groups: FilterGroup[] = [
-			'countries',
-			'categories',
-			'articles',
-			'courts',
-			'parties',
-			'years'
-		];
+		const groups: FilterGroup[] = ['countries', 'categories', 'articles', 'courts', 'years'];
 
 		for (const group of groups) {
 			for (const value of selectedFor(group)) {
@@ -709,7 +696,6 @@
 		categories = [];
 		articles = [];
 		courts = [];
-		parties = [];
 		years = [];
 		resetTableScroll();
 	}
@@ -840,30 +826,28 @@
 		}
 	}
 
-	function downloadFilteredCases(format: 'csv' | 'json') {
-		const rows = filteredCases.map((record) => ({
-			case_id: record.case_id,
-			title: record.title,
-			status: record.status,
-			outcome: record.outcome ?? '',
-			jurisdiction: record.jurisdiction ?? '',
-			court: record.court ?? '',
-			decision_date: record.decision_date ?? '',
-			ecli: record.ecli ?? '',
-			decision_reference: record.decision_reference ?? '',
-			procedural_wording: record.procedural_wording ?? '',
-			plaintiffs: (record.plaintiffs ?? []).join('; '),
-			defendants: (record.defendants ?? []).join('; '),
-			dsa_articles: (record.dsa_articles ?? []).join('; '),
-			legal_areas: (record.legal_areas ?? []).join('; '),
-			legal_basis: (record.legal_basis ?? []).join('; '),
-			url: `${window.location.origin}${resolve(`/cases/${record.id}`)}`
-		}));
-
-		const body = format === 'json' ? JSON.stringify(rows, null, 2) : toCsv(rows);
-		const type = format === 'json' ? 'application/json' : 'text/csv';
-		const blob = new Blob([body], { type: `${type};charset=utf-8` });
-		downloadBlob(`dsa-cases-${new Date().toISOString().slice(0, 10)}.${format}`, blob);
+	async function downloadFilteredCases(format: 'xlsx' | 'csv' | 'json') {
+		if (exporting || loading || !filteredCases.length) return;
+		exporting = true;
+		exportError = '';
+		try {
+			const rows = caseExportRows(
+				filteredCases,
+				(id) => `${window.location.origin}${resolve(`/cases/${id}`)}`
+			);
+			const blob =
+				format === 'xlsx'
+					? await caseExportExcel(rows)
+					: new Blob([format === 'json' ? JSON.stringify(rows, null, 2) : caseExportCsv(rows)], {
+							type: `${format === 'json' ? 'application/json' : 'text/csv'};charset=utf-8`
+						});
+			downloadBlob(`dsa-cases-${new Date().toISOString().slice(0, 10)}.${format}`, blob);
+		} catch (err) {
+			console.error('Could not export cases:', err);
+			exportError = 'Could not export these cases. Please try again.';
+		} finally {
+			exporting = false;
+		}
 	}
 
 	function downloadBlob(filename: string, blob: Blob) {
@@ -871,21 +855,10 @@
 		const link = document.createElement('a');
 		link.href = url;
 		link.download = filename;
+		document.body.appendChild(link);
 		link.click();
-		URL.revokeObjectURL(url);
-	}
-
-	function toCsv(rows: Record<string, string>[]) {
-		if (!rows.length) return '';
-		const headers = Object.keys(rows[0]);
-		return [
-			headers.join(','),
-			...rows.map((row) => headers.map((header) => csvCell(row[header])).join(','))
-		].join('\n');
-	}
-
-	function csvCell(value: string) {
-		return `"${value.replace(/"/g, '""')}"`;
+		link.remove();
+		window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 	}
 
 	onMount(() => {
@@ -944,6 +917,20 @@
 	});
 </script>
 
+{#snippet exportOptions()}
+	<p class="px-2 py-1 text-xs text-slate-500" aria-live="polite">
+		{exporting ? 'Preparing export…' : `${filteredCases.length} matching cases`}
+	</p>
+	{#each [['xlsx', 'Excel (.xlsx)'], ['csv', 'CSV'], ['json', 'JSON']] as [format, label] (format)}
+		<button
+			class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+			type="button"
+			disabled={exporting || loading || !filteredCases.length}
+			onclick={() => downloadFilteredCases(format as 'xlsx' | 'csv' | 'json')}>{label}</button
+		>
+	{/each}
+{/snippet}
+
 <svelte:window
 	onscroll={rememberWindowScroll}
 	onkeydown={(event) => {
@@ -962,15 +949,12 @@
 				<div
 					class="cases-entry cases-intro relative mb-3 overflow-hidden rounded-2xl border border-sky-100 bg-gradient-to-br from-white via-sky-50 to-blue-100 shadow-sm shadow-slate-200/60"
 				>
-					<div
-						class="pointer-events-none absolute inset-0 hidden sm:block"
-						aria-hidden="true"
-					>
+					<div class="pointer-events-none absolute inset-0 hidden sm:block" aria-hidden="true">
 						<img
-							src={resolve('/maps/europe-banner.png')}
-						alt=""
-						class="h-full w-full object-fill opacity-50 saturate-[0.7]"
-						draggable="false"
+							src={asset('/maps/europe-banner.png')}
+							alt=""
+							class="h-full w-full object-fill opacity-50 saturate-[0.7]"
+							draggable="false"
 						/>
 					</div>
 					<div
@@ -994,44 +978,31 @@
 								class="grid grid-cols-4 items-center rounded-xl border border-white/60 bg-white/65 px-2 py-5 shadow-sm shadow-sky-900/5 backdrop-blur-md sm:px-3"
 							>
 								<div class="px-2 text-left sm:px-3">
-									<strong
-										class="block text-xl leading-none font-bold tracking-tight text-slate-950"
+									<strong class="block text-xl leading-none font-bold tracking-tight text-slate-950"
 										>{caseStats.cases}</strong
 									>
-									<span
-										class="mt-1 block text-xs font-medium text-slate-600"
-										>cases</span
-									>
+									<span class="mt-1 block text-xs font-medium text-slate-600">cases</span>
 								</div>
 								<div class="border-l border-slate-200/80 px-2 text-left sm:px-3">
 									<strong
 										class="block text-base leading-none font-bold tracking-tight text-slate-900"
 										>{caseStats.countries}</strong
 									>
-									<span
-										class="mt-2 block text-xs font-normal text-slate-500"
-										>countries</span
-									>
+									<span class="mt-2 block text-xs font-normal text-slate-500">countries</span>
 								</div>
 								<div class="border-l border-slate-200/80 px-2 text-left sm:px-3">
 									<strong
 										class="block text-base leading-none font-bold tracking-tight text-slate-900"
 										>{caseStats.courts}</strong
 									>
-									<span
-										class="mt-2 block text-xs font-normal text-slate-500"
-										>courts</span
-									>
+									<span class="mt-2 block text-xs font-normal text-slate-500">courts</span>
 								</div>
 								<div class="border-l border-slate-200/80 px-2 text-left sm:px-3">
 									<strong
 										class="block text-base leading-none font-bold tracking-tight text-slate-900"
 										>{caseStats.categories}</strong
 									>
-									<span
-										class="mt-2 block text-xs font-normal text-slate-500"
-										>categories</span
-									>
+									<span class="mt-2 block text-xs font-normal text-slate-500">categories</span>
 								</div>
 							</div>
 						</div>
@@ -1066,37 +1037,46 @@
 								? 'inline-flex h-7 items-center gap-1 rounded-sm bg-slate-100 px-2.5 text-xs font-semibold text-slate-950 transition'
 								: 'inline-flex h-7 items-center gap-1 rounded-sm px-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800'}
 							type="button"
-							onclick={() => (viewMode = 'cards')}><IconGrid class="size-3.5" aria-hidden="true" /> List</button
+							onclick={() => (viewMode = 'cards')}
+							><IconGrid class="size-3.5" aria-hidden="true" /> List</button
 						>
 						<button
-								class={viewMode === 'table'
-									? 'inline-flex h-7 items-center gap-1 rounded-sm bg-slate-100 px-2.5 text-xs font-semibold text-slate-950 transition'
-									: 'inline-flex h-7 items-center gap-1 rounded-sm px-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800'}
-								type="button"
-								onclick={() => (viewMode = 'table')}><IconTable class="size-3.5" aria-hidden="true" /> Table</button
-							>
+							class={viewMode === 'table'
+								? 'inline-flex h-7 items-center gap-1 rounded-sm bg-slate-100 px-2.5 text-xs font-semibold text-slate-950 transition'
+								: 'inline-flex h-7 items-center gap-1 rounded-sm px-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800'}
+							type="button"
+							onclick={() => (viewMode = 'table')}
+							><IconTable class="size-3.5" aria-hidden="true" /> Table</button
+						>
 						{#if cardVariant === 'landing' && showMap}<button
 								class={viewMode === 'map'
 									? 'inline-flex h-7 items-center gap-1 rounded-sm bg-slate-900 px-2.5 text-xs font-semibold text-white transition'
 									: 'inline-flex h-7 items-center gap-1 rounded-sm px-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800'}
 								type="button"
-								onclick={() => (viewMode = 'map')}><IconMap class="size-3.5" aria-hidden="true" /> Map</button
+								onclick={() => (viewMode = 'map')}
+								><IconMap class="size-3.5" aria-hidden="true" /> Map</button
 							>{/if}
 					</div>
 
 					<div class="flex items-center gap-1.5">
 						<label class="relative">
-						<IconArrowUpDown class="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-						<select
-							class="h-8 max-w-32 appearance-none rounded-md border border-slate-300 bg-white pr-6 pl-7 text-xs font-semibold text-slate-700"
-							bind:value={sortOrder}
-							aria-label="Sort cases"
-						>
-							<option value="recent">Recent</option><option value="oldest">Oldest</option><option
-								value="title">Title A–Z</option
+							<IconArrowUpDown
+								class="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-slate-400"
+								aria-hidden="true"
+							/>
+							<select
+								class="h-8 max-w-32 appearance-none rounded-md border border-slate-300 bg-white pr-6 pl-7 text-xs font-semibold text-slate-700"
+								bind:value={sortOrder}
+								aria-label="Sort cases"
 							>
-						</select>
-						<IconChevronDown class="pointer-events-none absolute top-1/2 right-2 size-3 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+								<option value="recent">Recent</option><option value="oldest">Oldest</option><option
+									value="title">Title A–Z</option
+								>
+							</select>
+							<IconChevronDown
+								class="pointer-events-none absolute top-1/2 right-2 size-3 -translate-y-1/2 text-slate-400"
+								aria-hidden="true"
+							/>
 						</label>
 						<details class="relative">
 							<summary
@@ -1108,16 +1088,7 @@
 							<div
 								class="absolute right-0 z-50 mt-1 min-w-32 rounded-md border border-slate-200 bg-white p-1 shadow-lg"
 							>
-								<button
-									class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
-									type="button"
-									onclick={() => downloadFilteredCases('csv')}>CSV</button
-								>
-								<button
-									class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
-									type="button"
-									onclick={() => downloadFilteredCases('json')}>JSON</button
-								>
+								{@render exportOptions()}
 							</div>
 						</details>
 						{#if canWrite}
@@ -1145,39 +1116,39 @@
 			</div>
 
 			{#if cardVariant !== 'landing'}
-			<div class="cases-entry cases-toolbar hidden md:block">
-				<Search
-					bind:value={search}
-					bind:searchScope
-					scopes={searchScopes}
-					placeholder="Search cases, parties, articles, sources"
-					navigateOnSubmit={false}
-					variant="hero"
-					showLabel={false}
-					bare={true}
-				>
-					{#snippet trailing()}
-						<select
-							class="h-8 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-700 shadow-xs focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
-							bind:value={sortOrder}
-							aria-label="Sort cases"
-						>
-							<option value="recent">Most recent</option>
-							<option value="oldest">Oldest first</option>
-							<option value="title">Title A–Z</option>
-						</select>
-						<div
-							class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-0.5 shadow-xs"
-						>
-							<button
-								class={viewMode === 'grid' || viewMode === 'cards'
-									? 'h-7 rounded-md bg-slate-900 px-2.5 text-xs font-semibold text-white'
-									: 'h-7 rounded-md px-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
-								type="button"
-								aria-pressed={viewMode === 'grid' || viewMode === 'cards'}
-								onclick={() => (viewMode = 'cards')}>List</button
+				<div class="cases-entry cases-toolbar hidden md:block">
+					<Search
+						bind:value={search}
+						bind:searchScope
+						scopes={searchScopes}
+						placeholder="Search cases, parties, articles, sources"
+						navigateOnSubmit={false}
+						variant="hero"
+						showLabel={false}
+						bare={true}
+					>
+						{#snippet trailing()}
+							<select
+								class="h-8 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-semibold text-slate-700 shadow-xs focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:outline-none"
+								bind:value={sortOrder}
+								aria-label="Sort cases"
 							>
-							<button
+								<option value="recent">Most recent</option>
+								<option value="oldest">Oldest first</option>
+								<option value="title">Title A–Z</option>
+							</select>
+							<div
+								class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-0.5 shadow-xs"
+							>
+								<button
+									class={viewMode === 'grid' || viewMode === 'cards'
+										? 'h-7 rounded-md bg-slate-900 px-2.5 text-xs font-semibold text-white'
+										: 'h-7 rounded-md px-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
+									type="button"
+									aria-pressed={viewMode === 'grid' || viewMode === 'cards'}
+									onclick={() => (viewMode = 'cards')}>List</button
+								>
+								<button
 									class={viewMode === 'table'
 										? 'h-7 rounded-md bg-slate-100 px-2.5 text-xs font-semibold text-slate-950'
 										: 'h-7 rounded-md px-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
@@ -1185,88 +1156,80 @@
 									aria-pressed={viewMode === 'table'}
 									onclick={() => (viewMode = 'table')}>Table</button
 								>
-							{#if cardVariant === 'landing' && showMap}<button
-									class={viewMode === 'map'
-										? 'h-7 rounded-md bg-slate-100 px-2.5 text-xs font-semibold text-slate-950'
-										: 'h-7 rounded-md px-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
+								{#if cardVariant === 'landing' && showMap}<button
+										class={viewMode === 'map'
+											? 'h-7 rounded-md bg-slate-100 px-2.5 text-xs font-semibold text-slate-950'
+											: 'h-7 rounded-md px-2.5 text-xs font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
+										type="button"
+										aria-pressed={viewMode === 'map'}
+										onclick={() => (viewMode = 'map')}>Map</button
+									>{/if}
+							</div>
+							<details class="relative">
+								<summary
+									class="inline-flex h-8 cursor-pointer list-none items-center justify-center gap-1 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
+								>
+									Export
+									<span class="text-[0.6rem] text-slate-500" aria-hidden="true">▼</span>
+								</summary>
+								<div
+									class="absolute right-0 z-50 mt-1 min-w-36 rounded-md border border-slate-200 bg-white p-1 shadow-lg"
+								>
+									{@render exportOptions()}
+								</div>
+							</details>
+							{#if canWrite}<button
+									class="btn h-8 min-h-0 rounded-md px-3 text-xs font-semibold whitespace-nowrap btn-primary"
 									type="button"
-									aria-pressed={viewMode === 'map'}
-									onclick={() => (viewMode = 'map')}>Map</button
+									onclick={() => goto(resolve('/cases/new'))}>Create case</button
+								>{/if}
+						{/snippet}
+					</Search>
+				</div>
+				<div class="hidden items-center justify-between gap-3 md:flex lg:hidden">
+					<p class="min-w-0 text-sm text-slate-500">
+						Showing <span class="font-medium text-slate-900">{filteredCases.length}</span> of {cases.length}
+						cases
+					</p>
+				</div>
+				{#if activeChips.length > 0 || search.trim()}<div
+						class="cases-entry flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-2.5"
+					>
+						<div class="flex min-w-0 flex-wrap items-center gap-1.5">
+							{#each activeChips as chip (`${chip.group}:${chip.value}`)}
+								<button
+									class="inline-flex h-7 max-w-44 items-center gap-1 truncate rounded-full border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+									type="button"
+									onclick={() => toggleFilter(chip.group, chip.value)}
+									title={`Remove ${chip.label} filter`}
+								>
+									<span class="truncate">{chip.label}</span><span aria-hidden="true">×</span>
+								</button>
+							{/each}
+							{#if search.trim()}<button
+									class="inline-flex h-7 max-w-44 items-center gap-1 truncate rounded-full border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+									type="button"
+									onclick={() => (search = '')}
+									><span class="truncate">Search: {search}</span><span aria-hidden="true">×</span
+									></button
 								>{/if}
 						</div>
-						<details class="relative">
-							<summary
-								class="inline-flex h-8 cursor-pointer list-none items-center justify-center gap-1 rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold whitespace-nowrap text-slate-800 shadow-xs transition hover:border-slate-400 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:outline-none"
-							>
-								Export
-								<span class="text-[0.6rem] text-slate-500" aria-hidden="true">▼</span>
-							</summary>
-							<div
-								class="absolute right-0 z-50 mt-1 min-w-36 rounded-md border border-slate-200 bg-white p-1 shadow-lg"
-							>
-								<button
-									class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
-									type="button"
-									onclick={() => downloadFilteredCases('csv')}>CSV</button
-								>
-								<button
-									class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
-									type="button"
-									onclick={() => downloadFilteredCases('json')}>JSON</button
-								>
-							</div>
-						</details>
-						{#if canWrite}<button
-								class="btn h-8 min-h-0 rounded-md px-3 text-xs font-semibold whitespace-nowrap btn-primary"
-								type="button"
-								onclick={() => goto(resolve('/cases/new'))}>Create case</button
-							>{/if}
-					{/snippet}
-				</Search>
-			</div>
-			<div class="hidden items-center justify-between gap-3 md:flex lg:hidden">
-				<p class="min-w-0 text-sm text-slate-500">
-					Showing <span class="font-medium text-slate-900">{filteredCases.length}</span> of {cases.length}
-					cases
-				</p>
-			</div>
-			{#if activeChips.length > 0 || search.trim()}<div
-				class="cases-entry flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-2.5"
-			>
-				<div class="flex min-w-0 flex-wrap items-center gap-1.5">
-					{#each activeChips as chip (`${chip.group}:${chip.value}`)}
-						<button
-							class="inline-flex h-7 max-w-44 items-center gap-1 truncate rounded-full border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-							type="button"
-							onclick={() => toggleFilter(chip.group, chip.value)}
-							title={`Remove ${chip.label} filter`}
-						>
-							<span class="truncate">{chip.label}</span><span aria-hidden="true">×</span>
-						</button>
-					{/each}
-					{#if search.trim()}<button
-							class="inline-flex h-7 max-w-44 items-center gap-1 truncate rounded-full border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-							type="button"
-							onclick={() => (search = '')}
-							><span class="truncate">Search: {search}</span><span aria-hidden="true">×</span
-							></button
-						>{/if}
-				</div>
-			</div>{/if}
+					</div>{/if}
 
-			{#if filterLayout === 'top'}
-				<div class="hidden md:block">
-					<CaseFilterPanel sidebar={false} {...filterPanelProps} />
-				</div>
-			{:else}
-				<div class="hidden md:block lg:hidden">
-					<CaseFilterPanel sidebar={false} {...filterPanelProps} />
-				</div>
-			{/if}
+				{#if filterLayout === 'top'}
+					<div class="hidden md:block">
+						<CaseFilterPanel sidebar={false} {...filterPanelProps} />
+					</div>
+				{:else}
+					<div class="hidden md:block lg:hidden">
+						<CaseFilterPanel sidebar={false} {...filterPanelProps} />
+					</div>
+				{/if}
 			{/if}
 		</div>
 	</div>
 
+	{#if exportError}<p role="alert" class="mb-3 text-sm text-red-700">{exportError}</p>{/if}
 	{#if error}
 		<div
 			class="mb-4 flex-none rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
@@ -1279,8 +1242,8 @@
 		class={cardVariant === 'landing'
 			? 'grid min-w-0 gap-4 md:min-h-0 md:flex-1 lg:grid-cols-[17.5rem_minmax(0,1fr)]'
 			: filterLayout === 'left'
-			? 'grid min-w-0 gap-4 md:min-h-0 md:flex-1 lg:grid-cols-[17.5rem_minmax(0,1fr)]'
-			: 'min-w-0 md:min-h-0 md:flex-1'}
+				? 'grid min-w-0 gap-4 md:min-h-0 md:flex-1 lg:grid-cols-[17.5rem_minmax(0,1fr)]'
+				: 'min-w-0 md:min-h-0 md:flex-1'}
 	>
 		{#if cardVariant === 'landing' || filterLayout === 'left'}
 			<aside
@@ -1290,7 +1253,9 @@
 				<CaseFilterPanel sidebar={true} {...filterPanelProps} />
 			</aside>
 		{/if}
-		<div class="cases-entry cases-results min-w-0 md:flex md:h-full md:min-h-0 md:flex-col md:overflow-hidden">
+		<div
+			class="cases-entry cases-results min-w-0 md:flex md:h-full md:min-h-0 md:flex-col md:overflow-hidden"
+		>
 			{#if cardVariant === 'landing'}
 				<div class="mb-3 hidden flex-none space-y-2 md:block">
 					<div class="flex min-w-0 items-center gap-2">
@@ -1306,18 +1271,26 @@
 						</div>
 						<label class="relative shrink-0">
 							<span class="sr-only">Sort cases</span>
-							<IconArrowUpDown class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+							<IconArrowUpDown
+								class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400"
+								aria-hidden="true"
+							/>
 							<select
-								class="h-10 appearance-none rounded-lg border border-slate-200 bg-white py-0 pr-9 pl-9 text-sm font-semibold text-slate-700 shadow-xs outline-none transition hover:border-slate-300 focus:ring-2 focus:ring-slate-900/10"
+								class="h-10 appearance-none rounded-lg border border-slate-200 bg-white py-0 pr-9 pl-9 text-sm font-semibold text-slate-700 shadow-xs transition outline-none hover:border-slate-300 focus:ring-2 focus:ring-slate-900/10"
 								bind:value={sortOrder}
 							>
 								<option value="recent">Most recent</option>
 								<option value="oldest">Oldest first</option>
 								<option value="title">Title A–Z</option>
 							</select>
-							<IconChevronDown class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+							<IconChevronDown
+								class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-slate-400"
+								aria-hidden="true"
+							/>
 						</label>
-						<div class="inline-flex h-10 shrink-0 items-center rounded-lg border border-slate-200 bg-white p-1 shadow-xs">
+						<div
+							class="inline-flex h-10 shrink-0 items-center rounded-lg border border-slate-200 bg-white p-1 shadow-xs"
+						>
 							<button
 								class={viewMode === 'grid' || viewMode === 'cards'
 									? 'inline-flex h-8 items-center gap-1.5 rounded-md bg-slate-200 px-3 text-sm font-semibold text-slate-700'
@@ -1325,7 +1298,7 @@
 								type="button"
 								aria-pressed={viewMode === 'grid' || viewMode === 'cards'}
 								onclick={() => (viewMode = 'cards')}
-							><IconGrid class="size-4" aria-hidden="true" /> List</button
+								><IconGrid class="size-4" aria-hidden="true" /> List</button
 							>
 							<button
 								class={viewMode === 'table'
@@ -1334,7 +1307,7 @@
 								type="button"
 								aria-pressed={viewMode === 'table'}
 								onclick={() => (viewMode = 'table')}
-							><IconTable class="size-4" aria-hidden="true" /> Table</button
+								><IconTable class="size-4" aria-hidden="true" /> Table</button
 							>
 							{#if showMap}<button
 									class={viewMode === 'map'
@@ -1343,38 +1316,50 @@
 									type="button"
 									aria-pressed={viewMode === 'map'}
 									onclick={() => (viewMode = 'map')}
-								><IconMap class="size-4" aria-hidden="true" /> Map</button
+									><IconMap class="size-4" aria-hidden="true" /> Map</button
 								>{/if}
 						</div>
 						<details class="relative shrink-0">
-							<summary class="inline-flex h-10 cursor-pointer list-none items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 shadow-xs hover:border-slate-300">Export <IconChevronDown class="size-3.5" aria-hidden="true" /></summary>
-							<div class="absolute right-0 z-50 mt-1 min-w-32 rounded-md border border-slate-200 bg-white p-1 shadow-lg">
-								<button class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50" type="button" onclick={() => downloadFilteredCases('csv')}>CSV</button>
-								<button class="block w-full rounded px-2 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50" type="button" onclick={() => downloadFilteredCases('json')}>JSON</button>
+							<summary
+								class="inline-flex h-10 cursor-pointer list-none items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 shadow-xs hover:border-slate-300"
+								>Export <IconChevronDown class="size-3.5" aria-hidden="true" /></summary
+							>
+							<div
+								class="absolute right-0 z-50 mt-1 min-w-32 rounded-md border border-slate-200 bg-white p-1 shadow-lg"
+							>
+								{@render exportOptions()}
 							</div>
 						</details>
-						{#if canWrite}<button class="btn h-10 min-h-0 shrink-0 rounded-md px-3 text-xs font-semibold whitespace-nowrap btn-primary" type="button" onclick={() => goto(resolve('/cases/new'))}>Create case</button>{/if}
+						{#if canWrite}<button
+								class="btn h-10 min-h-0 shrink-0 rounded-md px-3 text-xs font-semibold whitespace-nowrap btn-primary"
+								type="button"
+								onclick={() => goto(resolve('/cases/new'))}>Create case</button
+							>{/if}
 					</div>
 
-					{#if activeChips.length > 0 || search.trim()}<div class="flex min-h-8 flex-wrap items-center gap-2">
-						<div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-							{#each activeChips as chip (`${chip.group}:${chip.value}`)}
-								<button
-									class="inline-flex h-7 max-w-48 items-center gap-1 rounded-full bg-slate-100 px-2.5 text-xs font-medium text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
-									type="button"
-									onclick={() => toggleFilter(chip.group, chip.value)}
-									title={`Remove ${chip.label} filter`}
-								><span class="truncate">{chip.label}</span><span aria-hidden="true">×</span></button
-								>
-							{/each}
-							{#if search.trim()}<button
-									class="inline-flex h-7 max-w-48 items-center gap-1 rounded-full bg-slate-100 px-2.5 text-xs font-medium text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
-									type="button"
-									onclick={() => (search = '')}
-									><span class="truncate">Search: {search}</span><span aria-hidden="true">×</span></button
-								>{/if}
-						</div>
-					</div>{/if}
+					{#if activeChips.length > 0 || search.trim()}<div
+							class="flex min-h-8 flex-wrap items-center gap-2"
+						>
+							<div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+								{#each activeChips as chip (`${chip.group}:${chip.value}`)}
+									<button
+										class="inline-flex h-7 max-w-48 items-center gap-1 rounded-full bg-slate-100 px-2.5 text-xs font-medium text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
+										type="button"
+										onclick={() => toggleFilter(chip.group, chip.value)}
+										title={`Remove ${chip.label} filter`}
+										><span class="truncate">{chip.label}</span><span aria-hidden="true">×</span
+										></button
+									>
+								{/each}
+								{#if search.trim()}<button
+										class="inline-flex h-7 max-w-48 items-center gap-1 rounded-full bg-slate-100 px-2.5 text-xs font-medium text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
+										type="button"
+										onclick={() => (search = '')}
+										><span class="truncate">Search: {search}</span><span aria-hidden="true">×</span
+										></button
+									>{/if}
+							</div>
+						</div>{/if}
 				</div>
 				<div class="hidden flex-none md:block lg:hidden">
 					<CaseFilterPanel sidebar={false} {...filterPanelProps} />

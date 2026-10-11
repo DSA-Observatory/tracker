@@ -18,3 +18,15 @@ test('case comments migration protects every operation with the admin rule', asy
 	expect(source).toContain("name: 'content'");
 	expect(source).toContain("name: 'resolved'");
 });
+
+test('comment replies migration adds a non-cascading parent relation and index', async () => {
+	const source = await readFile(
+		new URL('../pocketbase/pb_migrations/23_comment_replies.js', import.meta.url),
+		'utf8'
+	);
+
+	expect(source).toContain("name: 'parent'");
+	expect(source).toContain('collectionId: comments.id');
+	expect(source).toContain('cascadeDelete: false');
+	expect(source).toContain('idx_case_comments_parent');
+});

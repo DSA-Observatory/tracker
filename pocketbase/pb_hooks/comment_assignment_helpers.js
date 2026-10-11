@@ -22,6 +22,60 @@ function notificationRecipients() {
 		.filter(Boolean);
 }
 
+function validateCommentMutation(e, isUpdate) {
+	const caseId = e.record.getString('case');
+	const submissionId = e.record.getString('submission');
+	if ((caseId ? 1 : 0) + (submissionId ? 1 : 0) > 1) {
+		return {
+			field: 'case',
+			code: 'invalid_target',
+			message: 'A comment can belong to one case, one suggestion, or the general queue.'
+		};
+	}
+
+	if (isUpdate) {
+		const original = e.record.original();
+		for (const field of ['case', 'submission', 'parent']) {
+			if (e.record.getString(field) !== original.getString(field)) {
+				return {
+					field,
+					code: 'immutable_comment_target',
+					message: 'A comment target and reply parent cannot change after creation.'
+				};
+			}
+		}
+	}
+
+	const parentId = e.record.getString('parent');
+	if (!parentId) return null;
+	if (parentId === e.record.id) {
+		return {
+			field: 'parent',
+			code: 'invalid_parent',
+			message: 'A comment cannot reply to itself.'
+		};
+	}
+
+	try {
+		const parent = e.app.findRecordById('case_comments', parentId);
+		if (parent.getString('case') !== caseId || parent.getString('submission') !== submissionId) {
+			return {
+				field: 'parent',
+				code: 'invalid_parent',
+				message: 'Replies must stay with the same comment thread.'
+			};
+		}
+	} catch {
+		return {
+			field: 'parent',
+			code: 'invalid_parent',
+			message: 'Reply parent does not exist.'
+		};
+	}
+
+	return null;
+}
+
 function target(app, record) {
 	const submissionId = record.getString('submission');
 	const caseId = record.getString('case');
@@ -80,7 +134,9 @@ function sendAssignmentNotification(e, record, MailerMessage) {
 		if (!assignedAdmin) return;
 		const { title, targetUrl } = target(e.app, record);
 		const name =
-			assignedAdmin.getString('name') || assignedAdmin.getString('username') || assignedAdmin.email();
+			assignedAdmin.getString('name') ||
+			assignedAdmin.getString('username') ||
+			assignedAdmin.email();
 		send(
 			e,
 			MailerMessage,
@@ -125,4 +181,8 @@ function sendCreatedCommentNotifications(e, MailerMessage) {
 	}
 }
 
-module.exports = { sendAssignmentNotification, sendCreatedCommentNotifications };
+module.exports = {
+	sendAssignmentNotification,
+	sendCreatedCommentNotifications,
+	validateCommentMutation
+};

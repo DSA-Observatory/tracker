@@ -23,9 +23,11 @@
 	const sourceLinks = $derived(buildSourceLinks(record));
 	const documentFiles = $derived(record?.documents ?? []);
 	const proceduralEvents = $derived(normalizeProceduralEvents(record));
-	const categories = $derived(list(record?.categories).map((category) =>
-		category.toLowerCase() === 'due diligence' ? 'Due Diligence' : category
-	));
+	const categories = $derived(
+		list(record?.categories).map((category) =>
+			category.toLowerCase() === 'due diligence' ? 'Due Diligence' : category
+		)
+	);
 
 	function categoryStyle(category: string) {
 		if (category === 'Intermediary Liability') return 'bg-blue-50 text-blue-700';
@@ -37,12 +39,15 @@
 		if (!playEntry) return;
 		node.style.setProperty('--entry-delay', `${delay}ms`);
 		node.classList.add('case-entry');
-		const observer = new IntersectionObserver(([entry]) => {
-			if (entry.isIntersecting) {
-				node.classList.add('case-entered');
-				observer.disconnect();
-			}
-		}, { threshold: 0.08 });
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					node.classList.add('case-entered');
+					observer.disconnect();
+				}
+			},
+			{ threshold: 0.08 }
+		);
 		observer.observe(node);
 		return { destroy: () => observer.disconnect() };
 	}
@@ -205,7 +210,11 @@
 			Back to cases
 		</button>
 		{#if canWrite && record}
-			<a class="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50" href={resolve(`/cases/${record.id}/edit`)}><IconPencil class="size-3.5" aria-hidden="true" />Edit case</a>
+			<a
+				class="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+				href={resolve(`/cases/${record.id}/edit`)}
+				><IconPencil class="size-3.5" aria-hidden="true" />Edit case</a
+			>
 		{/if}
 	</div>
 
@@ -216,35 +225,44 @@
 	{:else if error}
 		<div class="rounded-xl border border-red-200 bg-red-50 p-8 text-red-700">{error}</div>
 	{:else if record}
-		<section use:reveal class="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/40 sm:p-8">
+		<section
+			use:reveal
+			class="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/40 sm:p-8"
+		>
 			<div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
 				<div class="min-w-0 flex-1">
 					{#if categories.length}
 						<div class="mb-3 flex flex-wrap gap-2">
-							{#each [...new Set(categories)] as category}
-								<span class={`rounded-full px-2.5 py-1 text-xs font-semibold ${categoryStyle(category)}`}>{category}</span>
+							{#each [...new Set(categories)] as category (category)}
+								<span
+									class={`rounded-full px-2.5 py-1 text-xs font-semibold ${categoryStyle(category)}`}
+									>{category}</span
+								>
 							{/each}
 						</div>
 					{/if}
-					<h1
-						class="text-2xl leading-snug font-bold tracking-tight text-slate-950 sm:text-3xl"
-					>
+					<h1 class="text-2xl leading-snug font-bold tracking-tight text-slate-950 sm:text-3xl">
 						{record.title}
 					</h1>
 					<div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
-						{#if record.jurisdiction}<span class="inline-flex items-center gap-1.5"><CountryFlag country={record.jurisdiction} />{record.jurisdiction}</span>{/if}
-						{#if record.court}<span class="inline-flex items-center gap-1.5"><IconMapPin class="size-3.5 shrink-0" aria-hidden="true" />{record.court}</span>{/if}
+						{#if record.jurisdiction}<span class="inline-flex items-center gap-1.5"
+								><CountryFlag country={record.jurisdiction} />{record.jurisdiction}</span
+							>{/if}
+						{#if record.court}<span class="inline-flex items-center gap-1.5"
+								><IconMapPin class="size-3.5 shrink-0" aria-hidden="true" />{record.court}</span
+							>{/if}
 					</div>
 					{#if list(record.dsa_articles).length}
 						<div class="mt-4 flex flex-wrap gap-1.5">
-							{#each [...new Set(list(record.dsa_articles))] as article}<span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{article}</span>{/each}
+							{#each [...new Set(list(record.dsa_articles))] as article (article)}<span
+									class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600"
+									>{article}</span
+								>{/each}
 						</div>
 					{/if}
 					<div class="mt-4 flex flex-wrap gap-2 text-sm">
 						{#if authStore.isAdmin && !record.published}
-							<span class="rounded-full bg-slate-100 px-3 py-1 font-medium">
-								Private
-							</span>
+							<span class="rounded-full bg-slate-100 px-3 py-1 font-medium"> Private </span>
 						{/if}
 						{#if record.outcome}<span
 								class="rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700"
@@ -256,24 +274,33 @@
 							>{/if}
 					</div>
 				</div>
-				<aside class="w-full shrink-0 rounded-xl border border-slate-200/80 bg-slate-50/70 p-5 lg:w-80" aria-label="Case reference">
+				<aside
+					class="w-full shrink-0 rounded-xl border border-slate-200/80 bg-slate-50/70 p-5 lg:w-80"
+					aria-label="Case reference"
+				>
 					<dl class="space-y-4">
 						{#if record.decision_reference}
 							<div>
 								<dt class="text-sm font-medium text-slate-600">Decision reference</dt>
-								<dd class="mt-1 break-words text-base leading-6 text-slate-950">{record.decision_reference}</dd>
+								<dd class="mt-1 text-base leading-6 break-words text-slate-950">
+									{record.decision_reference}
+								</dd>
 							</div>
 						{/if}
 						{#if record.ecli}
 							<div>
 								<dt class="text-sm font-medium text-slate-600">ECLI</dt>
-								<dd class="mt-1 break-all text-base leading-6 text-slate-950">{record.ecli}</dd>
+								<dd class="mt-1 text-base leading-6 break-all text-slate-950">{record.ecli}</dd>
 							</div>
 						{/if}
 						{#if record.decision_date}
 							<div>
-								<dt class="text-sm font-medium text-slate-600">{record.decision_reference ? 'Reference date' : 'Decision date'}</dt>
-								<dd class="mt-1 text-base font-semibold text-slate-950">{formatDate(record.decision_date)}</dd>
+								<dt class="text-sm font-medium text-slate-600">
+									{record.decision_reference ? 'Reference date' : 'Decision date'}
+								</dt>
+								<dd class="mt-1 text-base font-semibold text-slate-950">
+									{formatDate(record.decision_date)}
+								</dd>
 							</div>
 						{/if}
 						<div class="border-t border-slate-200 pt-4">
@@ -285,7 +312,7 @@
 			</div>
 		</section>
 
-		<div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+		<div class="case-content mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
 			<div class="min-w-0 space-y-6">
 				<section use:reveal={100} class="rounded-xl border border-slate-200 bg-white p-6">
 					<h2 class="text-xl font-black">Summary</h2>
@@ -299,7 +326,9 @@
 					{#if record.procedural_wording}
 						<div class="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
 							<div class="text-xs font-semibold text-slate-400">Source procedural wording</div>
-							<p class="mt-1 whitespace-pre-wrap text-sm text-slate-700">{record.procedural_wording}</p>
+							<p class="mt-1 text-sm whitespace-pre-wrap text-slate-700">
+								{record.procedural_wording}
+							</p>
 						</div>
 					{/if}
 					{#if proceduralEvents.length}
@@ -394,7 +423,7 @@
 				{/if}
 			</div>
 
-			<aside class="space-y-6">
+			<aside class="min-w-0 space-y-6">
 				<section use:reveal={180} class="rounded-xl border border-slate-200 bg-white p-5">
 					<h2 class="font-black">At a glance</h2>
 					<dl class="mt-4 space-y-3 text-sm">
@@ -402,9 +431,11 @@
 							{#if item[1]}
 								<div>
 									<dt class="text-slate-400">{item[0]}</dt>
-									<dd class="font-medium text-slate-800">
+									<dd class="min-w-0 font-medium [overflow-wrap:anywhere] text-slate-800">
 										{#if item[0] === 'Jurisdiction'}
-											<span class="inline-flex items-center gap-2"><CountryFlag country={item[1]} />{item[1]}</span>
+											<span class="inline-flex items-center gap-2"
+												><CountryFlag country={item[1]} />{item[1]}</span
+											>
 										{:else}
 											{item[1]}
 										{/if}
@@ -418,8 +449,9 @@
 				<section use:reveal={240} class="rounded-xl border border-slate-200 bg-white p-5">
 					<h2 class="font-black">Legal classification</h2>
 					<div class="mt-4 flex flex-wrap gap-2">
-						{#each [...new Set([...list(record.dsa_articles), ...list(record.legal_areas), ...list(record.legal_basis), ...categories])] as tag (tag)}
-							<span class={`rounded-full px-2.5 py-1 text-xs font-semibold ${categories.includes(tag) ? categoryStyle(tag) : 'bg-slate-100 text-slate-600'}`}
+						{#each [...new Set( [...list(record.dsa_articles), ...list(record.legal_areas), ...list(record.legal_basis), ...categories] )] as tag (tag)}
+							<span
+								class={`rounded-full px-2.5 py-1 text-xs font-semibold ${categories.includes(tag) ? categoryStyle(tag) : 'bg-slate-100 text-slate-600'}`}
 								>{tag}</span
 							>
 						{/each}
@@ -449,17 +481,38 @@
 	{/if}
 </main>
 
+<!-- eslint-enable svelte/no-at-html-tags, svelte/no-navigation-without-resolve -->
+
 <style>
+	.case-content {
+		overflow-wrap: anywhere;
+	}
+	.case-content :global(img),
+	.case-content :global(table) {
+		max-width: 100%;
+	}
 	@media (prefers-reduced-motion: no-preference) {
-		:global(.case-entry) { opacity: 0; transform: translateY(20px); }
-		:global(.case-entry.case-entered) {
-			animation: case-enter .75s var(--entry-delay, 0ms) cubic-bezier(.16, 1, .3, 1) both;
+		:global(.case-entry) {
+			opacity: 0;
+			transform: translateY(20px);
 		}
-		:global(.case-entry:focus-within) { opacity: 1; transform: none; animation: none; }
+		:global(.case-entry.case-entered) {
+			animation: case-enter 0.75s var(--entry-delay, 0ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+		}
+		:global(.case-entry:focus-within) {
+			opacity: 1;
+			transform: none;
+			animation: none;
+		}
 	}
 	@keyframes case-enter {
-		from { opacity: 0; transform: translateY(20px); }
-		to { opacity: 1; transform: translateY(0); }
+		from {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 </style>
-<!-- eslint-enable svelte/no-at-html-tags, svelte/no-navigation-without-resolve -->
