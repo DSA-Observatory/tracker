@@ -18,6 +18,8 @@ The HTML shell currently sends `noindex, nofollow` on every route. Pages remain 
 
 Before deploying the updated case editor, apply PocketBase migration `24_case_relationships_and_document_order.js` using the existing backup and approved production-migration procedure. It adds optional `related_cases` and `document_order` fields without changing records or publication state. Related cases are selected explicitly; public pages show published, non-archived links in either direction, not cases inferred from matching tags. File order is metadata only: reordering never replaces or deletes uploads.
 
+Production was synchronized on 13 November 2026: migrations 22–24 and migration 9's missing `procedural_events` field were applied through PocketBase's migration runner, with ledger read-back verified. The comment helper, workflow, and notification hooks were installed together; the existing invitation/admin hooks and SMTP settings were preserved. All 100 cases, 11 comments, three suggestions, six users, one invitation, and one feedback record retained their existing content, IDs, timestamps, and publication state. Fresh before/after full backups passed ZIP and SQLite integrity checks; raw database comparisons also preserved hidden fields and account data. Private snapshots, hook backups, rollback guidance, and receipts are under `~/Library/Application Support/DSA Case Tracker/deployments/20261113t144608z-migration-sync/`. This was schema/operational verification, not an application-test run. Historical setup migrations were not replayed; the optional link-checker collection/cron remains uninstalled.
+
 Documents no longer distinguish primary and secondary sources in the editor or public case page. Existing source arrays and document links are read together; saving consolidates their content into `primary_sources` in the chosen order and clears the legacy secondary/link arrays. Uploaded files and linked documents can each be reordered by dragging or keyboard-accessible arrow buttons. New uploads are appended after current files. Existing timeline data is retained, but the timeline panel is replaced by related cases. Public analysis uses the existing `commentary` field.
 
 ## Core Audience
@@ -56,8 +58,8 @@ Each case entry should support the following fields.
 | `timeline`          | Procedural timeline or key source-derived case events.                                 |
 | `categories`        | High-level legal categories, such as due diligence or intermediary liability.          |
 | `themes`            | More specific themes, such as dark patterns, account blocking, or data access.         |
-| `primary_sources`   | Ordered document links and source notes, consolidated by the editor.                  |
-| `secondary_sources` | Legacy sources, read alongside documents and consolidated on the next edit.           |
+| `primary_sources`   | Ordered document links and source notes, consolidated by the editor.                   |
+| `secondary_sources` | Legacy sources, read alongside documents and consolidated on the next edit.            |
 | `keywords`          | Tags, legal themes, and descriptive terms.                                             |
 | `dsa_articles`      | Relevant DSA articles.                                                                 |
 | `documents`         | Links or uploaded files for decisions, pleadings, press releases, or public documents. |

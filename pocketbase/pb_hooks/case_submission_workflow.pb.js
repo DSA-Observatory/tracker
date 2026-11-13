@@ -22,7 +22,11 @@ onRecordCreateRequest((e) => {
 		e,
 		false
 	);
-	if (validation) throwCommentValidationError(e, validation);
+	if (validation) {
+		throw e.badRequestError(validation.message, {
+			[validation.field]: new ValidationError(validation.code, validation.message)
+		});
+	}
 	e.record.set('author', e.auth.id);
 	const assigneeId = e.record.getString('assignee');
 	if (assigneeId) {
@@ -48,7 +52,11 @@ onRecordUpdateRequest((e) => {
 		e,
 		true
 	);
-	if (validation) throwCommentValidationError(e, validation);
+	if (validation) {
+		throw e.badRequestError(validation.message, {
+			[validation.field]: new ValidationError(validation.code, validation.message)
+		});
+	}
 	if (e.record.getString('assignee') !== e.record.original().getString('assignee')) {
 		const assigneeId = e.record.getString('assignee');
 		if (assigneeId) {
@@ -69,12 +77,6 @@ onRecordUpdateRequest((e) => {
 	}
 	e.next();
 }, 'case_comments');
-
-function throwCommentValidationError(e, validation) {
-	throw e.badRequestError(validation.message, {
-		[validation.field]: new ValidationError(validation.code, validation.message)
-	});
-}
 
 routerAdd(
 	'PATCH',
