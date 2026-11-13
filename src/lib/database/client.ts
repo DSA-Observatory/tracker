@@ -64,11 +64,13 @@ export interface CaseRecord {
 	keywords?: string[];
 	dsa_articles?: string[];
 	documents?: string[];
+	document_order?: string[];
 	document_links?: string[];
 	source_limitations?: string;
 	citations_to?: string[];
 	cited_by?: string[];
 	commentary?: string;
+	related_cases?: string[];
 	editorial_notes?: string;
 	submitted_by?: string;
 	published: boolean;

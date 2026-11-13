@@ -9,6 +9,16 @@ export type SourceEntry = {
 	};
 };
 
+export function orderedDocumentFiles(files: string[] = [], order: string[] = []) {
+	const available = Array.isArray(files) ? files : [];
+	return [
+		...new Set([
+			...(Array.isArray(order) ? order : []).filter((filename) => available.includes(filename)),
+			...available
+		])
+	];
+}
+
 const URL_PATTERN = /https?:\/\/[^\s<>"']+/gi;
 
 function trimTrailingPunctuation(value: string) {

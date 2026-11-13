@@ -18,8 +18,10 @@
 	import CaseSummaryEditor from './CaseSummaryEditor.svelte';
 	import CaseCommentsPanel from './CaseCommentsPanel.svelte';
 	import CaseSourceEditor from './CaseSourceEditor.svelte';
+	import RelatedCasePicker from './RelatedCasePicker.svelte';
 	import {
 		parseSources,
+		orderedDocumentFiles,
 		serializeSources,
 		validateSources,
 		type SourceEntry
@@ -59,13 +61,21 @@
 	let importingCsv = $state(false);
 	let importMessage = $state('');
 	let savedSnapshot = $state(
-		untrack(() => caseEditorSnapshot(form, primarySources, secondarySources, selectedDocuments))
+		untrack(() =>
+			caseEditorSnapshot(
+				form,
+				primarySources,
+				secondarySources,
+				selectedDocuments,
+				existingDocuments
+			)
+		)
 	);
 
 	const unsavedChangesMessage =
 		'Are you sure you want to leave? Your unsaved changes will be lost.';
 	const currentSnapshot = $derived(
-		caseEditorSnapshot(form, primarySources, secondarySources, selectedDocuments)
+		caseEditorSnapshot(form, primarySources, secondarySources, selectedDocuments, existingDocuments)
 	);
 	const hasUnsavedChanges = $derived(currentSnapshot !== savedSnapshot);
 
@@ -98,6 +108,7 @@
 		'source_limitations',
 		'editorial_notes',
 		'summary',
+		'commentary',
 		'timeline'
 	] satisfies (keyof CaseForm)[];
 
@@ -105,7 +116,13 @@
 	const isEditing = $derived(Boolean(caseId));
 
 	function markSaved() {
-		savedSnapshot = caseEditorSnapshot(form, primarySources, secondarySources, selectedDocuments);
+		savedSnapshot = caseEditorSnapshot(
+			form,
+			primarySources,
+			secondarySources,
+			selectedDocuments,
+			existingDocuments
+		);
 	}
 
 	function warnBeforeUnload(event: BeforeUnloadEvent) {
@@ -148,8 +165,12 @@
 		try {
 			const record = await pb.collection('cases').getOne<CaseRecord>(id);
 			currentRecord = record;
-			primarySources = parseSources(record.primary_sources);
-			secondarySources = parseSources(record.secondary_sources);
+			primarySources = parseSources([
+				...(record.primary_sources ?? []),
+				...(record.secondary_sources ?? []),
+				...(record.document_links ?? [])
+			]);
+			secondarySources = [];
 			if (authStore.isAdmin && record.documents?.length) fileToken = await pb.files.getToken();
 			if (authStore.isAdmin) {
 				const origins = await pb
@@ -159,7 +180,7 @@
 					});
 				originatingSubmission = origins.items[0];
 			}
-			existingDocuments = record.documents ?? [];
+			existingDocuments = orderedDocumentFiles(record.documents, record.document_order);
 			form = {
 				case_id: record.case_id,
 				title: record.title,
@@ -184,6 +205,8 @@
 						)
 						.join('\n') ?? '',
 				summary: record.summary ?? '',
+				commentary: record.commentary ?? '',
+				related_cases: record.related_cases ?? [],
 				timeline: record.timeline ?? '',
 				categories: joinCaseFormList(record.categories),
 				primary_sources: joinCaseFormLines(record.primary_sources),
@@ -219,6 +242,53 @@
 	function removeSelectedDocument(index: number) {
 		selectedDocuments = selectedDocuments.filter((_, fileIndex) => fileIndex !== index);
 		if (documentInput) documentInput.value = '';
+	}
+
+	let draggedDocument = $state<{ pending: boolean; index: number }>();
+	function moveDocument(pending: boolean, from: number, to: number) {
+		const files: (File | string)[] = pending ? [...selectedDocuments] : [...existingDocuments];
+		if (saving || to < 0 || to >= files.length || from === to) return;
+		const [file] = files.splice(from, 1);
+		files.splice(to, 0, file);
+		if (pending) selectedDocuments = files as File[];
+		else existingDocuments = files as string[];
+	}
+
+	function reorderDocument(node: HTMLElement, position: { pending: boolean; index: number }) {
+		const start = (event: DragEvent) => {
+			if (saving) {
+				event.preventDefault();
+				return;
+			}
+			draggedDocument = position;
+			if (event.dataTransfer) {
+				event.dataTransfer.effectAllowed = 'move';
+				event.dataTransfer.setData('text/plain', String(position.index));
+			}
+		};
+		const end = () => (draggedDocument = undefined);
+		const over = (event: DragEvent) => {
+			if (!saving && draggedDocument?.pending === position.pending) event.preventDefault();
+		};
+		const drop = (event: DragEvent) => {
+			if (!draggedDocument || draggedDocument.pending !== position.pending) return;
+			event.preventDefault();
+			moveDocument(position.pending, draggedDocument.index, position.index);
+			end();
+		};
+		node.addEventListener('dragstart', start);
+		node.addEventListener('dragend', end);
+		node.addEventListener('dragover', over);
+		node.addEventListener('drop', drop);
+		return {
+			update: (next: typeof position) => (position = next),
+			destroy() {
+				node.removeEventListener('dragstart', start);
+				node.removeEventListener('dragend', end);
+				node.removeEventListener('dragover', over);
+				node.removeEventListener('drop', drop);
+			}
+		};
 	}
 
 	function formatFileSize(bytes: number) {
@@ -523,7 +593,6 @@
 			title: form.title.trim(),
 			ecli: form.ecli.trim(),
 			decision_reference: form.decision_reference.trim(),
-			procedural_wording: form.procedural_wording.trim(),
 			decision_date: form.decision_date || null,
 			status: form.status,
 			court: form.court.trim(),
@@ -533,22 +602,27 @@
 			legal_areas: splitCaseFormList(form.legal_areas),
 			legal_basis: splitCaseFormList(form.legal_basis),
 			case_scope: form.case_scope.trim(),
-			procedural_events: splitCaseFormLines(form.procedural_events).map((line) => {
-				const [date, label, description] = line.split('|').map((part) => part.trim());
-				return { date, label, description };
-			}),
 			summary: form.summary.trim(),
-			timeline: form.timeline.trim(),
+			commentary: form.commentary.trim(),
+			related_cases: form.related_cases.filter((id) => id !== caseId),
 			categories: splitCaseFormList(form.categories),
 			primary_sources: serializeSources(primarySources),
 			secondary_sources: serializeSources(secondarySources),
+			document_links: [],
+			document_order: existingDocuments,
 			source_limitations: form.source_limitations.trim(),
 			editorial_notes: form.editorial_notes.trim(),
 			keywords: splitCaseFormList(form.keywords),
 			dsa_articles: splitCaseFormList(form.dsa_articles),
 			...(!caseId ? { published: false } : {})
 		};
-		const submittedSnapshot = caseEditorSnapshot(form, primarySources, secondarySources, []);
+		const submittedSnapshot = caseEditorSnapshot(
+			form,
+			primarySources,
+			secondarySources,
+			[],
+			existingDocuments
+		);
 
 		try {
 			let savedRecord: CaseRecord;
@@ -576,10 +650,10 @@
 			form.published = savedRecord.published === true;
 			visibilityUncertain = false;
 			visibilityError = '';
-			existingDocuments = savedRecord.documents ?? [];
+			existingDocuments = orderedDocumentFiles(savedRecord.documents, savedRecord.document_order);
 			selectedDocuments = [];
 			if (documentInput) documentInput.value = '';
-			savedSnapshot = submittedSnapshot;
+			savedSnapshot = JSON.stringify({ ...JSON.parse(submittedSnapshot), existingDocuments });
 			saveMessage = form.published ? 'Saved · Public' : 'Saved · Still private';
 			if (!caseId) await goto(resolve('/cases/[id]/edit', { id: savedRecord.id }));
 		} catch (err) {
@@ -832,14 +906,16 @@
 
 					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
 						<summary class="cursor-pointer text-base font-bold">
-							Legal classification
+							Relevant provisions
 							<span class="ml-2 text-sm font-normal text-base-content/60"
 								>DSA articles, tags, legal basis</span
 							>
 						</summary>
 						<div class="mt-4 grid gap-3 md:grid-cols-3">
 							<label class="form-control w-full">
-								<span class="label-text mb-1 text-sm font-semibold">DSA articles</span>
+								<span class="label-text mb-1 text-sm font-semibold"
+									>Provisions cited (DSA articles)</span
+								>
 								<input
 									class="input-bordered input input-sm w-full"
 									bind:value={form.dsa_articles}
@@ -847,7 +923,7 @@
 								/>
 							</label>
 							<label class="form-control w-full">
-								<span class="label-text mb-1 text-sm font-semibold">Categories</span>
+								<span class="label-text mb-1 text-sm font-semibold">Category</span>
 								<input
 									class="input-bordered input input-sm w-full"
 									bind:value={form.categories}
@@ -890,44 +966,13 @@
 					</details>
 
 					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
-						<summary class="cursor-pointer text-base font-bold">
-							Procedure & timeline
-							<span class="ml-2 text-sm font-normal text-base-content/60"
-								>Events and chronology</span
-							>
-						</summary>
-						<div class="mt-4 grid gap-3 md:grid-cols-3">
-							<label class="form-control w-full md:col-span-3">
-								<span class="label-text mb-1 text-sm font-semibold">Source procedural wording</span>
-								<input
-									class="input-bordered input input-sm w-full"
-									bind:value={form.procedural_wording}
-									maxlength="4000"
-									placeholder="Proceedings status exactly as stated by the source"
-								/>
-							</label>
-							<label class="form-control w-full md:col-span-3">
-								<span class="label-text mb-1 text-sm font-semibold">Procedural events</span>
-								<textarea
-									class="textarea-bordered textarea min-h-24 w-full font-mono text-sm"
-									bind:value={form.procedural_events}
-									placeholder="YYYY-MM-DD | Event label | Short description"
-								></textarea>
-							</label>
-							<label class="form-control w-full md:col-span-3">
-								<span class="label-text mb-1 text-sm font-semibold">Timeline</span>
-								<textarea
-									class="textarea-bordered textarea min-h-20 w-full"
-									bind:value={form.timeline}
-									placeholder="Key procedural events, dates, or court references"
-								></textarea>
-							</label>
-						</div>
+						<summary class="cursor-pointer text-base font-bold"> Related cases </summary>
+						<RelatedCasePicker bind:value={form.related_cases} {caseId} disabled={saving} />
 					</details>
 
 					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
 						<summary class="cursor-pointer text-base font-bold">
-							Sources & documents
+							Documents
 							<span class="ml-2 text-sm font-normal text-base-content/60"
 								>Files, links, source notes</span
 							>
@@ -935,7 +980,7 @@
 						<div class="mt-4 grid gap-3 md:grid-cols-3">
 							<div class="md:col-span-3">
 								<CaseSourceEditor
-									label="Primary sources"
+									label="Document links"
 									bind:entries={primarySources}
 									disabled={saving}
 								/>
@@ -968,10 +1013,16 @@
 									Uploaded files are public when this case is public. Use links or notes for
 									internal-only material.
 								</p>
+								<p class="mt-2 text-xs text-base-content/60">
+									Drag documents within each list to reorder, or use the arrow buttons. New uploads
+									are added after current files.
+								</p>
 								{#if selectedDocuments.length}
 									<div class="mt-3 grid gap-2 sm:grid-cols-2">
 										{#each selectedDocuments as file, index (`${file.name}-${file.size}-${file.lastModified}`)}
 											<div
+												use:reorderDocument={{ pending: true, index }}
+												draggable={!saving}
 												class="flex items-center gap-3 rounded-xl border border-base-300 bg-base-100 p-3 shadow-sm"
 											>
 												<span class="rounded-lg bg-primary/10 p-2 text-primary">
@@ -982,6 +1033,22 @@
 													<div class="text-xs text-base-content/60">
 														{formatFileSize(file.size)}
 													</div>
+												</div>
+												<div class="flex flex-col">
+													<button
+														type="button"
+														class="btn btn-ghost btn-xs"
+														disabled={saving || index === 0}
+														aria-label={`Move ${file.name} up`}
+														onclick={() => moveDocument(true, index, index - 1)}>↑</button
+													>
+													<button
+														type="button"
+														class="btn btn-ghost btn-xs"
+														disabled={saving || index === selectedDocuments.length - 1}
+														aria-label={`Move ${file.name} down`}
+														onclick={() => moveDocument(true, index, index + 1)}>↓</button
+													>
 												</div>
 												<button
 													type="button"
@@ -1000,11 +1067,15 @@
 									<div class="mt-3 rounded-lg border border-base-300 p-3 text-sm">
 										<div class="font-semibold">Current public files</div>
 										<ul class="mt-2 list-disc space-y-1 pl-5">
-											{#each existingDocuments as filename (filename)}
-												<li>
+											{#each existingDocuments as filename, index (filename)}
+												<li
+													use:reorderDocument={{ pending: false, index }}
+													draggable={!saving}
+													class="flex items-center justify-between gap-3 rounded-lg border border-base-300 p-2"
+												>
 													<!-- eslint-disable svelte/no-navigation-without-resolve -->
 													<a
-														class="link"
+														class="link min-w-0 break-all"
 														href={documentUrl(filename)}
 														target="_blank"
 														rel="noreferrer"
@@ -1012,21 +1083,30 @@
 														{filename}
 													</a>
 													<!-- eslint-enable svelte/no-navigation-without-resolve -->
+													<span class="flex shrink-0 gap-1">
+														<button
+															type="button"
+															class="btn btn-ghost btn-xs"
+															disabled={saving || index === 0}
+															aria-label={`Move ${filename} up`}
+															onclick={() => moveDocument(false, index, index - 1)}>↑</button
+														>
+														<button
+															type="button"
+															class="btn btn-ghost btn-xs"
+															disabled={saving || index === existingDocuments.length - 1}
+															aria-label={`Move ${filename} down`}
+															onclick={() => moveDocument(false, index, index + 1)}>↓</button
+														>
+													</span>
 												</li>
 											{/each}
 										</ul>
 									</div>
 								{/if}
 							</div>
-							<div class="md:col-span-3">
-								<CaseSourceEditor
-									label="Secondary sources"
-									bind:entries={secondarySources}
-									disabled={saving}
-								/>
-							</div>
 							<label class="form-control w-full md:col-span-3">
-								<span class="label-text mb-1 text-sm font-semibold">Source limitations</span>
+								<span class="label-text mb-1 text-sm font-semibold">Document notes</span>
 								<textarea
 									class="textarea-bordered textarea min-h-20 w-full"
 									bind:value={form.source_limitations}
@@ -1038,23 +1118,43 @@
 
 					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
 						<summary class="cursor-pointer text-base font-bold">
-							Editorial
+							Summary and Analysis
 							<span class="ml-2 text-sm font-normal text-base-content/60"
-								>Internal notes and public summary</span
+								>Public summary and analysis</span
 							>
 						</summary>
 						<div class="mt-4 grid gap-3 md:grid-cols-3">
 							<div class="form-control w-full md:col-span-3">
-								<span class="label-text mb-1 text-sm font-semibold">Internal editorial notes</span>
-								<CaseSummaryEditor
-									label="Internal editorial notes"
-									bind:value={form.editorial_notes}
-								/>
+								<span class="label-text mb-1 text-sm font-semibold">Summary</span>
+								<CaseSummaryEditor label="Summary" bind:value={form.summary} />
 							</div>
 							<div class="form-control w-full md:col-span-3">
-								<span class="label-text mb-1 text-sm font-semibold">Editorial summary</span>
-								<CaseSummaryEditor bind:value={form.summary} />
+								<span class="label-text mb-1 text-sm font-semibold">Analysis</span>
+								<CaseSummaryEditor label="Analysis" bind:value={form.commentary} />
+								{#if !form.commentary
+									.replace(/<[^>]*>/g, '')
+									.replace(/&nbsp;/g, ' ')
+									.trim()}
+									<p class="mt-3 text-sm text-base-content/60">
+										There is no analysis on file yet. You are welcome to contribute by pitching a
+										case commentary to the <a
+											class="link"
+											href="https://dsa-observatory.eu/blogposts-submission/"
+											target="_blank"
+											rel="noreferrer">DSA Observatory blog</a
+										>.
+									</p>
+								{/if}
 							</div>
+						</div>
+					</details>
+					<details class="rounded-lg border border-base-300 bg-base-100 p-4 shadow-sm">
+						<summary class="cursor-pointer text-base font-bold">Internal editorial notes</summary>
+						<div class="mt-4">
+							<CaseSummaryEditor
+								label="Internal editorial notes"
+								bind:value={form.editorial_notes}
+							/>
 						</div>
 					</details>
 				</div>

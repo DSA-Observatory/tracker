@@ -7,11 +7,20 @@
 		disabled = false
 	}: {
 		entries: SourceEntry[];
-		label: 'Primary sources' | 'Secondary sources';
+		label: string;
 		disabled?: boolean;
 	} = $props();
 
 	const error = $derived(validateSources(entries));
+	let draggedIndex = $state<number>();
+
+	function moveSource(from: number, to: number) {
+		if (disabled || to < 0 || to >= entries.length || from === to) return;
+		const reordered = [...entries];
+		const [entry] = reordered.splice(from, 1);
+		reordered.splice(to, 0, entry);
+		entries = reordered;
+	}
 
 	function addSource() {
 		entries = [...entries, { title: '', url: '' }];
@@ -42,7 +51,46 @@
 	<legend class="label-text text-sm font-semibold">{label}</legend>
 
 	{#each entries as entry, index (entry)}
-		<div class="rounded-lg border border-base-300 bg-base-100 p-3">
+		<div
+			class="rounded-lg border border-base-300 bg-base-100 p-3"
+			draggable={!disabled}
+			role="group"
+			aria-label={`Document ${index + 1}`}
+			ondragstart={(event) => {
+				draggedIndex = index;
+				if (event.dataTransfer) {
+					event.dataTransfer.effectAllowed = 'move';
+					event.dataTransfer.setData('text/plain', String(index));
+				}
+			}}
+			ondragend={() => (draggedIndex = undefined)}
+			ondragover={(event) => {
+				if (draggedIndex !== undefined && !disabled) event.preventDefault();
+			}}
+			ondrop={(event) => {
+				if (draggedIndex === undefined) return;
+				event.preventDefault();
+				moveSource(draggedIndex, index);
+				draggedIndex = undefined;
+			}}
+		>
+			<div class="mb-2 flex flex-wrap items-center gap-2 text-xs text-base-content/60">
+				<span>Drag to reorder</span>
+				<button
+					class="btn btn-ghost btn-xs"
+					type="button"
+					disabled={disabled || index === 0}
+					aria-label={`Move document ${index + 1} up`}
+					onclick={() => moveSource(index, index - 1)}>↑</button
+				>
+				<button
+					class="btn btn-ghost btn-xs"
+					type="button"
+					disabled={disabled || index === entries.length - 1}
+					aria-label={`Move document ${index + 1} down`}
+					onclick={() => moveSource(index, index + 1)}>↓</button
+				>
+			</div>
 			<div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_auto] sm:items-end">
 				<label class="form-control w-full">
 					<span class="label-text mb-1 text-xs font-medium">Title</span>
@@ -50,7 +98,7 @@
 						class="input-bordered input input-sm w-full"
 						type="text"
 						bind:value={entry.title}
-						placeholder="Source title"
+						placeholder="Document title"
 					/>
 				</label>
 				<label class="form-control w-full">
@@ -80,7 +128,9 @@
 		</div>
 	{/each}
 
-	<button type="button" class="btn w-fit btn-outline btn-sm" onclick={addSource}>Add source</button>
+	<button type="button" class="btn w-fit btn-outline btn-sm" onclick={addSource}
+		>Add document link</button
+	>
 
 	{#if error}
 		<p class="text-xs text-error" aria-live="polite">{error}</p>

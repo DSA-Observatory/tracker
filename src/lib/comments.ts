@@ -51,9 +51,13 @@ export function isCommentAssignedTo(comment: CaseCommentRecord, adminId?: string
 }
 
 export function groupOpenComments(comments: CaseCommentRecord[]) {
+	return groupComments(comments.filter((item) => !item.resolved));
+}
+
+export function groupComments(comments: CaseCommentRecord[]) {
 	const groups = new Map<string, CaseCommentGroup>();
 
-	for (const comment of comments.filter((item) => !item.resolved)) {
+	for (const comment of comments) {
 		const targetType = comment.case ? 'case' : comment.submission ? 'submission' : 'general';
 		const targetId = comment.case || comment.submission || 'general';
 		const target =

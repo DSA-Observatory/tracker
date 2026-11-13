@@ -175,13 +175,13 @@
 					class="case-pin"
 					href={pinHref(pin.jurisdiction)}
 					style={`${pinPosition(pin)};--pin-delay:${index * 90}ms`}
-					aria-label={`${pin.jurisdiction}: ${pin.count} published ${pin.count === 1 ? 'case' : 'cases'}`}
+					aria-label={`${pin.jurisdiction}: ${pin.count} ${pin.count === 1 ? 'case' : 'cases'} found`}
 				>
 					<span class="pin-halo"></span>
 					<span class="pin-count">{pin.count}</span>
 					<span class="pin-label">
 						<strong>{pin.jurisdiction}</strong>
-						<small>{pin.count} published {pin.count === 1 ? 'case' : 'cases'}</small>
+						<small>{pin.count} {pin.count === 1 ? 'case' : 'cases'} found</small>
 					</span>
 				</a>
 			{/each}

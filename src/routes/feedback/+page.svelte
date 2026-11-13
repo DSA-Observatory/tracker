@@ -1,7 +1,17 @@
 <script lang="ts">
 	import { pb } from '$lib/database';
+	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
+	import { onMount } from 'svelte';
 
 	let message = $state('');
+	let caseContext = $state('');
+	const caseId = $derived(page.url.searchParams.get('case') ?? '');
+	const messageLimit = $derived(5000 - (caseContext ? caseContext.length + 2 : 0));
+	onMount(() => {
+		// Only include a case identifier, never a token-bearing URL or arbitrary query text.
+		if (/^[a-z0-9]{15}$/.test(caseId)) caseContext = `Case: ${caseId}`;
+	});
 	let contact = $state('');
 	let saving = $state(false);
 	let success = $state(false);
@@ -15,7 +25,7 @@
 		success = false;
 
 		if (!message.trim()) fieldErrors.message = 'Tell us what you would like to report or improve.';
-		if (message.trim().length > 5000) fieldErrors.message = 'Keep your message under 5,000 characters.';
+		if (message.trim().length > messageLimit) fieldErrors.message = `Keep your message under ${messageLimit.toLocaleString()} characters.`;
 		const contactInput = form.elements.namedItem('contact') as HTMLInputElement;
 		if (!contactInput.validity.valid) fieldErrors.contact = 'Enter a valid email address or leave this blank.';
 
@@ -27,7 +37,7 @@
 		saving = true;
 		try {
 			await pb.collection('website_feedback').create({
-				message: message.trim(),
+				message: caseContext ? `${caseContext}\n\n${message.trim()}` : message.trim(),
 				contact: contact.trim()
 			});
 			message = '';
@@ -50,7 +60,8 @@
 <main class="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 sm:py-16">
 	<section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
 		<p class="text-sm font-semibold tracking-[0.2em] text-primary uppercase">Contact us</p>
-		<h1 class="mt-3 text-4xl font-black tracking-tight text-slate-950">Website feedback</h1>
+		<h1 class="mt-3 text-4xl font-black tracking-tight text-slate-950">{caseContext ? 'Suggest a case improvement' : 'Website feedback'}</h1>
+		{#if caseContext}<p class="mt-4 text-sm text-slate-600">Your suggestion will include a reference to <a class="link" href={resolve('/cases/[id]', { id: caseId })}>this case</a>.</p>{/if}
 		<p class="mt-4 max-w-2xl leading-7 text-slate-600">
 			Report a bug or suggest an improvement to the case tracker. Your message is sent privately to the project team.
 		</p>
@@ -68,7 +79,7 @@
 			<fieldset disabled={saving} class="space-y-5">
 				<label class="grid gap-2">
 					<span class="font-semibold text-slate-900">Message</span>
-					<textarea name="message" class="textarea min-h-40 w-full" bind:value={message} required maxlength="5000" aria-invalid={!!fieldErrors.message} aria-describedby={fieldErrors.message ? 'message-error' : undefined}></textarea>
+					<textarea name="message" class="textarea min-h-40 w-full" bind:value={message} required maxlength={messageLimit} aria-invalid={!!fieldErrors.message} aria-describedby={fieldErrors.message ? 'message-error' : undefined}></textarea>
 					{#if fieldErrors.message}<span id="message-error" class="text-sm text-red-700">{fieldErrors.message}</span>{/if}
 				</label>
 				<label class="grid gap-2">

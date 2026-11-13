@@ -40,6 +40,8 @@ export type CaseForm = {
 	case_scope: string;
 	procedural_events: string;
 	summary: string;
+	commentary: string;
+	related_cases: string[];
 	timeline: string;
 	categories: string;
 	primary_sources: string;
@@ -81,6 +83,8 @@ export const emptyCaseForm = (): CaseForm => ({
 	case_scope: 'private enforcement',
 	procedural_events: '',
 	summary: '',
+	commentary: '',
+	related_cases: [],
 	timeline: '',
 	categories: '',
 	primary_sources: '',

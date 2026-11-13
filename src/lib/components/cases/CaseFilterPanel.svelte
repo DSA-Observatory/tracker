@@ -123,12 +123,12 @@
 			onToggle={(value) => onToggle('categories', value)}
 		/>
 		<FilterMenu
-			label="DSA provisions"
+			label="Provisions cited"
 			icon="articles"
 			variant={sidebar ? 'collapsible' : 'dropdown'}
 			options={articleFilterOptions}
 			selected={articles}
-			placeholder="Search DSA provisions"
+			placeholder="Search provisions"
 			onToggle={(value) => onToggle('articles', value)}
 		/>
 		<FilterMenu

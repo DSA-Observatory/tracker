@@ -42,6 +42,13 @@
 				</div>
 				<a class="hero-map-link" href={`${resolve('/cases')}?view=map`}>View cases by jurisdiction <span aria-hidden="true">↗</span></a>
 			</div>
+			<div class="contribution-strip">
+				<div>
+					<h2 class="text-2xl font-bold tracking-tight text-balance">Help us map all 27 Member States.</h2>
+					<p class="mt-2 text-sm leading-6 text-base-content/65">Know a case we’re missing? Suggest it for the tracker.</p>
+				</div>
+				<a class="btn shrink-0 gap-6 btn-primary text-base font-semibold text-black" href={resolve('/submit')}>Suggest a case <span aria-hidden="true">↗</span></a>
+			</div>
 		</div>
 	</section>
 </main>
@@ -70,6 +77,10 @@
 	.hero-atlas { position: absolute; width: min(64vw, 1050px); height: 100%; right: max(-2%, calc((100% - 1440px) / 2 - 12rem)); top: -8rem; }
 	.hero-map-link { display: inline-block; margin-top: 1.25rem; font-size: .8rem; color: color-mix(in oklab, var(--color-base-content) 65%, transparent); }
 	.hero-map-link:hover { text-decoration: underline; }
+	.contribution-strip { display: flex; align-items: center; justify-content: space-between; gap: 2rem; width: 100%; max-width: 56rem; align-self: center; margin-top: 5rem; padding: 1.5rem 0; border-top: 1px solid color-mix(in oklab, var(--color-base-content) 14%, transparent); pointer-events: auto; }
+	@media (max-width: 640px) {
+		.contribution-strip { flex-direction: column; gap: 1.5rem; text-align: center; }
+	}
 	@media (prefers-reduced-motion: no-preference) {
 		.hero-eyebrow { animation: entry-rise .8s .1s both; }
 		.headline-line > span { animation: headline-entry 1.15s cubic-bezier(.16, 1, .3, 1) both; }
@@ -80,6 +91,7 @@
 		.hero-actions > :first-child { animation: entry-rise .9s .8s both; }
 		.hero-actions > :last-child { animation: entry-rise .9s .92s both; }
 		.hero-map-link { animation: entry-rise .9s 1s both; }
+		.contribution-strip { animation: entry-rise .9s 1.1s both; }
 		.hero-atlas { animation: atlas-entry 1.8s cubic-bezier(.16, 1, .3, 1) both; }
 		:global(.reveal-ready) { opacity: 0; transform: translateY(30px); }
 		:global(.reveal-visible) { animation: entry-rise .9s var(--entry-delay, 0ms) cubic-bezier(.16, 1, .3, 1) both; }

@@ -12,6 +12,14 @@ At the prototype stage, the product should behave like a curated editorial track
 
 See `ROADMAP.md` for current progress, production launch requirements, and a demo script for showing the engineering work behind the tracker.
 
+### Pre-launch access and case-page update (#40)
+
+The HTML shell currently sends `noindex, nofollow` on every route. Pages remain accessible to anyone with the URL; this is a crawler directive, not access control or a guarantee against discovery. Crawling stays allowed in `robots.txt` so search engines can read the directive. Remove the robots meta tag in `src/app.html` only when public search indexing is approved.
+
+Before deploying the updated case editor, apply PocketBase migration `24_case_relationships_and_document_order.js` using the existing backup and approved production-migration procedure. It adds optional `related_cases` and `document_order` fields without changing records or publication state. Related cases are selected explicitly; public pages show published, non-archived links in either direction, not cases inferred from matching tags. File order is metadata only: reordering never replaces or deletes uploads.
+
+Documents no longer distinguish primary and secondary sources in the editor or public case page. Existing source arrays and document links are read together; saving consolidates their content into `primary_sources` in the chosen order and clears the legacy secondary/link arrays. Uploaded files and linked documents can each be reordered by dragging or keyboard-accessible arrow buttons. New uploads are appended after current files. Existing timeline data is retained, but the timeline panel is replaced by related cases. Public analysis uses the existing `commentary` field.
+
 ## Core Audience
 
 - DSA Observatory and IViR researchers.
@@ -48,14 +56,16 @@ Each case entry should support the following fields.
 | `timeline`          | Procedural timeline or key source-derived case events.                                 |
 | `categories`        | High-level legal categories, such as due diligence or intermediary liability.          |
 | `themes`            | More specific themes, such as dark patterns, account blocking, or data access.         |
-| `primary_sources`   | Rulings, pleadings, court documents, or other primary case materials.                  |
-| `secondary_sources` | Press releases, journalism, commentary, or other contextual sources.                   |
+| `primary_sources`   | Ordered document links and source notes, consolidated by the editor.                  |
+| `secondary_sources` | Legacy sources, read alongside documents and consolidated on the next edit.           |
 | `keywords`          | Tags, legal themes, and descriptive terms.                                             |
 | `dsa_articles`      | Relevant DSA articles.                                                                 |
 | `documents`         | Links or uploaded files for decisions, pleadings, press releases, or public documents. |
+| `document_order`    | Preferred filename order, without changing file storage.                               |
+| `related_cases`     | Explicit links to other instances of the same case.                                    |
 | `citations_to`      | Cases this decision cites.                                                             |
 | `cited_by`          | Cases that cite this decision.                                                         |
-| `commentary`        | Notable coverage, context, reports, or blog posts.                                     |
+| `commentary`        | Public analysis, shown beneath the summary.                                            |
 | `published`         | Public visibility flag.                                                                |
 
 ## MVP Features

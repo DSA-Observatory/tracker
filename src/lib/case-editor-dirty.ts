@@ -11,7 +11,8 @@ export function caseEditorSnapshot(
 	form: CaseForm,
 	primarySources: SourceEntry[],
 	secondarySources: SourceEntry[],
-	selectedDocuments: SelectedDocument[]
+	selectedDocuments: SelectedDocument[],
+	existingDocuments: string[] = []
 ) {
 	const editableForm: Partial<CaseForm> = { ...form };
 	delete editableForm.outcome;
@@ -24,10 +25,12 @@ export function caseEditorSnapshot(
 		form: {
 			...editableForm,
 			summary: normalizeRichText(form.summary),
+			commentary: normalizeRichText(form.commentary ?? ''),
 			editorial_notes: normalizeRichText(form.editorial_notes)
 		},
 		primarySources: primarySources.map(({ title, url }) => ({ title, url })),
 		secondarySources: secondarySources.map(({ title, url }) => ({ title, url })),
+		existingDocuments,
 		selectedDocuments: selectedDocuments.map(({ lastModified, name, size, type }) => ({
 			lastModified,
 			name,

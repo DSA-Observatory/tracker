@@ -23,7 +23,6 @@ const columns = [
 	['secondary_sources', 'Secondary sources', 55],
 	['commentary', 'Commentary', 55],
 	['source_limitations', 'Source limitations', 45],
-	['status', 'Status', 18],
 	['outcome', 'Outcome', 25],
 	['url', 'Case link', 50]
 ] as const;
@@ -91,7 +90,6 @@ export function caseExportRows(
 		secondary_sources: list(record.secondary_sources),
 		commentary: exportText(record.commentary),
 		source_limitations: exportText(record.source_limitations),
-		status: record.status,
 		outcome: record.outcome ?? '',
 		url: caseUrl(record.id)
 	}));

@@ -2,11 +2,11 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { claimEntryAnimation } from '$lib/entry-animation';
 	import { authStore, pb, type CaseRecord } from '$lib/database';
 	import CaseSourceList from '$lib/components/cases/CaseSourceList.svelte';
+	import { orderedDocumentFiles } from '$lib/case-sources';
 	import CountryFlag from '$lib/components/CountryFlag.svelte';
 	import IconArrowLeft from '~icons/lucide/arrow-left';
 	import IconPencil from '~icons/lucide/pencil';
@@ -17,12 +17,22 @@
 	let loading = $state(true);
 	let error = $state('');
 	let fileToken = $state('');
+	let relatedError = $state('');
+	let loadGeneration = 0;
 	const playEntry = browser && claimEntryAnimation('case-detail');
 
 	const canWrite = $derived(authStore.isAdmin);
-	const sourceLinks = $derived(buildSourceLinks(record));
-	const documentFiles = $derived(record?.documents ?? []);
-	const proceduralEvents = $derived(normalizeProceduralEvents(record));
+	const sources = $derived([
+		...new Set([
+			...(record?.primary_sources ?? []),
+			...(record?.secondary_sources ?? []),
+			...(record?.document_links ?? [])
+		])
+	]);
+	const documentFiles = $derived(orderedDocumentFiles(record?.documents, record?.document_order));
+	const provisions = $derived([
+		...new Set([...list(record?.dsa_articles), ...list(record?.legal_basis)])
+	]);
 	const categories = $derived(
 		list(record?.categories).map((category) =>
 			category.toLowerCase() === 'due diligence' ? 'Due Diligence' : category
@@ -55,6 +65,7 @@
 	function stripHtml(value?: string) {
 		return (value ?? '')
 			.replace(/<[^>]+>/g, ' ')
+			.replace(/&nbsp;/g, ' ')
 			.replace(/\s+/g, ' ')
 			.trim();
 	}
@@ -72,36 +83,6 @@
 
 	function list(values?: string[]) {
 		return Array.isArray(values) ? values.filter(Boolean) : [];
-	}
-
-	function extractUrls(value?: string) {
-		return Array.from((value ?? '').matchAll(/https?:\/\/[^\s)]+/g), (match) =>
-			match[0].replace(/[.,;]+$/, '')
-		);
-	}
-
-	function buildSourceLinks(item?: CaseRecord) {
-		if (!item) return [];
-		const links = [
-			...(item.document_links ?? []),
-			...extractUrls(item.summary),
-			...extractUrls(item.timeline),
-			...extractUrls(item.commentary),
-			...(item.primary_sources ?? []).flatMap(extractUrls),
-			...(item.secondary_sources ?? []).flatMap(extractUrls)
-		];
-
-		const deduped: Record<string, string> = {};
-		for (const link of links.filter(Boolean)) deduped[link.toLowerCase()] ??= link;
-		return Object.values(deduped);
-	}
-
-	function sourceLabel(url: string) {
-		try {
-			return new URL(url).hostname.replace(/^www\./, '');
-		} catch {
-			return url;
-		}
 	}
 
 	function shortUrlLabel(url: string) {
@@ -129,40 +110,18 @@
 			.join('');
 	}
 
-	function linkedTextParts(value?: string) {
-		const parts: { text: string; href?: string }[] = [];
-		let lastIndex = 0;
-		for (const match of (value ?? '').matchAll(/https?:\/\/[^\s)]+/g)) {
-			const href = match[0].replace(/[.,;]+$/, '');
-			const index = match.index ?? 0;
-			if (index > lastIndex) parts.push({ text: (value ?? '').slice(lastIndex, index) });
-			parts.push({ text: shortUrlLabel(href), href });
-			lastIndex = index + href.length;
-		}
-		if (lastIndex < (value ?? '').length) parts.push({ text: (value ?? '').slice(lastIndex) });
-		return parts;
-	}
-
-	function normalizeProceduralEvents(item?: CaseRecord) {
-		if (!item) return [];
-		if (Array.isArray(item.procedural_events) && item.procedural_events.length) {
-			return item.procedural_events.filter(
-				(event) => event.date || event.label || event.description
-			);
-		}
-		return stripHtml(item.timeline)
-			? [{ label: 'Timeline', description: stripHtml(item.timeline) }]
-			: [];
-	}
-
-	async function loadCase() {
+	async function loadCase(id: string) {
+		const generation = ++loadGeneration;
 		loading = true;
 		error = '';
+		relatedError = '';
+		relatedCases = [];
+		fileToken = '';
 
 		try {
-			const id = page.params.id;
-			if (!id) throw new Error('Missing case id.');
-			record = await pb.collection('cases').getOne<CaseRecord>(id);
+			const loaded = await pb.collection('cases').getOne<CaseRecord>(id);
+			if (generation !== loadGeneration) return;
+			record = loaded;
 			if (authStore.isAdmin && record.documents?.length) fileToken = await pb.files.getToken();
 			if (!record.published && !authStore.isAdmin) {
 				error = 'This case is not published.';
@@ -170,31 +129,36 @@
 				return;
 			}
 
-			const legalTags = [...list(record.dsa_articles), ...list(record.legal_areas)];
-			if (legalTags.length) {
-				relatedCases = (
-					await pb.collection('cases').getFullList<CaseRecord>({
-						filter: "published = true && status != 'archived'",
-						sort: '-decision_date,-created'
-					})
-				)
-					.filter((item) => item.id !== record?.id)
-					.filter((item) =>
-						[...list(item.dsa_articles), ...list(item.legal_areas)].some((tag) =>
-							legalTags.includes(tag)
-						)
+			if (Array.isArray(record.related_cases)) {
+				const relationFilter = [
+					pb.filter('related_cases ?= {:id}', { id }),
+					...list(record.related_cases).map((relatedId) =>
+						pb.filter('id = {:id}', { id: relatedId })
 					)
-					.slice(0, 4);
+				].join(' || ');
+				try {
+					const linked = await pb.collection('cases').getFullList<CaseRecord>({
+						filter: `${pb.filter("published = true && status != 'archived' && id != {:id}", { id })} && (${relationFilter})`,
+						sort: 'decision_date,created'
+					});
+					if (generation === loadGeneration) relatedCases = linked;
+				} catch {
+					if (generation === loadGeneration) relatedError = 'Related cases could not be loaded.';
+				}
 			}
 		} catch (err) {
+			if (generation !== loadGeneration) return;
 			console.error('Error loading case:', err);
 			error = 'Could not load this case.';
 		} finally {
-			loading = false;
+			if (generation === loadGeneration) loading = false;
 		}
 	}
 
-	onMount(loadCase);
+	$effect(() => {
+		const id = page.params.id;
+		if (id) void loadCase(id);
+	});
 </script>
 
 <svelte:head>
@@ -254,9 +218,10 @@
 					</div>
 					{#if list(record.dsa_articles).length}
 						<div class="mt-4 flex flex-wrap gap-1.5">
-							{#each [...new Set(list(record.dsa_articles))] as article (article)}<span
-									class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600"
-									>{article}</span
+							{#each [...new Set(list(record.dsa_articles))] as article (article)}<a
+									class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-200"
+									href={`${resolve('/cases')}?provision=${encodeURIComponent(article)}`}
+									>{article}</a
 								>{/each}
 						</div>
 					{/if}
@@ -315,53 +280,60 @@
 		<div class="case-content mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
 			<div class="min-w-0 space-y-6">
 				<section use:reveal={100} class="rounded-xl border border-slate-200 bg-white p-6">
-					<h2 class="text-xl font-black">Summary</h2>
-					{#if record.summary}<div class="prose mt-4 max-w-none text-slate-700">
-							{@html linkifyHtml(record.summary)}
-						</div>{:else}<p class="mt-4 text-slate-500">No summary has been added yet.</p>{/if}
+					<h2 class="text-xl font-bold">Summary and Analysis</h2>
+					<div class="mt-4 rounded-lg border border-slate-100 bg-slate-50 p-4">
+						<h3 class="font-semibold">Summary</h3>
+						{#if stripHtml(record.summary)}<div class="prose mt-3 max-w-none text-slate-700">
+								{@html linkifyHtml(record.summary)}
+							</div>{:else}<p class="mt-3 text-slate-500">No summary has been added yet.</p>{/if}
+					</div>
+					<div class="mt-4 rounded-lg border border-slate-100 bg-slate-50 p-4">
+						<h3 class="font-semibold">Analysis</h3>
+						{#if stripHtml(record.commentary)}
+							<div class="prose mt-3 max-w-none text-slate-700">
+								{@html linkifyHtml(record.commentary)}
+							</div>
+						{:else}
+							<p class="mt-3 text-sm leading-6 text-slate-600">
+								There is no analysis on file yet. You are welcome to contribute by pitching a case
+								commentary to the <a
+									class="underline underline-offset-2 hover:text-slate-950"
+									href="https://dsa-observatory.eu/blogposts-submission/"
+									target="_blank"
+									rel="noreferrer">DSA Observatory blog</a
+								>.
+							</p>
+						{/if}
+					</div>
 				</section>
 
 				<section use:reveal={160} class="rounded-xl border border-slate-200 bg-white p-6">
-					<h2 class="text-xl font-black">Procedural Timeline</h2>
-					{#if record.procedural_wording}
-						<div class="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
-							<div class="text-xs font-semibold text-slate-400">Source procedural wording</div>
-							<p class="mt-1 text-sm whitespace-pre-wrap text-slate-700">
-								{record.procedural_wording}
-							</p>
-						</div>
-					{/if}
-					{#if proceduralEvents.length}
-						<ol class="mt-4 space-y-3">
-							{#each proceduralEvents as event, index (`${event.date}-${event.label}-${index}`)}
-								<li class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-									{#if event.date}<div class="text-xs font-semibold text-slate-400">
-											{formatDate(event.date)}
-										</div>{/if}
-									<div class="font-semibold text-slate-950">
-										{event.label || 'Procedural event'}
-									</div>
-									{#if event.description}<p class="mt-1 text-sm text-slate-600">
-											{#each linkedTextParts(event.description) as part, index (`${part.text}-${index}`)}
-												{#if part.href}<a
-														class="underline decoration-slate-300 underline-offset-2 hover:text-slate-950"
-														href={part.href}
-														target="_blank"
-														rel="noreferrer">{part.text}</a
-													>{:else}{part.text}{/if}
-											{/each}
-										</p>{/if}
-								</li>
+					<h2 class="text-xl font-bold">Related cases</h2>
+					{#if relatedError}
+						<p class="mt-4 text-sm text-red-700" role="alert">{relatedError}</p>
+					{:else if relatedCases.length}
+						<div class="mt-4 space-y-3">
+							{#each relatedCases as related (related.id)}
+								<a
+									class="block rounded-lg border border-slate-200 p-4 hover:bg-slate-50"
+									href={resolve('/cases/[id]', { id: related.id })}
+								>
+									<p class="font-semibold text-slate-950">{related.title}</p>
+									<p class="mt-1 text-sm text-slate-500">
+										{related.jurisdiction}
+										{formatDate(related.decision_date)}
+									</p>
+								</a>
 							{/each}
-						</ol>
+						</div>
 					{:else}
-						<p class="mt-4 text-slate-500">No timeline has been added yet.</p>
+						<p class="mt-4 text-slate-500">No related cases have been linked yet.</p>
 					{/if}
 				</section>
 
 				<section use:reveal={100} class="rounded-xl border border-slate-200 bg-white p-6">
-					<h2 class="text-xl font-black">Documents & References</h2>
-					{#if documentFiles.length || sourceLinks.length || list(record.primary_sources).length || list(record.secondary_sources).length}
+					<h2 class="text-xl font-bold">Documents</h2>
+					{#if documentFiles.length || sources.length}
 						{#if documentFiles.length}
 							<div class="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
 								<h3 class="font-semibold">Uploaded documents</h3>
@@ -381,30 +353,9 @@
 								</ul>
 							</div>
 						{/if}
-						<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-							<div>
-								<h3 class="font-semibold">Primary sources</h3>
-								<div class="mt-2"><CaseSourceList sources={record.primary_sources} /></div>
-							</div>
-							<div>
-								<h3 class="font-semibold">Secondary sources</h3>
-								<div class="mt-2"><CaseSourceList sources={record.secondary_sources} /></div>
-							</div>
-						</div>
-						{#if sourceLinks.length}
-							<div class="mt-5 flex flex-wrap gap-2">
-								{#each sourceLinks as link (link)}
-									<a
-										class="rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-50"
-										href={link}
-										target="_blank"
-										rel="noreferrer">{sourceLabel(link)}</a
-									>
-								{/each}
-							</div>
-						{/if}
+						{#if sources.length}<div class="mt-4"><CaseSourceList {sources} /></div>{/if}
 					{:else}
-						<p class="mt-4 text-slate-500">No documents or references have been added yet.</p>
+						<p class="mt-4 text-slate-500">No documents have been added yet.</p>
 					{/if}
 					{#if record.source_limitations}<div
 							class="prose mt-5 max-w-none rounded-xl bg-amber-50 p-4 text-sm text-amber-900"
@@ -413,69 +364,44 @@
 						</div>{/if}
 				</section>
 
-				{#if record.commentary}
-					<section use:reveal={100} class="rounded-xl border border-slate-200 bg-white p-6">
-						<h2 class="text-xl font-black">Commentary & Context</h2>
-						<div class="prose mt-4 max-w-none text-slate-700">
-							{@html linkifyHtml(record.commentary)}
-						</div>
-					</section>
-				{/if}
+				<section use:reveal={100} class="rounded-xl border border-slate-200 bg-white p-6">
+					<h2 class="text-lg font-bold">Help improve this case</h2>
+					<p class="mt-3 text-sm leading-6 text-slate-600">
+						Would you like to edit or add something to this case?
+					</p>
+					<a
+						class="btn mt-4 btn-outline btn-sm"
+						href={`${resolve('/feedback')}?case=${encodeURIComponent(record.id)}`}
+						>Make a suggestion</a
+					>
+				</section>
 			</div>
 
 			<aside class="min-w-0 space-y-6">
-				<section use:reveal={180} class="rounded-xl border border-slate-200 bg-white p-5">
-					<h2 class="font-black">At a glance</h2>
-					<dl class="mt-4 space-y-3 text-sm">
-						{#each [['Jurisdiction', record.jurisdiction], ['Court', list(record.courts).join(', ') || record.court], ['Filing date', formatDate(record.filing_date)], [record.decision_reference ? 'Reference date' : 'Decision date', formatDate(record.decision_date)], ['Decision reference', record.decision_reference], ['Procedural wording', record.procedural_wording], ['Plaintiffs', list(record.plaintiffs).join(', ')], ['Defendants', list(record.defendants).join(', ')]] as item (item[0])}
-							{#if item[1]}
-								<div>
-									<dt class="text-slate-400">{item[0]}</dt>
-									<dd class="min-w-0 font-medium [overflow-wrap:anywhere] text-slate-800">
-										{#if item[0] === 'Jurisdiction'}
-											<span class="inline-flex items-center gap-2"
-												><CountryFlag country={item[1]} />{item[1]}</span
-											>
-										{:else}
-											{item[1]}
-										{/if}
-									</dd>
-								</div>
-							{/if}
-						{/each}
-					</dl>
-				</section>
-
 				<section use:reveal={240} class="rounded-xl border border-slate-200 bg-white p-5">
-					<h2 class="font-black">Legal classification</h2>
+					<h2 class="font-bold">Relevant provisions</h2>
+					<h3 class="mt-4 text-sm font-semibold">Provisions cited</h3>
 					<div class="mt-4 flex flex-wrap gap-2">
-						{#each [...new Set( [...list(record.dsa_articles), ...list(record.legal_areas), ...list(record.legal_basis), ...categories] )] as tag (tag)}
-							<span
-								class={`rounded-full px-2.5 py-1 text-xs font-semibold ${categories.includes(tag) ? categoryStyle(tag) : 'bg-slate-100 text-slate-600'}`}
-								>{tag}</span
+						{#each provisions as provision (provision)}
+							<a
+								class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-200"
+								href={`${resolve('/cases')}?provision=${encodeURIComponent(provision)}`}
+								>{provision}</a
 							>
 						{/each}
+						{#if !provisions.length}<p class="text-sm text-slate-500">None recorded.</p>{/if}
+					</div>
+					<h3 class="mt-6 text-sm font-semibold">Category</h3>
+					<div class="mt-3 flex flex-wrap gap-2">
+						{#each [...new Set(categories)] as category (category)}
+							<span
+								class={`rounded-full px-3 py-1 text-xs font-semibold ${categoryStyle(category)}`}
+								>{category}</span
+							>
+						{/each}
+						{#if !categories.length}<p class="text-sm text-slate-500">None recorded.</p>{/if}
 					</div>
 				</section>
-
-				{#if relatedCases.length}
-					<section use:reveal={180} class="rounded-xl border border-slate-200 bg-white p-5">
-						<h2 class="font-black">Related cases</h2>
-						<div class="mt-4 space-y-3">
-							{#each relatedCases as related (related.id)}
-								<a
-									class="block rounded-xl border border-slate-100 p-3 text-sm hover:bg-slate-50"
-									href={resolve(`/cases/${related.id}`)}
-								>
-									<div class="font-semibold text-slate-950">{related.title}</div>
-									<div class="mt-1 text-xs text-slate-500">
-										{related.jurisdiction || 'Unknown jurisdiction'}
-									</div>
-								</a>
-							{/each}
-						</div>
-					</section>
-				{/if}
 			</aside>
 		</div>
 	{/if}

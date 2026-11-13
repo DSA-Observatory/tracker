@@ -58,10 +58,7 @@
 		{ value: 'case', label: 'Case details' },
 		{ value: 'parties', label: 'Parties' },
 		{ value: 'legal', label: 'Legal tags' },
-		{ value: 'sources', label: 'Sources' },
-		{ value: 'timeline', label: 'Timeline' },
-		{ value: 'primary', label: 'Primary sources' },
-		{ value: 'secondary', label: 'Secondary sources' }
+		{ value: 'sources', label: 'Documents' }
 	];
 
 	let cases = $state<CaseRecord[]>([]);
@@ -73,7 +70,7 @@
 			: []
 	);
 	let categories = $state<string[]>([]);
-	let articles = $state<string[]>([]);
+	let articles = $state<string[]>(page.url.searchParams.has('provision') ? [page.url.searchParams.get('provision') ?? ''] : []);
 	let courts = $state<string[]>([]);
 	let years = $state<string[]>([]);
 	let loading = $state(true);
@@ -142,7 +139,7 @@
 	const articleFilterOptions = $derived(
 		buildOptions(
 			'articles',
-			uniqueSorted(browseCases.flatMap((record) => record.dsa_articles ?? []))
+			uniqueSorted(browseCases.flatMap((record) => [...(record.dsa_articles ?? []), ...(record.legal_basis ?? [])]))
 		)
 	);
 	const courtFilterOptions = $derived(
@@ -189,8 +186,7 @@
 		cases: cases.length,
 		countries: uniqueSorted(cases.map((record) => normalizeJurisdiction(record.jurisdiction)))
 			.length,
-		courts: uniqueSorted(cases.map((record) => record.court)).length,
-		categories: uniqueSorted(cases.flatMap((record) => getCategories(record))).length
+		courts: uniqueSorted(cases.map((record) => record.court)).length
 	});
 	const rowHeight = $derived(viewMode === 'cards' ? 252 : 176);
 	const virtualStart = $derived(Math.max(0, Math.floor(tableScrollTop / rowHeight) - rowOverscan));
@@ -372,6 +368,18 @@
 			years = [];
 		}
 		if (page.url.searchParams.has('map')) mapCollapsed = mapStartsCollapsed;
+		if (page.url.searchParams.has('provision')) {
+			search = '';
+			searchScope = 'all';
+			countries = [];
+			categories = [];
+			articles = [page.url.searchParams.get('provision') ?? ''];
+			courts = [];
+			years = [];
+			activeTab = 'browse';
+			tableScrollTop = 0;
+			windowScrollY = 0;
+		}
 		if (page.url.searchParams.get('view') === 'map') viewMode = 'map';
 		if (viewMode === 'grid') viewMode = 'cards';
 		if (cardVariant === 'landing') searchScope = 'all';
@@ -380,7 +388,7 @@
 
 	function uniqueSorted(values: (string | undefined)[]) {
 		return [...new Set(values.map((value) => value?.trim()).filter(Boolean) as string[])].sort(
-			(a, b) => a.localeCompare(b)
+			(a, b) => a.localeCompare(b, undefined, { numeric: true })
 		);
 	}
 
@@ -625,7 +633,7 @@
 			(ignoredGroup === 'countries' ||
 				matchesAny(countries, [normalizeJurisdiction(record.jurisdiction)])) &&
 			(ignoredGroup === 'categories' || matchesAny(categories, getCategories(record))) &&
-			(ignoredGroup === 'articles' || matchesAny(articles, record.dsa_articles ?? [])) &&
+			(ignoredGroup === 'articles' || matchesAny(articles, [...(record.dsa_articles ?? []), ...(record.legal_basis ?? [])])) &&
 			(ignoredGroup === 'courts' || matchesAny(courts, [record.court])) &&
 			(ignoredGroup === 'years' || matchesAny(years, [getDecisionYear(record)]))
 		);
@@ -636,7 +644,7 @@
 			if (!matchesFilters(record, group)) return false;
 			if (group === 'countries') return matchesJurisdiction(record, option);
 			if (group === 'categories') return getCategories(record).includes(option);
-			if (group === 'articles') return (record.dsa_articles ?? []).includes(option);
+			if (group === 'articles') return [...(record.dsa_articles ?? []), ...(record.legal_basis ?? [])].includes(option);
 			if (group === 'courts') return record.court === option;
 			return getDecisionYear(record) === option;
 		}).length;
@@ -647,12 +655,17 @@
 	}
 
 	function buildOptions(group: FilterGroup, options: string[]): FilterOption[] {
-		return options.map((option) => ({
-			value: option,
-			label: optionLabel(group, option),
-			count: optionCount(group, option),
-			...(group === 'countries' ? { country: option } : {})
-		}));
+		return options
+			.map((option) => ({
+				value: option,
+				label: optionLabel(group, option),
+				count: optionCount(group, option),
+				...(group === 'countries' ? { country: option } : {})
+			}))
+			.sort(
+				(a, b) =>
+					b.count - a.count || a.label.localeCompare(b.label, undefined, { numeric: true })
+			);
 	}
 
 	function selectedFor(group: FilterGroup) {
@@ -975,7 +988,7 @@
 						</div>
 						<div class="min-w-0">
 							<div
-								class="grid grid-cols-4 items-center rounded-xl border border-white/60 bg-white/65 px-2 py-5 shadow-sm shadow-sky-900/5 backdrop-blur-md sm:px-3"
+								class="grid grid-cols-3 items-center rounded-xl border border-white/60 bg-white/65 px-2 py-5 shadow-sm shadow-sky-900/5 backdrop-blur-md sm:px-3"
 							>
 								<div class="px-2 text-left sm:px-3">
 									<strong class="block text-xl leading-none font-bold tracking-tight text-slate-950"
@@ -996,13 +1009,6 @@
 										>{caseStats.courts}</strong
 									>
 									<span class="mt-2 block text-xs font-normal text-slate-500">courts</span>
-								</div>
-								<div class="border-l border-slate-200/80 px-2 text-left sm:px-3">
-									<strong
-										class="block text-base leading-none font-bold tracking-tight text-slate-900"
-										>{caseStats.categories}</strong
-									>
-									<span class="mt-2 block text-xs font-normal text-slate-500">categories</span>
 								</div>
 							</div>
 						</div>

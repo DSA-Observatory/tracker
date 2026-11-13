@@ -4,7 +4,7 @@
 	import AdminPanelLayout from '$lib/components/admin/AdminPanelLayout.svelte';
 	import CaseCommentsPanel from '$lib/components/cases/CaseCommentsPanel.svelte';
 	import { authStore, pb } from '$lib/database';
-	import { groupOpenComments, isCommentAssignedTo, type CaseCommentRecord } from '$lib/comments';
+	import { groupComments, isCommentAssignedTo, type CaseCommentRecord } from '$lib/comments';
 	import { onMount } from 'svelte';
 	import IconMessageSquare from '~icons/lucide/message-square';
 
@@ -12,14 +12,22 @@
 	let loading = $state(true);
 	let error = $state('');
 	let queueFilter = $state<'all' | 'assigned'>('all');
+	let showResolved = $state(false);
 	let loadGeneration = 0;
 	let disposed = false;
-	const groups = $derived(groupOpenComments(comments));
+	const groups = $derived(
+		groupComments(comments.filter((comment) => comment.resolved === showResolved))
+	);
 	const visibleGroups = $derived(
 		queueFilter === 'assigned'
-			? groupOpenComments(
-					comments.filter((comment) => isCommentAssignedTo(comment, authStore.user?.id))
-				)
+			? groups
+					.map((group) => ({
+						...group,
+						comments: group.comments.filter((comment) =>
+							isCommentAssignedTo(comment, authStore.user?.id)
+						)
+					}))
+					.filter((group) => group.comments.length)
 			: groups
 	);
 
@@ -43,7 +51,6 @@
 		error = '';
 		try {
 			const loaded = await pb.collection('case_comments').getFullList<CaseCommentRecord>({
-				filter: 'resolved = false',
 				sort: '-created',
 				expand: 'case,submission,author,assignee'
 			});
@@ -78,7 +85,7 @@
 
 <svelte:head>
 	<title>Editorial Comments | DSA Case Law Tracker</title>
-	<meta name="description" content="Review unresolved editorial comments." />
+	<meta name="description" content="Review open and resolved editorial comments." />
 </svelte:head>
 
 <!-- eslint-disable svelte/no-navigation-without-resolve -- Queue links resolve their route in each conditional branch. -->
@@ -131,9 +138,23 @@
 			<div class="mt-8 flex flex-wrap gap-2" aria-label="Filter comment queue">
 				<button
 					type="button"
+					class={!showResolved ? 'btn btn-sm btn-neutral' : 'btn btn-outline btn-sm'}
+					aria-pressed={!showResolved}
+					onclick={() => (showResolved = false)}>Open comments</button
+				>
+				<button
+					type="button"
+					class={showResolved ? 'btn btn-sm btn-neutral' : 'btn btn-outline btn-sm'}
+					aria-pressed={showResolved}
+					onclick={() => (showResolved = true)}>Resolved comments</button
+				>
+			</div>
+			<div class="mt-4 flex flex-wrap gap-2" aria-label="Filter by assignee">
+				<button
+					type="button"
 					class={queueFilter === 'all' ? 'btn btn-sm btn-neutral' : 'btn btn-outline btn-sm'}
 					aria-pressed={queueFilter === 'all'}
-					onclick={() => (queueFilter = 'all')}>All open</button
+					onclick={() => (queueFilter = 'all')}>All</button
 				>
 				<button
 					type="button"
@@ -144,11 +165,11 @@
 			</div>
 			{#if !groups.length}
 				<div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-6 text-slate-600">
-					No unresolved comments.
+					No {showResolved ? 'resolved' : 'open'} comments.
 				</div>
 			{:else if !visibleGroups.length}
 				<div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-6 text-slate-600">
-					No unresolved comments assigned to you.
+					No {showResolved ? 'resolved' : 'open'} comments assigned to you.
 				</div>
 			{:else}
 				<div class="mt-8 space-y-4">
@@ -158,7 +179,8 @@
 								<div class="min-w-0 flex-1">
 									<div class="flex items-center gap-2 text-sm text-slate-500">
 										<IconMessageSquare class="size-4" />
-										{group.comments.length} unresolved
+										{group.comments.length}
+										{showResolved ? 'resolved' : 'open'}
 									</div>
 									<h2 class="mt-2 text-xl font-medium break-words text-slate-950">
 										{group.target.title}
