@@ -1,0 +1,1 @@
+import{o as t,W as b,X as h,Y as k,Z as S}from"./BEL2Cp9Q.js";function u(r,i){return r===i||r?.[S]===i}function c(r={},i,a,T){return t(()=>{var f,s;return b(()=>{f=s,s=[],h(()=>{r!==a(...s)&&(i(r,...s),f&&u(a(...f),r)&&i(null,...f))})}),()=>{k(()=>{s&&u(a(...s),r)&&i(null,...s)})}}),r}export{c as b};

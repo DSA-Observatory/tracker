@@ -1,3 +1,3 @@
-# allow crawling everything by default
+# Crawlers may fetch pages to read the pre-launch noindex directive.
 User-agent: *
 Disallow:
