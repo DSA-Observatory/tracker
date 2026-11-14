@@ -1,15 +1,19 @@
 <script lang="ts">
 	import 'maplibre-gl/dist/maplibre-gl.css';
-	import maplibregl, {
-		type GeoJSONSource,
-		type Map as MaplibreMap,
-		type MapLayerMouseEvent,
-		type StyleSpecification
+	import * as maplibregl from 'maplibre-gl';
+	import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+	import type {
+		GeoJSONSource,
+		Map as MaplibreMap,
+		MapLayerMouseEvent,
+		StyleSpecification
 	} from 'maplibre-gl';
 	import { resolve } from '$app/paths';
 	import { onMount, tick, untrack } from 'svelte';
 	import { pb, type CaseRecord } from '$lib/database';
 	import { euJurisdictionCoordinates } from '$lib/jurisdiction-coordinates';
+
+	maplibregl.setWorkerUrl(workerUrl);
 
 	type JurisdictionCount = { jurisdiction: string; count: number };
 	type MapPin = JurisdictionCount & { lng: number; lat: number };
@@ -42,10 +46,11 @@
 		version: 8,
 		glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
 		sources: {
-			'basemap': {
+			basemap: {
 				type: 'vector',
 				url: 'https://demotiles.maplibre.org/tiles/tiles.json',
-				attribution: '<a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">Natural Earth</a> · <a href="https://maplibre.org/" target="_blank" rel="noopener noreferrer">MapLibre</a>'
+				attribution:
+					'<a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">Natural Earth</a> · <a href="https://maplibre.org/" target="_blank" rel="noopener noreferrer">MapLibre</a>'
 			},
 			[casePinsSourceId]: {
 				type: 'geojson',
@@ -208,13 +213,19 @@
 	function initializeMap() {
 		if (!mapContainer || map || isCollapsed) return;
 
-		map = new maplibregl.Map({
-			container: mapContainer,
-			style: lightMapStyle,
-			center: [10, 49],
-			zoom: 2.8,
-			attributionControl: false
-		});
+		try {
+			map = new maplibregl.Map({
+				container: mapContainer,
+				style: lightMapStyle,
+				center: [10, 49],
+				zoom: 2.8,
+				attributionControl: false
+			});
+		} catch (err) {
+			console.error('Could not initialize the jurisdiction map:', err);
+			error = 'The interactive map could not be displayed. Please use the List or Table view.';
+			return;
+		}
 
 		map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 		map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
@@ -362,7 +373,10 @@
 	{/if}
 
 	{#if !isCollapsed}
-		<div class:h-full={fill} class={bare ? '' : compact ? 'bg-slate-50 p-3 sm:p-4' : 'bg-slate-50 p-4 sm:p-5'}>
+		<div
+			class:h-full={fill}
+			class={bare ? '' : compact ? 'bg-slate-50 p-3 sm:p-4' : 'bg-slate-50 p-4 sm:p-5'}
+		>
 			{#if loading}
 				<p class="text-slate-500">Loading jurisdiction data...</p>
 			{:else if error}
@@ -378,7 +392,9 @@
 				>
 					<div
 						bind:this={mapContainer}
-						class={fill ? 'h-full min-h-[18rem] w-full md:min-h-0' : 'h-[18rem] w-full md:h-[24rem]'}
+						class={fill
+							? 'h-full min-h-[18rem] w-full md:min-h-0'
+							: 'h-[18rem] w-full md:h-[24rem]'}
 						aria-label="Global map showing case counts by jurisdiction"
 					></div>
 
